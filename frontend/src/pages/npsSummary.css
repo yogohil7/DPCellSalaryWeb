@@ -1,0 +1,280 @@
+/*
+  NPS SUMMARY — old government report appearance.
+
+  The filter bar keeps the application's own styling; everything inside
+  .nps-sheet is deliberately traditional: a serif face, compact rows, thin
+  black rules and centred bold headings, matching the legacy report rather
+  than the modern card styling used elsewhere.
+*/
+
+.nps-page {
+  padding: 16px 18px 28px;
+}
+
+.nps-toolbar {
+  margin-bottom: 10px;
+}
+
+.nps-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.nps-filters {
+  align-items: flex-end;
+  background: #f7f8fa;
+  border: 1px solid #d8dde5;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+
+.nps-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.nps-field label {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.nps-field select,
+.nps-field input {
+  border: 1px solid #c9d2de;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 6px 8px;
+}
+
+.nps-btn {
+  background: #1f4e79;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+}
+
+.nps-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.nps-message {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 4px;
+  color: #9a3412;
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+
+/* ---------- the report sheet (legacy appearance) ---------- */
+
+.nps-sheet {
+  background: #fff;
+  border: 1px solid #d8dde5;
+  /* Traditional serif report face. */
+  /* On screen the report follows the application's standard type. */
+  font-family: var(--font-family-base);
+  font-size: 15px;
+  color: #000;
+  padding: 20px 22px 24px;
+}
+
+.nps-head {
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.nps-head-line {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+}
+
+.nps-table-wrap {
+  overflow-x: auto;
+}
+
+.nps-table {
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 15px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.nps-table th,
+.nps-table td {
+  border: 1px solid #000;
+  /* Compact legacy row height. */
+  padding: 2px 8px;
+  vertical-align: middle;
+}
+
+.nps-table thead th {
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Alignment, per the printed form. */
+.nps-c-sr { text-align: center; width: 9%; }
+.nps-c-name { text-align: left; width: 31%; }
+.nps-c-emp { text-align: center; width: 10%; }
+.nps-c-amt { text-align: right; width: 16.66%; }
+
+.nps-table tfoot td {
+  font-weight: 700;
+}
+
+.nps-words {
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+/* ---------- cheque no. / date ---------- */
+
+.nps-cheque {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 40px;
+  margin-bottom: 14px;
+}
+
+.nps-cheque-field {
+  align-items: center;
+  display: flex;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.nps-cheque-input {
+  border: none;
+  border-bottom: 1px solid #000;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  min-width: 200px;
+  padding: 2px 4px;
+}
+
+.nps-cheque-input:focus {
+  outline: none;
+  background: #fffbe6;
+}
+
+/* The typed value is printed as plain text; the input itself is not. */
+.nps-cheque-print {
+  display: none;
+  font-weight: 400;
+  min-width: 160px;
+  border-bottom: 1px solid #000;
+}
+
+.nps-sign {
+  font-weight: 700;
+  line-height: 1.6;
+  margin-top: 40px;
+  text-align: right;
+}
+
+.nps-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.nps-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  /*
+    Print overflow safety — same reset as Employee Wise Salary:
+    .app-main is a scroll container on screen, which clips the printed
+    table to the viewport. Orientation, table, pagination, data untouched.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .nps-table-wrap {
+    overflow: visible !important;
+  }
+
+  /* These reports use the application's standard type on paper too. */
+  .nps-sheet {
+    font-family: var(--font-family-base);
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  .no-print,
+  .app-sidebar,
+  .app-header,
+  .nps-filters,
+  .nps-toolbar,
+  .nps-actions {
+    display: none !important;
+  }
+
+  .nps-page {
+    padding: 0;
+  }
+
+  .nps-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  /* Show the typed cheque no./date as report text, not as form fields. */
+  .nps-cheque-print {
+    display: inline-block;
+  }
+
+  .nps-table thead {
+    display: table-header-group;
+  }
+
+  .nps-table tfoot {
+    display: table-footer-group;
+  }
+
+  .nps-table th,
+  .nps-table td {
+    border: 1px solid #000;
+  }
+}

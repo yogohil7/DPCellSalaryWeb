@@ -1,0 +1,4526 @@
+{
+  "database": "DPCELLSalaryWebDB",
+  "server": "YUG-PC",
+  "tables": [
+    "AuditLogs",
+    "CityClasses",
+    "DAMaster",
+    "Designations",
+    "Districts",
+    "EmployeeMaster",
+    "HRAMaster",
+    "Institutes",
+    "MedicalAllowanceMaster",
+    "PayMatrixMaster",
+    "PayRevisionMaster",
+    "Roles",
+    "SalaryBillCodes",
+    "SalaryEmployeeDetails",
+    "Sections",
+    "TransportAllowanceMaster",
+    "Users"
+  ],
+  "columnCount": 207,
+  "columns": [
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "AuditLogId",
+      "DataType": "bigint",
+      "MaxLength": 8,
+      "PrecisionVal": 19,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "ModuleName",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "ActionName",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "EntityKey",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "SourceKey",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "NewKey",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "Details",
+      "DataType": "nvarchar",
+      "MaxLength": 2000,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "UserName",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "FullName",
+      "DataType": "nvarchar",
+      "MaxLength": 400,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "AuditLogs",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 6,
+      "PrecisionVal": 19,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "CityClasses",
+      "ColumnName": "CityClassId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "CityClasses",
+      "ColumnName": "SrNo",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "CityClasses",
+      "ColumnName": "CityClassName",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "CityClasses",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "CityClasses",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "CityClasses",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "CityClasses",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "CityClasses",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "DAId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "SrNo",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "DAName",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "DAPercentage",
+      "DataType": "decimal",
+      "MaxLength": 5,
+      "PrecisionVal": 8,
+      "ScaleVal": 4,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "EffectiveFrom",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "EffectiveTo",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "DAMaster",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "DesignationId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "DesignationCode",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "DesignationName",
+      "DataType": "nvarchar",
+      "MaxLength": 400,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "DesignationType",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "EmployeeClass",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "Designations",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "Districts",
+      "ColumnName": "DistrictId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "Districts",
+      "ColumnName": "SrNo",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "Districts",
+      "ColumnName": "DistrictName",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "Districts",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "Districts",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "Districts",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "Districts",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "Districts",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "EmployeeId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "EmployeeCode",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "EmployeeName",
+      "DataType": "nvarchar",
+      "MaxLength": 400,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "DesignationId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "InstituteId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "DistrictId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "CityClassId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "PayMatrixId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "EmployeeType",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "ScaleOfPay",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "DateOfJoining",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "DateOfFullPay",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 12
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "DateOfBirth",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 13
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "DateOfRetirement",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 14
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "MonthOfIncrement",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 15
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "GPFNPS",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 16
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "GPFNPSNumber",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 17
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "CCCPassDate",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 18
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "BankAccountNumber",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 19
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 20
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 21
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 22
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 23
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 24
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "HRAId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "EffectiveDate",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "CityClass",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "HRAPercentage",
+      "DataType": "decimal",
+      "MaxLength": 5,
+      "PrecisionVal": 5,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "Description",
+      "DataType": "nvarchar",
+      "MaxLength": 1000,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "HRAMaster",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "InstituteId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "SectionId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "InstituteCode",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "InstituteName",
+      "DataType": "nvarchar",
+      "MaxLength": 500,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "InstituteDistrict",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "CityClass",
+      "DataType": "nvarchar",
+      "MaxLength": 20,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "InstituteAddress",
+      "DataType": "nvarchar",
+      "MaxLength": 1000,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "BankAccountNumber",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 12
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 13
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "District",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 14
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "DistrictId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 15
+    },
+    {
+      "TableName": "Institutes",
+      "ColumnName": "CityClassId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 16
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "MedicalAllowanceId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "SrNo",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "AllowanceName",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "Amount",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "EffectiveFrom",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "EffectiveTo",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "PayMatrixId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "PayCommission",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "Level",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "CellNo",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "BasicPay",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "EffectiveDate",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "PayRevisionId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "SrNo",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "RevisionCode",
+      "DataType": "nvarchar",
+      "MaxLength": 60,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "RevisionName",
+      "DataType": "nvarchar",
+      "MaxLength": 300,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "EffectiveFrom",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "EffectiveTo",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "Roles",
+      "ColumnName": "RoleId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "Roles",
+      "ColumnName": "RoleName",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "Roles",
+      "ColumnName": "Description",
+      "DataType": "nvarchar",
+      "MaxLength": 500,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "Roles",
+      "ColumnName": "IsActive",
+      "DataType": "bit",
+      "MaxLength": 1,
+      "PrecisionVal": 1,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "BillCodeId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "BillCode",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "BillMonth",
+      "DataType": "nvarchar",
+      "MaxLength": 20,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "SalaryMonth",
+      "DataType": "nvarchar",
+      "MaxLength": 20,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "SalaryMonthNumber",
+      "DataType": "nvarchar",
+      "MaxLength": 4,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "SalaryYear",
+      "DataType": "nvarchar",
+      "MaxLength": 8,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "BillCategory",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "BillType",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "Description",
+      "DataType": "nvarchar",
+      "MaxLength": 1000,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 6,
+      "PrecisionVal": 19,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 12
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "CompletedDate",
+      "DataType": "datetime2",
+      "MaxLength": 6,
+      "PrecisionVal": 19,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 13
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "CompletedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 14
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "LockedDate",
+      "DataType": "datetime2",
+      "MaxLength": 6,
+      "PrecisionVal": 19,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 15
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "LockedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 16
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "CopiedFromBillCode",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 17
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "UpdatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 6,
+      "PrecisionVal": 19,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 18
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ColumnName": "UpdatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 19
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "Id",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "SalaryBillCodeId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "EmployeeId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "EmployeeName",
+      "DataType": "nvarchar",
+      "MaxLength": 400,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "Designation",
+      "DataType": "nvarchar",
+      "MaxLength": 400,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "EmployeeType",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "DisplayOrder",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "BasicPay",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "GradePay",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "TotalBasic",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "DA",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "HRA",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 12
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "MA",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 13
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "TA",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 14
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "SpecialAllowance",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 15
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "WashingAllowance",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 16
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "GrossSalary",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 17
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "GPFSubscription",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 18
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "GPFAdvance",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 19
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "NPS",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 20
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "IncomeTax",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 21
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "ProfessionalTax",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 22
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "OtherDeduction",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 23
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "TotalDeduction",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 24
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "NetSalary",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 25
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "InstituteCode",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 26
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 6,
+      "PrecisionVal": 19,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 27
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ColumnName": "UpdatedDate",
+      "DataType": "datetime2",
+      "MaxLength": 6,
+      "PrecisionVal": 19,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 28
+    },
+    {
+      "TableName": "Sections",
+      "ColumnName": "SectionId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "Sections",
+      "ColumnName": "SrNo",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "Sections",
+      "ColumnName": "SectionName",
+      "DataType": "nvarchar",
+      "MaxLength": 400,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "Sections",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "Sections",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "Sections",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "Sections",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "Sections",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "TransportAllowanceId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "EffectiveDate",
+      "DataType": "date",
+      "MaxLength": 3,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "PayLevelGroup",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "CityClass",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "TAAmount",
+      "DataType": "decimal",
+      "MaxLength": 9,
+      "PrecisionVal": 18,
+      "ScaleVal": 2,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "Description",
+      "DataType": "nvarchar",
+      "MaxLength": 1000,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "Status",
+      "DataType": "nvarchar",
+      "MaxLength": 40,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "CreatedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 8
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "CreatedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 9
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "ModifiedDate",
+      "DataType": "datetime",
+      "MaxLength": 8,
+      "PrecisionVal": 23,
+      "ScaleVal": 3,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 10
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ColumnName": "ModifiedBy",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": true,
+      "IsIdentity": false,
+      "ColumnId": 11
+    },
+    {
+      "TableName": "Users",
+      "ColumnName": "UserId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": true,
+      "ColumnId": 1
+    },
+    {
+      "TableName": "Users",
+      "ColumnName": "UserName",
+      "DataType": "nvarchar",
+      "MaxLength": 100,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 2
+    },
+    {
+      "TableName": "Users",
+      "ColumnName": "PasswordHash",
+      "DataType": "nvarchar",
+      "MaxLength": 510,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 3
+    },
+    {
+      "TableName": "Users",
+      "ColumnName": "FullName",
+      "DataType": "nvarchar",
+      "MaxLength": 200,
+      "PrecisionVal": 0,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 4
+    },
+    {
+      "TableName": "Users",
+      "ColumnName": "RoleId",
+      "DataType": "int",
+      "MaxLength": 4,
+      "PrecisionVal": 10,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 5
+    },
+    {
+      "TableName": "Users",
+      "ColumnName": "IsActive",
+      "DataType": "bit",
+      "MaxLength": 1,
+      "PrecisionVal": 1,
+      "ScaleVal": 0,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 6
+    },
+    {
+      "TableName": "Users",
+      "ColumnName": "CreatedAt",
+      "DataType": "datetime2",
+      "MaxLength": 8,
+      "PrecisionVal": 27,
+      "ScaleVal": 7,
+      "IsNullable": false,
+      "IsIdentity": false,
+      "ColumnId": 7
+    }
+  ],
+  "primaryKeys": [
+    {
+      "TableName": "AuditLogs",
+      "ConstraintName": "PK__AuditLog__EB5F6CBDC211AE5D",
+      "ColumnName": "AuditLogId"
+    },
+    {
+      "TableName": "CityClasses",
+      "ConstraintName": "PK_CityClasses",
+      "ColumnName": "CityClassId"
+    },
+    {
+      "TableName": "DAMaster",
+      "ConstraintName": "PK_DAMaster",
+      "ColumnName": "DAId"
+    },
+    {
+      "TableName": "Designations",
+      "ConstraintName": "PK__Designat__BABD60DE5C500D1C",
+      "ColumnName": "DesignationId"
+    },
+    {
+      "TableName": "Districts",
+      "ConstraintName": "PK_Districts",
+      "ColumnName": "DistrictId"
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "ConstraintName": "PK_EmployeeMaster",
+      "ColumnName": "EmployeeId"
+    },
+    {
+      "TableName": "HRAMaster",
+      "ConstraintName": "PK_HRAMaster",
+      "ColumnName": "HRAId"
+    },
+    {
+      "TableName": "Institutes",
+      "ConstraintName": "PK__Institut__09EC0DBB02A8B7D8",
+      "ColumnName": "InstituteId"
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "ConstraintName": "PK_MedicalAllowanceMaster",
+      "ColumnName": "MedicalAllowanceId"
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "ConstraintName": "PK_PayMatrixMaster",
+      "ColumnName": "PayMatrixId"
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "ConstraintName": "PK_PayRevisionMaster",
+      "ColumnName": "PayRevisionId"
+    },
+    {
+      "TableName": "Roles",
+      "ConstraintName": "PK__Roles__8AFACE1A487944DE",
+      "ColumnName": "RoleId"
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "ConstraintName": "PK__SalaryBi__43FB168AC8F5CF5A",
+      "ColumnName": "BillCodeId"
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "ConstraintName": "PK__SalaryEm__3214EC07AFF69C47",
+      "ColumnName": "Id"
+    },
+    {
+      "TableName": "Sections",
+      "ConstraintName": "PK__Sections__80EF0872EA227D98",
+      "ColumnName": "SectionId"
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "ConstraintName": "PK_TransportAllowanceMaster",
+      "ColumnName": "TransportAllowanceId"
+    },
+    {
+      "TableName": "Users",
+      "ConstraintName": "PK__Users__1788CC4CCE6FC666",
+      "ColumnName": "UserId"
+    }
+  ],
+  "foreignKeys": [
+    {
+      "ForeignKeyName": "FK_EmployeeMaster_CityClass",
+      "ParentTable": "EmployeeMaster",
+      "ParentColumn": "CityClassId",
+      "ReferencedTable": "CityClasses",
+      "ReferencedColumn": "CityClassId"
+    },
+    {
+      "ForeignKeyName": "FK_EmployeeMaster_Designation",
+      "ParentTable": "EmployeeMaster",
+      "ParentColumn": "DesignationId",
+      "ReferencedTable": "Designations",
+      "ReferencedColumn": "DesignationId"
+    },
+    {
+      "ForeignKeyName": "FK_EmployeeMaster_District",
+      "ParentTable": "EmployeeMaster",
+      "ParentColumn": "DistrictId",
+      "ReferencedTable": "Districts",
+      "ReferencedColumn": "DistrictId"
+    },
+    {
+      "ForeignKeyName": "FK_EmployeeMaster_Institute",
+      "ParentTable": "EmployeeMaster",
+      "ParentColumn": "InstituteId",
+      "ReferencedTable": "Institutes",
+      "ReferencedColumn": "InstituteId"
+    },
+    {
+      "ForeignKeyName": "FK_EmployeeMaster_PayMatrix",
+      "ParentTable": "EmployeeMaster",
+      "ParentColumn": "PayMatrixId",
+      "ReferencedTable": "PayMatrixMaster",
+      "ReferencedColumn": "PayMatrixId"
+    },
+    {
+      "ForeignKeyName": "FK_Institutes_Sections",
+      "ParentTable": "Institutes",
+      "ParentColumn": "SectionId",
+      "ReferencedTable": "Sections",
+      "ReferencedColumn": "SectionId"
+    },
+    {
+      "ForeignKeyName": "FK_SalaryEmployeeDetails_BillCode",
+      "ParentTable": "SalaryEmployeeDetails",
+      "ParentColumn": "SalaryBillCodeId",
+      "ReferencedTable": "SalaryBillCodes",
+      "ReferencedColumn": "BillCodeId"
+    },
+    {
+      "ForeignKeyName": "FK_Users_Roles",
+      "ParentTable": "Users",
+      "ParentColumn": "RoleId",
+      "ReferencedTable": "Roles",
+      "ReferencedColumn": "RoleId"
+    }
+  ],
+  "uniqueIndexes": [
+    {
+      "TableName": "AuditLogs",
+      "IndexName": "PK__AuditLog__EB5F6CBDC211AE5D",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "AuditLogId"
+    },
+    {
+      "TableName": "CityClasses",
+      "IndexName": "PK_CityClasses",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "CityClassId"
+    },
+    {
+      "TableName": "CityClasses",
+      "IndexName": "UQ_CityClasses_Name",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "CityClassName"
+    },
+    {
+      "TableName": "CityClasses",
+      "IndexName": "UQ_CityClasses_SrNo",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "SrNo"
+    },
+    {
+      "TableName": "DAMaster",
+      "IndexName": "PK_DAMaster",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "DAId"
+    },
+    {
+      "TableName": "DAMaster",
+      "IndexName": "UQ_DAMaster_SrNo",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "SrNo"
+    },
+    {
+      "TableName": "Designations",
+      "IndexName": "PK__Designat__BABD60DE5C500D1C",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "DesignationId"
+    },
+    {
+      "TableName": "Designations",
+      "IndexName": "UQ_Designations_DesignationCode",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "DesignationCode"
+    },
+    {
+      "TableName": "Districts",
+      "IndexName": "PK_Districts",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "DistrictId"
+    },
+    {
+      "TableName": "Districts",
+      "IndexName": "UQ_Districts_DistrictName",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "DistrictName"
+    },
+    {
+      "TableName": "Districts",
+      "IndexName": "UQ_Districts_SrNo",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "SrNo"
+    },
+    {
+      "TableName": "EmployeeMaster",
+      "IndexName": "PK_EmployeeMaster",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "EmployeeId"
+    },
+    {
+      "TableName": "HRAMaster",
+      "IndexName": "PK_HRAMaster",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "HRAId"
+    },
+    {
+      "TableName": "HRAMaster",
+      "IndexName": "UQ_HRAMaster",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "EffectiveDate,CityClass"
+    },
+    {
+      "TableName": "Institutes",
+      "IndexName": "PK__Institut__09EC0DBB02A8B7D8",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "InstituteId"
+    },
+    {
+      "TableName": "Institutes",
+      "IndexName": "UQ_Institutes_InstituteCode",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "InstituteCode"
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "IndexName": "PK_MedicalAllowanceMaster",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "MedicalAllowanceId"
+    },
+    {
+      "TableName": "MedicalAllowanceMaster",
+      "IndexName": "UQ_MedicalAllowanceMaster_SrNo",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "SrNo"
+    },
+    {
+      "TableName": "PayMatrixMaster",
+      "IndexName": "PK_PayMatrixMaster",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "PayMatrixId"
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "IndexName": "PK_PayRevisionMaster",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "PayRevisionId"
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "IndexName": "UQ_PayRevisionMaster_Code",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "RevisionCode"
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "IndexName": "UQ_PayRevisionMaster_Name",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "RevisionName"
+    },
+    {
+      "TableName": "PayRevisionMaster",
+      "IndexName": "UQ_PayRevisionMaster_SrNo",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "SrNo"
+    },
+    {
+      "TableName": "Roles",
+      "IndexName": "PK__Roles__8AFACE1A487944DE",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "RoleId"
+    },
+    {
+      "TableName": "Roles",
+      "IndexName": "UQ__Roles__8A2B61607B4AF5CA",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "RoleName"
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "IndexName": "PK__SalaryBi__43FB168AC8F5CF5A",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "BillCodeId"
+    },
+    {
+      "TableName": "SalaryBillCodes",
+      "IndexName": "UQ_SalaryBillCodes_BillCode",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "BillCode"
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "IndexName": "PK__SalaryEm__3214EC07AFF69C47",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "Id"
+    },
+    {
+      "TableName": "SalaryEmployeeDetails",
+      "IndexName": "UQ_SalaryEmployeeDetails_Bill_Employee",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "SalaryBillCodeId,EmployeeId"
+    },
+    {
+      "TableName": "Sections",
+      "IndexName": "PK__Sections__80EF0872EA227D98",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "SectionId"
+    },
+    {
+      "TableName": "Sections",
+      "IndexName": "UQ_Sections_SectionName",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "SectionName"
+    },
+    {
+      "TableName": "Sections",
+      "IndexName": "UQ_Sections_SrNo",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "SrNo"
+    },
+    {
+      "TableName": "TransportAllowanceMaster",
+      "IndexName": "PK_TransportAllowanceMaster",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "TransportAllowanceId"
+    },
+    {
+      "TableName": "Users",
+      "IndexName": "PK__Users__1788CC4CCE6FC666",
+      "IsUnique": true,
+      "IsUniqueConstraint": false,
+      "Columns": "UserId"
+    },
+    {
+      "TableName": "Users",
+      "IndexName": "UQ__Users__C9F284565EAD3430",
+      "IsUnique": true,
+      "IsUniqueConstraint": true,
+      "Columns": "UserName"
+    }
+  ],
+  "procedures": [
+    "sp_LockSalaryBillCode",
+    "usp_EmployeeMaster_GetAll",
+    "usp_EmployeeMaster_GetMasters"
+  ],
+  "views": [],
+  "samples": {
+    "Institutes": {
+      "exists": true,
+      "rowCount": 1,
+      "columns": [
+        {
+          "name": "InstituteId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "SectionId",
+          "type": "int",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "InstituteCode",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "InstituteName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "InstituteDistrict",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CityClass",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "InstituteAddress",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "BankAccountNumber",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "District",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "DistrictId",
+          "type": "int",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CityClassId",
+          "type": "int",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "InstituteId": "2",
+          "SectionId": 2,
+          "InstituteCode": "BD-01",
+          "InstituteName": "ABC",
+          "InstituteDistrict": "Ahmedabad",
+          "CityClass": "X",
+          "InstituteAddress": "Ahmebad",
+          "BankAccountNumber": "123456",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T17:08:06.613Z",
+          "CreatedBy": "System Administrator",
+          "ModifiedDate": "2026-08-25T17:08:15.933Z",
+          "ModifiedBy": "System Administrator",
+          "District": "Ahmedabad",
+          "DistrictId": 1,
+          "CityClassId": 1
+        }
+      ]
+    },
+    "Districts": {
+      "exists": true,
+      "rowCount": 4,
+      "columns": [
+        {
+          "name": "DistrictId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "SrNo",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DistrictName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "DistrictId": "1",
+          "SrNo": 1,
+          "DistrictName": "Ahmedabad",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T16:48:22.303Z",
+          "CreatedBy": "System",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        },
+        {
+          "DistrictId": "2",
+          "SrNo": 2,
+          "DistrictName": "Gandhinagar",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T16:48:22.303Z",
+          "CreatedBy": "System",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        },
+        {
+          "DistrictId": "3",
+          "SrNo": 3,
+          "DistrictName": "Vadodara",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T16:48:22.303Z",
+          "CreatedBy": "System",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        },
+        {
+          "DistrictId": "4",
+          "SrNo": 4,
+          "DistrictName": "Surat",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T16:48:22.303Z",
+          "CreatedBy": "System",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        }
+      ]
+    },
+    "CityClasses": {
+      "exists": true,
+      "rowCount": 3,
+      "columns": [
+        {
+          "name": "CityClassId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "SrNo",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CityClassName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "CityClassId": "1",
+          "SrNo": 1,
+          "CityClassName": "X",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T16:49:24.077Z",
+          "CreatedBy": "System",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        },
+        {
+          "CityClassId": "2",
+          "SrNo": 2,
+          "CityClassName": "Y",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T16:49:24.077Z",
+          "CreatedBy": "System",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        },
+        {
+          "CityClassId": "3",
+          "SrNo": 3,
+          "CityClassName": "Z",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T16:49:24.077Z",
+          "CreatedBy": "System",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        }
+      ]
+    },
+    "Sections": {
+      "exists": true,
+      "rowCount": 3,
+      "columns": [
+        {
+          "name": "SectionId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "SrNo",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "SectionName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "SectionId": "2",
+          "SrNo": 1,
+          "SectionName": "BD Section",
+          "Status": "ACTIVE",
+          "CreatedDate": "2026-08-25T16:31:08.920Z",
+          "CreatedBy": "Admin",
+          "ModifiedDate": "2026-08-25T16:31:45.420Z",
+          "ModifiedBy": "System Administrator"
+        },
+        {
+          "SectionId": "3",
+          "SrNo": 2,
+          "SectionName": "DD Section",
+          "Status": "ACTIVE",
+          "CreatedDate": "2026-08-25T16:34:49.577Z",
+          "CreatedBy": null,
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        },
+        {
+          "SectionId": "4",
+          "SrNo": 3,
+          "SectionName": "DDRS Section",
+          "Status": "ACTIVE",
+          "CreatedDate": "2026-08-25T17:07:39.250Z",
+          "CreatedBy": "System Administrator",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        }
+      ]
+    },
+    "Designations": {
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "name": "DesignationId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "DesignationCode",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DesignationName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DesignationType",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EmployeeClass",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime2",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime2",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": []
+    },
+    "PayRevisionMaster": {
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "name": "PayRevisionId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "SrNo",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "RevisionCode",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "RevisionName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EffectiveFrom",
+          "type": "date",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "EffectiveTo",
+          "type": "date",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": []
+    },
+    "PayMatrixMaster": {
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "name": "PayMatrixId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "PayCommission",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Level",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CellNo",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "BasicPay",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EffectiveDate",
+          "type": "date",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime2",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime2",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": []
+    },
+    "DAMaster": {
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "name": "DAId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "SrNo",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DAName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DAPercentage",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EffectiveFrom",
+          "type": "date",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EffectiveTo",
+          "type": "date",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": []
+    },
+    "HRAMaster": {
+      "exists": true,
+      "rowCount": 1,
+      "columns": [
+        {
+          "name": "HRAId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "EffectiveDate",
+          "type": "date",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CityClass",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "HRAPercentage",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Description",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime2",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime2",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "HRAId": "1",
+          "EffectiveDate": "2026-01-01T00:00:00.000Z",
+          "CityClass": "X",
+          "HRAPercentage": 30,
+          "Description": "HRA as per applicable rules",
+          "Status": "Active",
+          "CreatedDate": "2026-08-25T17:03:37.206Z",
+          "CreatedBy": "Admin",
+          "ModifiedDate": null,
+          "ModifiedBy": null
+        }
+      ]
+    },
+    "MedicalAllowanceMaster": {
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "name": "MedicalAllowanceId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "SrNo",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "AllowanceName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Amount",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EffectiveFrom",
+          "type": "date",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EffectiveTo",
+          "type": "date",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": []
+    },
+    "TransportAllowanceMaster": {
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "name": "TransportAllowanceId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "EffectiveDate",
+          "type": "date",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "PayLevelGroup",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CityClass",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "TAAmount",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Description",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": []
+    },
+    "SalaryBillCodes": {
+      "exists": true,
+      "rowCount": 3,
+      "columns": [
+        {
+          "name": "BillCodeId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "BillCode",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "BillMonth",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "SalaryMonth",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "SalaryMonthNumber",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "SalaryYear",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "BillCategory",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "BillType",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Description",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime2",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CompletedDate",
+          "type": "datetime2",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CompletedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "LockedDate",
+          "type": "datetime2",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "LockedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CopiedFromBillCode",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "UpdatedDate",
+          "type": "datetime2",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "UpdatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "BillCodeId": "1",
+          "BillCode": "AUG-2026",
+          "BillMonth": "AUG-26",
+          "SalaryMonth": "AUG-26",
+          "SalaryMonthNumber": "08",
+          "SalaryYear": "2026",
+          "BillCategory": "Salary",
+          "BillType": "Regular Salary",
+          "Description": "August 2026 Regular",
+          "Status": "LOCKED",
+          "CreatedDate": "2026-08-25T10:24:50.000Z",
+          "CreatedBy": "Admin",
+          "CompletedDate": "2026-08-25T10:26:31.000Z",
+          "CompletedBy": "Admin",
+          "LockedDate": "2026-08-25T16:12:30.000Z",
+          "LockedBy": "1",
+          "CopiedFromBillCode": null,
+          "UpdatedDate": "2026-08-25T16:12:30.000Z",
+          "UpdatedBy": "Admin"
+        },
+        {
+          "BillCodeId": "2",
+          "BillCode": "SEP-2026",
+          "BillMonth": "SEP-26",
+          "SalaryMonth": "SEP-26",
+          "SalaryMonthNumber": "09",
+          "SalaryYear": "2026",
+          "BillCategory": "Salary",
+          "BillType": "Regular Salary",
+          "Description": "August 2026 Regular",
+          "Status": "LOCKED",
+          "CreatedDate": "2026-08-25T10:27:07.000Z",
+          "CreatedBy": "System Administrator",
+          "CompletedDate": null,
+          "CompletedBy": null,
+          "LockedDate": "2026-08-25T16:21:39.000Z",
+          "LockedBy": "System Administrator",
+          "CopiedFromBillCode": "AUG-2026",
+          "UpdatedDate": null,
+          "UpdatedBy": null
+        },
+        {
+          "BillCodeId": "5",
+          "BillCode": "AUG-2026-DA-DIFF",
+          "BillMonth": "AUG-26",
+          "SalaryMonth": "AUG-26",
+          "SalaryMonthNumber": "08",
+          "SalaryYear": "2026",
+          "BillCategory": "Difference",
+          "BillType": "DA Difference",
+          "Description": "DA Diff. 58-60%",
+          "Status": "OPEN",
+          "CreatedDate": "2026-08-25T10:46:19.000Z",
+          "CreatedBy": "System Administrator",
+          "CompletedDate": null,
+          "CompletedBy": null,
+          "LockedDate": null,
+          "LockedBy": null,
+          "CopiedFromBillCode": null,
+          "UpdatedDate": null,
+          "UpdatedBy": null
+        }
+      ]
+    },
+    "SalaryEmployeeDetails": {
+      "exists": true,
+      "rowCount": 8,
+      "columns": [
+        {
+          "name": "Id",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "SalaryBillCodeId",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EmployeeId",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EmployeeName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Designation",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "EmployeeType",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "DisplayOrder",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "BasicPay",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "GradePay",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "TotalBasic",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DA",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "HRA",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "MA",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "TA",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "SpecialAllowance",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "WashingAllowance",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "GrossSalary",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "GPFSubscription",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "GPFAdvance",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "NPS",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "IncomeTax",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "ProfessionalTax",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "OtherDeduction",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "TotalDeduction",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "NetSalary",
+          "type": "decimal",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "InstituteCode",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime2",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "UpdatedDate",
+          "type": "datetime2",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "Id": "1",
+          "SalaryBillCodeId": 2,
+          "EmployeeId": 3,
+          "EmployeeName": "Employee 3",
+          "Designation": "Assistant",
+          "EmployeeType": "GPF",
+          "DisplayOrder": 4,
+          "BasicPay": 32000,
+          "GradePay": 4200,
+          "TotalBasic": 36200,
+          "DA": 19200,
+          "HRA": 4500,
+          "MA": 500,
+          "TA": 1800,
+          "SpecialAllowance": 1000,
+          "WashingAllowance": 0,
+          "GrossSalary": 63200,
+          "GPFSubscription": 3200,
+          "GPFAdvance": 0,
+          "NPS": 0,
+          "IncomeTax": 500,
+          "ProfessionalTax": 200,
+          "OtherDeduction": 0,
+          "TotalDeduction": 3900,
+          "NetSalary": 59300,
+          "InstituteCode": "INS001",
+          "CreatedDate": "2026-08-25T10:44:50.000Z",
+          "UpdatedDate": "2026-08-25T10:44:50.000Z"
+        },
+        {
+          "Id": "2",
+          "SalaryBillCodeId": 2,
+          "EmployeeId": 1,
+          "EmployeeName": "Employee 1",
+          "Designation": "Teacher",
+          "EmployeeType": "GPF",
+          "DisplayOrder": 3,
+          "BasicPay": 30000,
+          "GradePay": 4200,
+          "TotalBasic": 34200,
+          "DA": 18000,
+          "HRA": 4200,
+          "MA": 500,
+          "TA": 1800,
+          "SpecialAllowance": 0,
+          "WashingAllowance": 0,
+          "GrossSalary": 58700,
+          "GPFSubscription": 3000,
+          "GPFAdvance": 0,
+          "NPS": 0,
+          "IncomeTax": 0,
+          "ProfessionalTax": 200,
+          "OtherDeduction": 0,
+          "TotalDeduction": 3200,
+          "NetSalary": 55500,
+          "InstituteCode": "INS001",
+          "CreatedDate": "2026-08-25T10:44:50.000Z",
+          "UpdatedDate": "2026-08-25T10:44:50.000Z"
+        },
+        {
+          "Id": "3",
+          "SalaryBillCodeId": 2,
+          "EmployeeId": 4,
+          "EmployeeName": "Employee 4",
+          "Designation": "Clerk",
+          "EmployeeType": "NPS",
+          "DisplayOrder": 2,
+          "BasicPay": 35000,
+          "GradePay": 4200,
+          "TotalBasic": 39200,
+          "DA": 21000,
+          "HRA": 5000,
+          "MA": 500,
+          "TA": 1800,
+          "SpecialAllowance": 0,
+          "WashingAllowance": 0,
+          "GrossSalary": 67500,
+          "GPFSubscription": 0,
+          "GPFAdvance": 0,
+          "NPS": 4500,
+          "IncomeTax": 500,
+          "ProfessionalTax": 200,
+          "OtherDeduction": 0,
+          "TotalDeduction": 5200,
+          "NetSalary": 62300,
+          "InstituteCode": "INS001",
+          "CreatedDate": "2026-08-25T10:44:50.000Z",
+          "UpdatedDate": "2026-08-25T10:44:50.000Z"
+        },
+        {
+          "Id": "4",
+          "SalaryBillCodeId": 2,
+          "EmployeeId": 2,
+          "EmployeeName": "Employee 2",
+          "Designation": "Clerk",
+          "EmployeeType": "NPS",
+          "DisplayOrder": 1,
+          "BasicPay": 28000,
+          "GradePay": 2800,
+          "TotalBasic": 30800,
+          "DA": 16800,
+          "HRA": 4000,
+          "MA": 500,
+          "TA": 1800,
+          "SpecialAllowance": 0,
+          "WashingAllowance": 0,
+          "GrossSalary": 53900,
+          "GPFSubscription": 0,
+          "GPFAdvance": 0,
+          "NPS": 3500,
+          "IncomeTax": 0,
+          "ProfessionalTax": 200,
+          "OtherDeduction": 0,
+          "TotalDeduction": 3700,
+          "NetSalary": 50200,
+          "InstituteCode": "INS001",
+          "CreatedDate": "2026-08-25T10:44:50.000Z",
+          "UpdatedDate": "2026-08-25T10:44:50.000Z"
+        },
+        {
+          "Id": "5",
+          "SalaryBillCodeId": 5,
+          "EmployeeId": 1,
+          "EmployeeName": "Employee 1",
+          "Designation": "Teacher",
+          "EmployeeType": "GPF",
+          "DisplayOrder": 1,
+          "BasicPay": 30000,
+          "GradePay": 4200,
+          "TotalBasic": 34200,
+          "DA": 18000,
+          "HRA": 4200,
+          "MA": 500,
+          "TA": 1800,
+          "SpecialAllowance": 0,
+          "WashingAllowance": 0,
+          "GrossSalary": 58700,
+          "GPFSubscription": 3000,
+          "GPFAdvance": 0,
+          "NPS": 0,
+          "IncomeTax": 0,
+          "ProfessionalTax": 200,
+          "OtherDeduction": 0,
+          "TotalDeduction": 3200,
+          "NetSalary": 55500,
+          "InstituteCode": "INS001",
+          "CreatedDate": "2026-08-25T10:47:24.000Z",
+          "UpdatedDate": "2026-08-25T10:47:43.000Z"
+        }
+      ]
+    },
+    "Users": {
+      "exists": true,
+      "rowCount": 1,
+      "columns": [
+        {
+          "name": "UserId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "UserName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "PasswordHash",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "FullName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "RoleId",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "IsActive",
+          "type": "bit",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedAt",
+          "type": "datetime2",
+          "nullable": false,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "UserId": "2",
+          "UserName": "admin",
+          "PasswordHash": "$2b$10$LEBGFUkVRQ8zFUZkJnWAou45b6VdipUC7X.QwzicgYmJXbik4nx2.",
+          "FullName": "System Administrator",
+          "RoleId": 1,
+          "IsActive": true,
+          "CreatedAt": "2026-08-19T17:59:13.240Z"
+        }
+      ]
+    },
+    "Roles": {
+      "exists": true,
+      "rowCount": 4,
+      "columns": [
+        {
+          "name": "RoleId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "RoleName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "Description",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "IsActive",
+          "type": "bit",
+          "nullable": false,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "RoleId": "1",
+          "RoleName": "Super Admin",
+          "Description": "Full access to all application functions including User Master",
+          "IsActive": true
+        },
+        {
+          "RoleId": "2",
+          "RoleName": "Account Officer",
+          "Description": "View reports and approve salary bills",
+          "IsActive": true
+        },
+        {
+          "RoleId": "3",
+          "RoleName": "Auditor",
+          "Description": "Full application access except User Master",
+          "IsActive": true
+        },
+        {
+          "RoleId": "4",
+          "RoleName": "Viewer",
+          "Description": "View reports only",
+          "IsActive": true
+        }
+      ]
+    },
+    "AuditLogs": {
+      "exists": true,
+      "rowCount": 7,
+      "columns": [
+        {
+          "name": "AuditLogId",
+          "type": "bigint",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "ModuleName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "ActionName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EntityKey",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "SourceKey",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "NewKey",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Details",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "UserName",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "FullName",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime2",
+          "nullable": false,
+          "identity": false
+        }
+      ],
+      "topRows": [
+        {
+          "AuditLogId": "1",
+          "ModuleName": "SalaryBillCode",
+          "ActionName": "Bill Code Created",
+          "EntityKey": "AUG-2026",
+          "SourceKey": null,
+          "NewKey": "AUG-2026",
+          "Details": "Created with status OPEN",
+          "UserName": "admin",
+          "FullName": "Admin",
+          "CreatedDate": "2026-08-25T10:24:50.000Z"
+        },
+        {
+          "AuditLogId": "2",
+          "ModuleName": "SalaryBillCode",
+          "ActionName": "Bill Code Completed",
+          "EntityKey": "AUG-2026",
+          "SourceKey": null,
+          "NewKey": null,
+          "Details": "OPEN → COMPLETED",
+          "UserName": "admin",
+          "FullName": "Admin",
+          "CreatedDate": "2026-08-25T10:26:31.000Z"
+        },
+        {
+          "AuditLogId": "3",
+          "ModuleName": "SalaryBillCode",
+          "ActionName": "Bill Code Locked",
+          "EntityKey": "AUG-2026",
+          "SourceKey": null,
+          "NewKey": null,
+          "Details": "COMPLETED → LOCKED",
+          "UserName": "admin",
+          "FullName": "Admin",
+          "CreatedDate": "2026-08-25T10:26:31.000Z"
+        },
+        {
+          "AuditLogId": "4",
+          "ModuleName": "SalaryBillCode",
+          "ActionName": "Bill Code Copied",
+          "EntityKey": "SEP-2026",
+          "SourceKey": "AUG-2026",
+          "NewKey": "SEP-2026",
+          "Details": "Copied locked bill code to new month with status OPEN",
+          "UserName": "admin",
+          "FullName": "System Administrator",
+          "CreatedDate": "2026-08-25T10:27:07.000Z"
+        },
+        {
+          "AuditLogId": "5",
+          "ModuleName": "SalaryBillCode",
+          "ActionName": "Bill Code Created",
+          "EntityKey": "SEP-2026-DA-DIFF",
+          "SourceKey": null,
+          "NewKey": "SEP-2026-DA-DIFF",
+          "Details": "Created with status OPEN",
+          "UserName": "admin",
+          "FullName": "System Administrator",
+          "CreatedDate": "2026-08-25T10:45:45.000Z"
+        }
+      ]
+    },
+    "EmployeeMaster": {
+      "exists": true,
+      "rowCount": 0,
+      "columns": [
+        {
+          "name": "EmployeeId",
+          "type": "int",
+          "nullable": false,
+          "identity": true
+        },
+        {
+          "name": "EmployeeCode",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EmployeeName",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DesignationId",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "InstituteId",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DistrictId",
+          "type": "int",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CityClassId",
+          "type": "int",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "PayMatrixId",
+          "type": "int",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "EmployeeType",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "ScaleOfPay",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "DateOfJoining",
+          "type": "date",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DateOfFullPay",
+          "type": "date",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "DateOfBirth",
+          "type": "date",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "DateOfRetirement",
+          "type": "date",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "MonthOfIncrement",
+          "type": "int",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "GPFNPS",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "GPFNPSNumber",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "CCCPassDate",
+          "type": "date",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "BankAccountNumber",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "Status",
+          "type": "nvarchar",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedDate",
+          "type": "datetime2",
+          "nullable": false,
+          "identity": false
+        },
+        {
+          "name": "CreatedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedDate",
+          "type": "datetime2",
+          "nullable": true,
+          "identity": false
+        },
+        {
+          "name": "ModifiedBy",
+          "type": "nvarchar",
+          "nullable": true,
+          "identity": false
+        }
+      ],
+      "topRows": []
+    },
+    "Employees": {
+      "exists": false
+    }
+  },
+  "instituteJoin": [
+    {
+      "InstituteId": "2",
+      "InstituteCode": "BD-01",
+      "InstituteName": "ABC",
+      "DistrictId": 1,
+      "DistrictName": "Ahmedabad",
+      "CityClassId": 1,
+      "CityClassName": "X",
+      "InstituteDistrict": "Ahmedabad",
+      "CityClass": "X"
+    }
+  ]
+}

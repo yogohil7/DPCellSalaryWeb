@@ -1,0 +1,606 @@
+/* =========================================================
+   INSTITUTE MASTER - HRMS STYLE
+   ========================================================= */
+
+.institute-master {
+  --im-header: #5e6d7e;
+  --im-navy: #2c3e50;
+  --im-border: #c5d4e8;
+  --im-input-border: #b7c4d6;
+  --im-input-bg: #f5f5f5;
+  --im-label: #4d4d4d;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  color: #212529;
+}
+
+
+/* =========================================================
+   TOP
+   ========================================================= */
+
+.im-top {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.im-back {
+  width: fit-content;
+
+  border: 0;
+  background: transparent;
+
+  color: #1565c0;
+
+  font-family: var(--font-family-base);
+  font-size: 16px;
+  font-weight: 600;
+
+  padding: 0;
+
+  cursor: pointer;
+}
+
+.im-top h1 {
+  margin: 0;
+
+  font-family: var(--font-family-base);
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color: #2c3e50;
+}
+
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.im-card {
+  background: #ffffff;
+
+  border: 1px solid var(--im-border);
+
+  border-radius: 4px;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   CARD HEADER
+   ========================================================= */
+
+.im-card-head {
+  min-height: 36px;
+
+  padding: 0 14px;
+
+  background: var(--im-header);
+
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-family: var(--font-family-base);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   BREADCRUMB
+   ========================================================= */
+
+.im-crumb {
+  background: #e9ecef;
+
+  color: #1565c0;
+
+  padding: 4px 10px;
+
+  border-radius: 3px;
+
+  font-size: 11px;
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   CARD BODY
+   ========================================================= */
+
+.im-card-body {
+  padding: 16px 14px;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   FORM GRID
+   ========================================================= */
+
+.im-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 14px;
+
+  .im-wide {
+  grid-column: span 2;
+}
+}
+
+
+/* =========================================================
+   LABEL
+   ========================================================= */
+
+.institute-master label {
+   display: block;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: var(--font-family-base);
+  color: var(--hr-label);
+  text-align: left;
+}
+
+.institute-master label em {
+  color: #dc3545;
+  font-style: normal;
+  font-family: var(--font-family-base);
+}
+
+
+/* =========================================================
+   INPUT / SELECT / TEXTAREA
+   ========================================================= */
+
+.institute-master input,
+.institute-master select,
+.institute-master textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--im-input-border);
+
+  background: var(--im-input-bg);
+
+  border-radius: 3px;
+
+  font-family: var(--font-family-base);
+
+  font-size: 12px;
+
+  color: #555;
+
+  outline: none;
+}
+
+.institute-master input,
+.institute-master select {
+  height: 38px;
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid #b7c4d6;
+  background: #f5f5f5;
+  border-radius: 4px;
+
+  padding: 0 10px;
+
+  font-family: var(--font-family-base);
+  font-size: 14px;
+  font-weight: 400;
+  color: #212529;
+
+  box-shadow: none;
+}
+
+.institute-master textarea {
+  min-height: 65px;
+
+  padding: 8px;
+
+  resize: vertical;
+}
+
+.institute-master input:focus,
+.institute-master select:focus,
+.institute-master textarea:focus {
+  border-color: #80bdff;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 2px rgba(0, 123, 255, 0.10);
+}
+
+.im-wide {
+  grid-column: span 2;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.im-actions {
+  display: flex;
+
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 16px;
+
+  padding-top: 12px;
+
+  border-top: 1px solid #dee2e6;
+}
+
+.im-message {
+  margin-right: auto;
+
+  color: #2e7d32;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.im-btn {
+  height: 34px;
+
+  padding: 0 13px;
+
+  border-radius: 3px;
+
+  font-family: var(--font-family-base);
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  border: 1px solid #ced4da;
+
+  background: #ffffff;
+
+  color: #212529;
+}
+
+.im-btn.primary {
+  background: var(--im-navy);
+
+  border-color: var(--im-navy);
+
+  color: #ffffff;
+}
+
+.im-btn.reset {
+  background: var(--im-header);
+
+  border-color: var(--im-header);
+
+  color: #ffffff;
+}
+
+.im-btn.cancel {
+  background: #ffffff;
+
+  border-color: #ced4da;
+
+  color: #333333;
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.im-search-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr 1fr 1fr auto;
+
+  gap: 12px;
+
+  align-items: end;
+}
+
+.im-search-buttons {
+  display: flex;
+
+  gap: 6px;
+
+  align-items: center;
+}
+
+
+/* =========================================================
+   LIST TOOLBAR
+   ========================================================= */
+
+.im-list-tools {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 8px;
+
+  font-size: 11px;
+}
+
+.im-entries {
+  height: 32px;
+
+  min-width: 65px;
+
+  border: 1px solid #b7c4d6;
+
+  border-radius: 3px;
+
+  padding: 0 6px;
+
+  font-size: 11px;
+}
+
+.im-table-search {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+}
+
+.im-table-search input {
+  width: 160px;
+
+  height: 32px;
+
+  border: 1px solid #b7c4d6;
+
+  border-radius: 3px;
+
+  padding: 0 8px;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.im-table-wrap {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border: 1px solid #dee2e6;
+}
+
+.im-table {
+  width: 100%;
+
+  min-width: 1050px;
+
+  border-collapse: collapse;
+
+  font-family: var(--font-family-base);
+
+  font-size: 11px;
+}
+
+.im-table th {
+  height: 35px;
+
+  padding: 7px 8px;
+
+  background: #2c3e50;
+
+  color: #ffffff;
+
+  border: 1px solid #3d5166;
+
+  text-align: left;
+
+  white-space: nowrap;
+
+  font-size: 11px;
+
+  font-weight: 600;
+}
+
+.im-table td {
+  padding: 7px 8px;
+
+  height: 38px;
+
+  border: 1px solid #dee2e6;
+
+  background: #ffffff;
+
+  color: #555;
+
+  font-size: 11px;
+
+  white-space: nowrap;
+}
+
+.im-table tbody tr:hover td {
+  background: #f8f9fa;
+}
+
+.im-empty {
+  text-align: center;
+
+  padding: 18px !important;
+
+  color: #6c757d !important;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.im-status.active {
+  color: #1e7e34;
+
+  font-weight: 600;
+}
+
+.im-status.inactive {
+  color: #6c757d;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   TABLE ACTIONS
+   ========================================================= */
+
+.im-actions {
+  display: flex;
+
+  gap: 5px;
+
+  align-items: center;
+}
+
+.im-small {
+  height: 26px;
+
+  padding: 0 8px;
+
+  border-radius: 3px;
+
+  background: #ffffff;
+
+  font-family: var(--font-family-base);
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.im-small.edit {
+  color: #2e7d32;
+
+  border: 1px solid #a5d6a7;
+}
+
+.im-small.delete {
+  color: #dc3545;
+
+  border: 1px solid #e0a0a0;
+}
+
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
+
+.im-pager {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 10px;
+
+  font-size: 11px;
+
+  color: #6c757d;
+}
+
+.im-pager button {
+  height: 30px;
+
+  min-width: 35px;
+
+  border: 1px solid #ced4da;
+
+  background: #ffffff;
+
+  color: #555;
+
+  border-radius: 3px;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.im-pager button.active {
+  background: #2c3e50;
+
+  border-color: #2c3e50;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .im-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .im-search-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+
+  .im-grid,
+  .im-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .im-wide {
+    grid-column: auto;
+  }
+
+  .im-list-tools {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 8px;
+  }
+
+  .im-actions {
+    justify-content: flex-start;
+  }
+}

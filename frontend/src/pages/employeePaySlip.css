@@ -1,0 +1,314 @@
+/*
+  EMPLOYEE PAY SLIP
+
+  An A4 document, one employee per page. Screen styling mirrors the other
+  report sheets (see reportCommon.css); the print block follows the same
+  architecture the project's working report print fixes established.
+*/
+
+.eps-page {
+  padding: 16px;
+}
+
+.eps-toolbar {
+  margin-bottom: 12px;
+}
+
+.eps-link {
+  background: none;
+  border: none;
+  color: var(--brand, #1d4ed8);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.eps-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.eps-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 170px;
+}
+
+.eps-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6b7f;
+}
+
+.eps-field select,
+.eps-field input {
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.eps-btn {
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.eps-btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.eps-btn-ghost {
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.eps-message {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #eef4ff;
+  border: 1px solid #c7d7f5;
+  font-size: 14px;
+}
+
+.eps-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* ---------------- the document itself ---------------- */
+
+.eps-slip {
+  background: #fff;
+  border: 1px solid #94a3b8;
+  color: #000;
+  margin: 0 auto 22px;
+  padding: 18px 22px 26px;
+  width: 210mm;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+}
+
+.eps-head {
+  text-align: center;
+  border-bottom: 2px solid #000;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.eps-head-line {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+}
+
+.eps-head-line.eps-gov {
+  font-size: 15px;
+}
+
+.eps-title {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 22px;
+  border: 1px solid #000;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.eps-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 24px;
+  margin-bottom: 10px;
+}
+
+.eps-meta-row {
+  display: flex;
+  gap: 6px;
+  line-height: 1.6;
+}
+
+.eps-meta-label {
+  min-width: 122px;
+  color: #333;
+}
+
+.eps-meta-value {
+  font-weight: 600;
+}
+
+.eps-section-title {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: #eef2f7;
+  border: 1px solid #94a3b8;
+  border-bottom: none;
+  padding: 4px 8px;
+}
+
+.eps-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 18px;
+  margin-bottom: 10px;
+}
+
+.eps-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.eps-table th,
+.eps-table td {
+  border: 1px solid #94a3b8;
+  padding: 4px 8px;
+  line-height: 1.5;
+}
+
+.eps-table th {
+  background: #eef2f7;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.eps-table th.eps-amt,
+.eps-table td.eps-amt {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  width: 38%;
+}
+
+.eps-table tr.eps-total td {
+  font-weight: 700;
+  background: #f6f8fb;
+}
+
+.eps-net {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid #000;
+  padding: 6px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.eps-words {
+  border: 1px solid #94a3b8;
+  padding: 6px 10px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.eps-words-label {
+  color: #333;
+  margin-right: 6px;
+}
+
+.eps-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 26px;
+}
+
+.eps-office,
+.eps-sign {
+  line-height: 1.6;
+}
+
+.eps-sign {
+  text-align: right;
+  font-weight: 600;
+}
+
+.eps-disclaimer {
+  margin-top: 18px;
+  padding-top: 6px;
+  border-top: 1px dashed #94a3b8;
+  text-align: center;
+  font-size: 11px;
+  color: #444;
+}
+
+/* ---------------- print ---------------- */
+
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  /*
+    Print overflow safety — the same reset the project's other report print
+    fixes use: .app-main is a scroll container on screen, which otherwise
+    clips the document to the viewport. Data and layout untouched.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .eps-page {
+    padding: 0;
+  }
+
+  .eps-slip {
+    width: auto;
+    border: none;
+    margin: 0;
+    padding: 0;
+    /* One employee per page. */
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+  }
+
+  /* No trailing blank page after the last slip. */
+  .eps-slip:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .eps-table th {
+    background: #eef2f7 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

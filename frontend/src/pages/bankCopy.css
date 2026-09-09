@@ -1,0 +1,218 @@
+/* BANK COPY — government-style payment sheet. */
+
+.bc-page {
+  padding: 16px 18px 28px;
+}
+
+.bc-toolbar {
+  margin-bottom: 10px;
+}
+
+.bc-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.bc-filters {
+  align-items: flex-end;
+  background: #f7f8fa;
+  border: 1px solid #d8dde5;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+
+.bc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.bc-field label {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.bc-field select,
+.bc-field input {
+  border: 1px solid #c9d2de;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 6px 8px;
+}
+
+.bc-btn {
+  background: #1f4e79;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+}
+
+.bc-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.bc-message {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 4px;
+  color: #9a3412;
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+
+/* ---------- the sheet ---------- */
+
+.bc-sheet {
+  background: #fff;
+  border: 1px solid #d8dde5;
+  border-radius: 4px;
+  padding: 18px 20px 22px;
+}
+
+.bc-head {
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.bc-head-line {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+.bc-table-wrap {
+  overflow-x: auto;
+}
+
+.bc-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.bc-table th,
+.bc-table td {
+  border: 1px solid #333;
+  padding: 4px 8px;
+  vertical-align: middle;
+}
+
+.bc-table thead th {
+  background: #f1f3f7;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Column alignment, per the printed form. */
+.bc-c-sr { text-align: center; width: 8%; }
+.bc-c-code { text-align: center; width: 13%; }
+.bc-c-name { text-align: left; width: 47%; }
+.bc-c-bank { text-align: center; width: 18%; }
+.bc-c-amt { text-align: right; width: 14%; }
+
+/* An institute's own tax credit line. */
+.bc-institute td {
+  font-weight: 700;
+}
+
+.bc-table tfoot td {
+  background: #f1f3f7;
+  font-weight: 700;
+}
+
+.bc-sign {
+  font-weight: 700;
+  line-height: 1.6;
+  margin-top: 36px;
+  text-align: right;
+}
+
+.bc-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.bc-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  /*
+    Print overflow safety — same reset as Employee Wise Salary:
+    .app-main is a scroll container on screen, which clips the printed
+    table to the viewport. Orientation, table, pagination, data untouched.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .bc-table-wrap {
+    overflow: visible !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  .no-print,
+  .app-sidebar,
+  .app-header {
+    display: none !important;
+  }
+
+  .bc-page {
+    padding: 0;
+  }
+
+  .bc-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  .bc-table thead {
+    display: table-header-group;
+  }
+
+  .bc-table tfoot {
+    display: table-footer-group;
+  }
+
+  .bc-table th,
+  .bc-table td {
+    border: 1px solid #000;
+  }
+}

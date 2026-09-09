@@ -1,0 +1,363 @@
+/*
+  NPS / GPF DEDUCTION REPORT
+  Screen styling follows the existing report pages (Employee Wise Salary,
+  NPS Summary, GPF Summary); typography comes from the global tokens in
+  App.css (Inter / 13px / weight 500) and is never re-declared here.
+*/
+
+.ngd-page {
+  padding: 14px 0 26px;
+}
+
+.ngd-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ngd-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ngd-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+  margin-bottom: 14px;
+}
+
+.ngd-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.ngd-field-wide {
+  min-width: 260px;
+}
+
+.ngd-field label {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: #55606e;
+}
+
+.ngd-field select,
+.ngd-field input[type="search"] {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.ngd-field select:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+.ngd-month-pair {
+  display: flex;
+  gap: 6px;
+}
+
+.ngd-field-check label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.ngd-field-action {
+  min-width: 0;
+}
+
+.ngd-btn {
+  height: 30px;
+  padding: 0 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.ngd-btn:hover {
+  background: #f3f4f6;
+}
+
+.ngd-btn.primary {
+  background: #203f61;
+  border-color: #203f61;
+  color: #ffffff;
+}
+
+.ngd-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ngd-message {
+  padding: 10px 14px;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #7c2d12;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.ngd-sheet {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 18px 20px 22px;
+}
+
+.ngd-head {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.ngd-head-line {
+  line-height: 1.5;
+}
+
+.ngd-head-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ngd-search {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ngd-search input[type="search"] {
+  height: 30px;
+  padding: 0 10px;
+  min-width: 280px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+}
+
+.ngd-count {
+  color: #55606e;
+  font-size: 12px;
+}
+
+.ngd-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.ngd-table {
+  width: 100%;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.ngd-table th,
+.ngd-table td {
+  border: 1px solid #e5e7eb;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+
+.ngd-table thead th {
+  background: #f1f5f9;
+  color: #1f2937;
+  text-align: center;
+}
+
+.ngd-c {
+  text-align: left;
+}
+
+.ngd-n {
+  text-align: right;
+}
+
+.ngd-bold {
+  font-weight: 700;
+}
+
+.ngd-table tfoot td {
+  background: #f8fafc;
+}
+
+.ngd-grand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.ngd-grand div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ngd-grand span {
+  color: #55606e;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.ngd-grand strong {
+  font-size: 14px;
+}
+
+.ngd-sign {
+  margin-top: 34px;
+  text-align: right;
+  line-height: 1.7;
+}
+
+.ngd-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.ngd-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  /*
+    The app shell is a CSS grid whose .app-main scrolls; left alone it clips
+    the printed report to the visible viewport and produces a blank page.
+    These resets follow the pattern already proven on the Employee Wise
+    Salary report. Deliberately NOT used here: the global body-star
+    visibility-isolation hack — because all page CSS is bundled
+    application-wide, such a rule blanks the print output of every OTHER
+    report in the app.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  /* Application chrome and every control disappear; content never does. */
+  .no-print,
+  .app-sidebar,
+  .app-header,
+  .sidebar-backdrop,
+  .ngd-toolbar,
+  .ngd-filters,
+  .ngd-search,
+  .ngd-actions,
+  .data-grid-toolbar,
+  .data-grid-footer {
+    display: none !important;
+  }
+
+  .ngd-page {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  .ngd-sheet {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .ngd-head-title {
+    font-size: 14pt;
+  }
+
+  /* Show every column instead of clipping the wide table. */
+  .ngd-table-wrap {
+    overflow: visible !important;
+    border: none;
+  }
+
+  .ngd-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed;
+    font-size: 7pt;
+    border-collapse: collapse;
+  }
+
+  .ngd-table th,
+  .ngd-table td {
+    border: 1px solid #000000 !important;
+    padding: 2px 3px !important;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .ngd-table thead th {
+    background: #e9ecef !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Repeat the header on every page and keep the totals with the table. */
+  .ngd-table thead {
+    display: table-header-group;
+  }
+
+  .ngd-table tfoot {
+    display: table-footer-group;
+  }
+
+  .ngd-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .ngd-grand {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .ngd-sign {
+    margin-top: 26px;
+  }
+}

@@ -1,0 +1,447 @@
+/* ==========================================================================
+   RETURNING SALARY BILLS — government office style
+   Aligned with Salary Approval / DataGrid design system
+   ========================================================================== */
+
+.rb-page {
+  min-height: calc(100vh - 80px);
+  background: #f3f6f9;
+  padding: 18px 24px 40px;
+  box-sizing: border-box;
+  color: #172b4d;
+  font-family: var(--font-family-base);
+  overflow-x: hidden;
+}
+
+/* ---- Back ---- */
+
+.rb-back {
+  margin-bottom: 10px;
+}
+
+.rb-back-btn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1769aa;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 4px;
+}
+
+.rb-back-btn:hover {
+  background: #edf3f8;
+  border-color: #a8bdd0;
+}
+
+/* ---- Header ---- */
+
+.rb-header {
+  margin-bottom: 14px;
+}
+
+.rb-page-title {
+  margin: 0;
+  color: #173d68;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.rb-page-desc {
+  margin: 5px 0 0;
+  color: #66788a;
+  font-size: 13px;
+  max-width: 720px;
+}
+
+.rb-role {
+  margin-top: 6px;
+  color: #526b82;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---- Cards ---- */
+
+.rb-card {
+  background: #ffffff;
+  border: 1px solid #c9d5e1;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.rb-card-head {
+  background: #526b82;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.rb-card-body {
+  padding: 12px;
+}
+
+/* ---- Search panel ---- */
+
+.rb-search-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.rb-search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f6478;
+}
+
+.rb-search-field input {
+  width: 100%;
+  height: 34px;
+  border: 1px solid #b9c9d8;
+  background: #f8fafc;
+  border-radius: 4px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #172b4d;
+  box-sizing: border-box;
+}
+
+.rb-search-field input:focus {
+  outline: none;
+  border-color: #0878bd;
+  background: #ffffff;
+}
+
+.rb-search-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rb-btn {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rb-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.rb-btn-primary {
+  background: #0878bd;
+  border-color: #0878bd;
+  color: #ffffff;
+}
+
+.rb-btn-primary:hover:not(:disabled) {
+  background: #06639c;
+  border-color: #06639c;
+}
+
+.rb-btn-secondary {
+  background: #ffffff;
+  border-color: #aebdca;
+  color: #294762;
+}
+
+.rb-btn-secondary:hover:not(:disabled) {
+  background: #edf3f8;
+}
+
+.rb-status-line {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e5edf5;
+  font-size: 13px;
+  color: #374151;
+}
+
+.rb-status-line strong {
+  color: #075ca8;
+  font-size: 14px;
+}
+
+/* ---- Messages / empty ---- */
+
+.rb-message {
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.rb-message.is-error {
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  color: #b71c1c;
+}
+
+.rb-message.is-loading {
+  background: #eef4fa;
+  border: 1px solid #c9d5e1;
+  color: #334155;
+}
+
+.rb-empty-state {
+  text-align: center;
+  padding: 36px 20px;
+  background: #f8fafc;
+  border: 1px dashed #c9d5e1;
+  border-radius: 4px;
+}
+
+.rb-empty-state h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #173d68;
+  font-weight: 700;
+}
+
+.rb-empty-state p {
+  margin: 0 auto;
+  max-width: 460px;
+  font-size: 13px;
+  color: #66788a;
+  line-height: 1.45;
+}
+
+/* ---- Table / grid ---- */
+
+.rb-table-card .rb-card-body {
+  padding-top: 10px;
+}
+
+.rb-grid-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rb-grid-wrap .data-grid-shell {
+  min-width: 0;
+}
+
+.rb-grid-wrap .data-grid-container {
+  overflow-x: auto;
+}
+
+.rb-grid-wrap .data-grid {
+  min-width: 1580px;
+  font-size: 12px;
+}
+
+.rb-grid-wrap .data-grid th {
+  background: #294762;
+  white-space: nowrap;
+}
+
+.rb-auditor-name {
+  font-weight: 600;
+  color: #243b53;
+}
+
+.rb-reason-cell {
+  display: inline-block;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+.rb-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* Status badge extras for display labels */
+.rb-page .data-grid-status.is-correction-required {
+  background: #fff8e1;
+  color: #6d4c00;
+}
+
+.rb-page .data-grid-status.is-under-review {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+.rb-page .data-grid-status.is-returned {
+  background: #fff8e1;
+  color: #6d4c00;
+}
+
+/* Phase 9 — REJECTED status badge: distinct red to differentiate from RETURNED */
+.rb-page .data-grid-status.is-rejected {
+  background: #fde8e8;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+/* RESUBMITTED — bill is back with AO after correction */
+.rb-page .data-grid-status.is-resubmitted {
+  background: #e0f2e9;
+  color: #166534;
+}
+
+/* ---- Modal ---- */
+
+.rb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.rb-modal {
+  width: min(620px, 100%);
+  background: #ffffff;
+  border: 1px solid #bcc9d4;
+  border-radius: 4px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+.rb-modal-header {
+  min-height: 46px;
+  padding: 10px 14px;
+  background: #294762;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.rb-modal-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rb-modal-close {
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.rb-modal-body {
+  padding: 16px;
+}
+
+.rb-reason-info {
+  background: #f4f7fa;
+  border: 1px solid #d5dfe7;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #243b53;
+}
+
+.rb-return-reason {
+  margin-top: 14px;
+}
+
+.rb-return-reason label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #263b4d;
+}
+
+.rb-remarks-text {
+  width: 100%;
+  min-height: 88px;
+  box-sizing: border-box;
+  border: 1px solid #b9c7d2;
+  padding: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  background: #ffffff;
+  color: #1f2937;
+  white-space: pre-wrap;
+}
+
+.rb-modal-footer {
+  padding: 10px 14px;
+  border-top: 1px solid #d6dee5;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 900px) {
+  .rb-page {
+    padding: 14px 12px 32px;
+  }
+
+  .rb-search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .rb-search-actions {
+    width: 100%;
+  }
+
+  .rb-search-actions .rb-btn {
+    flex: 1;
+  }
+
+  .rb-page-title {
+    font-size: 20px;
+  }
+}
+
+@media print {
+  .rb-back,
+  .rb-search-actions,
+  .rb-actions,
+  .rb-modal-overlay,
+  .data-grid-toolbar {
+    display: none !important;
+  }
+
+  .rb-page {
+    background: #ffffff;
+    padding: 0;
+  }
+
+  .rb-card {
+    box-shadow: none;
+    border: 1px solid #999999;
+  }
+}

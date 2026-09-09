@@ -1,0 +1,301 @@
+/*
+  NPS INSTITUTE WISE SUMMARY — matches the GPF Summary page.
+
+  The filter bar keeps the application's own styling; everything inside
+  .npsiw-sheet is deliberately traditional: a serif face, compact rows, thin
+  black rules and centred bold headings, matching the legacy report rather
+  than the modern card styling used elsewhere.
+*/
+
+.npsiw-page {
+  padding: 16px 18px 28px;
+}
+
+.npsiw-toolbar {
+  margin-bottom: 10px;
+}
+
+.npsiw-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.npsiw-filters {
+  align-items: flex-end;
+  background: #f7f8fa;
+  border: 1px solid #d8dde5;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+
+.npsiw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.npsiw-field label {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.npsiw-field select,
+.npsiw-field input {
+  border: 1px solid #c9d2de;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 6px 8px;
+}
+
+.npsiw-btn {
+  background: #1f4e79;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+}
+
+.npsiw-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.npsiw-message {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 4px;
+  color: #9a3412;
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+
+/* ---------- the report sheet (legacy appearance) ---------- */
+
+.npsiw-sheet {
+  background: #fff;
+  border: 1px solid #d8dde5;
+  /* Traditional serif report face. */
+  /* On screen the report follows the application's standard type. */
+  font-family: var(--font-family-base);
+  font-size: 15px;
+  color: #000;
+  padding: 20px 22px 24px;
+}
+
+.npsiw-head {
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.npsiw-head-line {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+}
+
+.npsiw-table-wrap {
+  overflow-x: auto;
+}
+
+.npsiw-table {
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 15px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.npsiw-table th,
+.npsiw-table td {
+  border: 1px solid #000;
+  /* Compact legacy row height. */
+  padding: 2px 8px;
+  vertical-align: middle;
+}
+
+.npsiw-table thead th {
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Alignment, per the printed form. */
+.npsiw-c-sr { text-align: center; width: 6%; }
+.npsiw-c-code { text-align: center; width: 9%; }
+.npsiw-c-name { text-align: left; width: 29%; }
+.npsiw-c-month { text-align: center; width: 9%; }
+.npsiw-c-type { text-align: center; width: 7%; }
+.npsiw-c-total { text-align: center; width: 7%; }
+.npsiw-c-amt { text-align: right; width: 11%; }
+
+.npsiw-empty {
+  padding: 10px;
+  text-align: center;
+}
+
+.npsiw-table tfoot td {
+  font-weight: 700;
+}
+
+.npsiw-words {
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+/* ---------- cheque no. / date ---------- */
+
+.npsiw-cheque {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 12px 0 14px;
+}
+
+.npsiw-cheque-field {
+  align-items: center;
+  display: flex;
+  flex: 1 1 210px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.npsiw-cheque-field > span:first-child {
+  white-space: nowrap;
+}
+
+.npsiw-cheque-field {
+  align-items: center;
+  display: flex;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.npsiw-cheque-input {
+  border: 1px solid #9aa6b2;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  min-width: 120px;
+  padding: 4px 6px;
+  width: 100%;
+}
+
+.npsiw-cheque-input:focus {
+  outline: none;
+  background: #fffbe6;
+}
+
+/* The typed value is printed as plain text; the input itself is not. */
+.npsiw-cheque-print {
+  display: none;
+  font-weight: 400;
+  min-width: 160px;
+  border-bottom: 1px solid #000;
+}
+
+.npsiw-sign {
+  font-weight: 700;
+  line-height: 1.6;
+  margin-top: 40px;
+  text-align: right;
+}
+
+.npsiw-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.npsiw-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  /*
+    Print overflow safety — same reset as Employee Wise Salary:
+    .app-main is a scroll container on screen, which clips the printed
+    table to the viewport. Orientation, table, pagination, data untouched.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .npsiw-table-wrap {
+    overflow: visible !important;
+  }
+
+  /* These reports use the application's standard type on paper too. */
+  .npsiw-sheet {
+    font-family: var(--font-family-base);
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+
+  .no-print,
+  .app-sidebar,
+  .app-header,
+  .npsiw-filters,
+  .npsiw-toolbar,
+  .npsiw-actions {
+    display: none !important;
+  }
+
+  .npsiw-page {
+    padding: 0;
+  }
+
+  .npsiw-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  /* Show the typed cheque no./date as report text, not as form fields. */
+  .npsiw-cheque-print {
+    display: inline-block;
+  }
+
+  .npsiw-table thead {
+    display: table-header-group;
+  }
+
+  .npsiw-table tfoot {
+    display: table-footer-group;
+  }
+
+  .npsiw-table th,
+  .npsiw-table td {
+    border: 1px solid #000;
+  }
+}

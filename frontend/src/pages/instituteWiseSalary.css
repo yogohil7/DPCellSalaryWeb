@@ -1,0 +1,328 @@
+/*
+  INSTITUTE WISE SALARY REPORT ("SALARY STATEMENT") — legacy appearance.
+
+  The filter bar keeps the application's own styling; everything inside
+  .iws-sheet is a traditional government statement: white paper, thin black
+  rules, centred bold headings, compact rows. Type always comes from the
+  application tokens (Inter 13px/500); headings step up only for hierarchy.
+*/
+
+.iws-page {
+  padding: 16px 18px 28px;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-base);
+}
+
+.iws-toolbar {
+  margin-bottom: 10px;
+}
+
+.iws-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.iws-filters {
+  align-items: flex-end;
+  background: #f7f8fa;
+  border: 1px solid #d8dde5;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+
+.iws-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 130px;
+}
+
+.iws-field-wide {
+  min-width: 240px;
+}
+
+.iws-field label {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.iws-field select,
+.iws-field input {
+  border: 1px solid #c9d2de;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 6px 8px;
+}
+
+.iws-month-pair {
+  display: flex;
+  gap: 6px;
+}
+
+.iws-field-check {
+  min-width: 90px;
+}
+
+.iws-check {
+  align-items: center;
+  color: #111827 !important;
+  display: flex;
+  flex-direction: row !important;
+  font-size: 14px !important;
+  gap: 8px;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.iws-check input {
+  height: 16px;
+  width: 16px;
+}
+
+.iws-btn {
+  background: #1f4e79;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+}
+
+.iws-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.iws-message {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 4px;
+  color: #9a3412;
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+
+/* ---------- the report sheet (legacy appearance) ---------- */
+
+.iws-sheet {
+  background: #fff;
+  border: 1px solid #d8dde5;
+  color: #000;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 20px 22px 24px;
+}
+
+.iws-head {
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.iws-head-line {
+  font-family: var(--font-family-base);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+}
+
+.iws-head-sub {
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.iws-inst-block {
+  margin-bottom: 20px;
+}
+
+.iws-inst-head {
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  margin: 10px 0 6px;
+}
+
+.iws-inst-label {
+  font-weight: 700;
+}
+
+.iws-inst-value {
+  font-weight: 600;
+}
+
+.iws-month-block {
+  margin-bottom: 12px;
+}
+
+.iws-month-label {
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 6px 0 4px;
+  text-align: center;
+}
+
+.iws-table-wrap {
+  overflow-x: auto;
+}
+
+.iws-table {
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 auto;
+  min-width: 100%;
+  width: max-content;
+}
+
+.iws-table th,
+.iws-table td {
+  border: 1px solid #000;
+  padding: 2px 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.iws-table thead th {
+  font-weight: 700;
+  text-align: center;
+}
+
+.iws-c {
+  text-align: center;
+}
+
+.iws-l {
+  text-align: left;
+}
+
+.iws-n {
+  text-align: right;
+}
+
+.iws-bold {
+  font-weight: 700;
+}
+
+.iws-table tfoot td {
+  font-weight: 700;
+}
+
+.iws-grand {
+  margin-top: 14px;
+}
+
+.iws-sign {
+  font-weight: 700;
+  line-height: 1.6;
+  margin-top: 40px;
+  text-align: right;
+}
+
+.iws-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.iws-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  /*
+    Print overflow safety — same reset as Employee Wise Salary:
+    .app-main is a scroll container on screen, which clips the printed
+    table to the viewport. Orientation, table, pagination, data untouched.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .iws-table-wrap {
+    overflow: visible !important;
+  }
+
+  .iws-sheet {
+    font-family: var(--font-family-base);
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  .no-print,
+  .app-sidebar,
+  .app-header,
+  .iws-filters,
+  .iws-toolbar,
+  .iws-actions {
+    display: none !important;
+  }
+
+  .iws-page {
+    padding: 0;
+  }
+
+  .iws-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  .iws-table {
+    font-size: 11px;
+    width: 100%;
+  }
+
+  .iws-table thead {
+    display: table-header-group;
+  }
+
+  .iws-table tfoot {
+    display: table-footer-group;
+  }
+
+  .iws-table tr {
+    page-break-inside: avoid;
+  }
+
+  .iws-table th,
+  .iws-table td {
+    border: 1px solid #000;
+  }
+
+  .iws-inst-block {
+    page-break-inside: auto;
+  }
+}

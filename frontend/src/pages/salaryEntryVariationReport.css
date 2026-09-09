@@ -1,0 +1,352 @@
+.ser-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 36, 58, 0.48);
+  padding: 16px;
+  overflow: auto;
+  font-family: var(--font-family-base);
+}
+
+.ser-modal {
+  max-width: 1600px;
+  margin: auto;
+  background: #fff;
+  border: 1px solid #9fb2c5;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.ser-modal-wide {
+  max-width: min(98vw, 2200px);
+  width: 98vw;
+}
+
+.ser-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #123d63;
+  color: #fff;
+  padding: 10px 16px;
+}
+
+.ser-header h1,
+.ser-title h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.ser-header button {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ser-content {
+  padding: 16px 18px 20px;
+  color: #173a5e;
+}
+
+.ser-title {
+  text-align: center;
+  border-bottom: 2px solid #173a5e;
+  padding-bottom: 10px;
+}
+
+.ser-title p {
+  margin: 4px 0 0;
+  color: #60758a;
+}
+
+.ser-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(210px, 1fr));
+  gap: 8px 24px;
+  margin: 14px 0;
+}
+
+.ser-meta div {
+  display: flex;
+  border-bottom: 1px solid #d6e0e8;
+  padding: 4px;
+}
+
+.ser-meta dt {
+  font-weight: 700;
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.ser-meta dt::after {
+  content: ":";
+}
+
+.ser-meta dd {
+  margin: 0;
+}
+
+.ser-toolbar {
+  margin-bottom: 8px;
+}
+
+.ser-scroll {
+  overflow: auto;
+  border: 1px solid #c6d4df;
+  max-height: calc(100vh - 280px);
+}
+
+.ser-scroll-tall {
+  max-height: calc(100vh - 260px);
+}
+
+.ser-table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  font-size: 12px;
+}
+
+.ser-table th {
+  background: #123d63;
+  color: #fff;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.ser-table th,
+.ser-table td {
+  border: 1px solid #d4dee6;
+  padding: 5px 7px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ser-left {
+  text-align: left !important;
+}
+
+.ser-num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.ser-band-earn {
+  background: #0f4c81 !important;
+}
+
+.ser-band-ded {
+  background: #7a3410 !important;
+}
+
+.ser-band-tot {
+  background: #1f4d3a !important;
+}
+
+.ser-comp-group {
+  background: #1a5276 !important;
+}
+
+.ser-sub {
+  background: #e8eef4 !important;
+  color: #173a5e !important;
+  font-size: 11px;
+}
+
+.ser-sticky {
+  position: sticky;
+  z-index: 3;
+  background: #123d63;
+  color: #fff;
+}
+
+tbody .ser-sticky,
+tfoot .ser-sticky {
+  background: #fff;
+  color: #173a5e;
+  z-index: 2;
+}
+
+tfoot .ser-sticky {
+  background: #eef2ff;
+  font-weight: 700;
+}
+
+.ser-sticky-1 {
+  left: 0;
+  min-width: 52px;
+}
+
+.ser-sticky-2 {
+  left: 52px;
+  min-width: 78px;
+}
+
+.ser-sticky-3 {
+  left: 130px;
+  min-width: 70px;
+}
+
+.ser-sticky-4 {
+  left: 200px;
+  min-width: 160px;
+}
+
+thead .ser-sticky {
+  z-index: 5;
+}
+
+.ser-table tbody tr:nth-child(even) td:not(.ser-sticky) {
+  background: #fafbfc;
+}
+
+.ser-table tbody tr:nth-child(even) .ser-sticky {
+  background: #fafbfc;
+}
+
+.ser-row-new td {
+  background: #f0fdf4 !important;
+}
+
+.ser-row-removed td {
+  background: #fff7ed !important;
+}
+
+.ser-table tfoot td {
+  background: #eef2ff;
+  font-weight: 700;
+}
+
+.ser-empty {
+  text-align: center !important;
+  padding: 18px !important;
+  color: #63798c;
+}
+
+.ser-plus {
+  color: #147a3d;
+  font-weight: 700;
+}
+
+.ser-minus {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.ser-zero {
+  color: #475569;
+}
+
+.ser-totals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 20px;
+  border: 1px solid #c6d4df;
+  background: #f2f6f9;
+  padding: 10px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.ser-totals strong {
+  display: block;
+  text-align: right;
+  font-size: 14px;
+}
+
+.ser-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #c6d4df;
+}
+
+.ser-actions .btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ser-actions .btn-print {
+  background: #123d63;
+  border-color: #123d63;
+  color: #fff;
+}
+
+.ser-state {
+  padding: 36px;
+  text-align: center;
+  color: #173a5e;
+}
+
+.ser-error {
+  color: #b42318;
+}
+
+@media print {
+  /*
+    Print isolation for THIS overlay only.  Scoped with :has() so the rule is
+    inert on every other page: an unscoped `body *` hid the printed content of
+    every other report in the app (all page CSS is bundled application-wide),
+    which is what produced the blank Employee Wise Salary print page.
+  */
+  body:has(.ser-overlay) * {
+    visibility: hidden !important;
+  }
+  body:has(.ser-overlay) .ser-overlay,
+  body:has(.ser-overlay) .ser-overlay * {
+    visibility: visible !important;
+  }
+  .ser-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    background: #fff !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .ser-modal {
+    max-width: none !important;
+    width: auto !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .ser-content {
+    padding: 0 !important;
+  }
+  .ser-scroll {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  .ser-sticky {
+    position: static !important;
+  }
+  .ser-table {
+    font-size: 8px;
+  }
+  .ser-table th,
+  .ser-table td {
+    padding: 3px 4px;
+  }
+}
+
+@media (max-width: 800px) {
+  .ser-overlay {
+    padding: 8px;
+  }
+  .ser-meta {
+    grid-template-columns: 1fr;
+  }
+  .ser-totals {
+    justify-content: flex-start;
+  }
+}

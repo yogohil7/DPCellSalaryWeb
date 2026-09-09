@@ -1,0 +1,269 @@
+/*
+  EMPLOYEE REPORT
+
+  Screen styling follows the other report sheets (see reportCommon.css). The
+  print block uses the project's established scoped report print strategy —
+  never the global body-star visibility hack, which would blank every other
+  report's print because page CSS is bundled application-wide.
+*/
+
+.emprep-page {
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.emprep-toolbar {
+  margin-bottom: 12px;
+}
+
+.emprep-link {
+  background: none;
+  border: none;
+  color: var(--brand, #1d4ed8);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.emprep-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.emprep-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.emprep-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6b7f;
+}
+
+.emprep-field select,
+.emprep-field input {
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.emprep-btn {
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.emprep-btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.emprep-btn-ghost {
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.emprep-message {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #eef4ff;
+  border: 1px solid #c7d7f5;
+}
+
+.emprep-sheet {
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.emprep-head {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.emprep-head-line {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+}
+
+.emprep-head-line.emprep-title {
+  font-size: 16px;
+}
+
+.emprep-filter-summary {
+  text-align: center;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+/* The selection criterion is restated on the sheet itself. */
+.emprep-scope-note {
+  text-align: center;
+  font-size: 12px;
+  color: #7c5807;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 12px;
+}
+
+.emprep-table-wrap {
+  overflow-x: auto;
+}
+
+.emprep-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.emprep-table th,
+.emprep-table td {
+  border: 1px solid #94a3b8;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.emprep-table th {
+  background: #eef2f7;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.emprep-table td.emprep-amt,
+.emprep-table th.emprep-amt {
+  text-align: right;
+}
+
+.emprep-table td.emprep-name {
+  white-space: normal;
+  min-width: 170px;
+}
+
+.emprep-table tfoot td {
+  font-weight: 700;
+  background: #f6f8fb;
+}
+
+.emprep-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #cbd5e1;
+}
+
+.emprep-summary-item {
+  font-weight: 600;
+}
+
+.emprep-summary-item span {
+  color: #5b6b7f;
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+.emprep-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ---------------- print ---------------- */
+
+@page {
+  /* Ten columns need the wider page. */
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  /*
+     Print overflow safety — the same scoped reset the project's working
+     report print fixes use. .app-main is a scroll container on screen and
+     would otherwise clip the table to the viewport.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .emprep-page {
+    padding: 0;
+    font-size: 10px;
+  }
+
+  .emprep-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  .emprep-table-wrap {
+    overflow: visible !important;
+  }
+
+  /* The header repeats on every printed page. */
+  .emprep-table thead {
+    display: table-header-group;
+  }
+
+  .emprep-table tfoot {
+    display: table-footer-group;
+  }
+
+  .emprep-table tr {
+    page-break-inside: avoid;
+  }
+
+  .emprep-table th {
+    background: #eef2f7 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Empty state — the project's plain, non-fabricated message row. */
+.emprep-empty {
+  padding: 24px;
+  text-align: center;
+  color: #5b6b7f;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+}

@@ -1,0 +1,560 @@
+/* =========================================================
+   DESIGNATION MASTER
+   Same design as Employee Master / Institute Master
+   ========================================================= */
+
+.designation-master {
+  --d-header: #5e6d7e;
+  --d-navy: #2c3e50;
+  --d-border: #b7c4d6;
+  --d-input-bg: #f5f5f5;
+  --d-label: #4d4d4d;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  font-family:
+    "Segoe UI",
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  color: #212529;
+}
+
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.designation-card {
+  background: #ffffff;
+
+  border: 1px solid #c5d4e8;
+
+  border-radius: 4px;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   CARD HEADER
+   ========================================================= */
+
+.designation-card-head {
+  min-height: 42px;
+
+  padding: 0 12px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  background: var(--d-header);
+
+  color: #ffffff;
+
+  font-size: 14px;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   BREADCRUMB
+   ========================================================= */
+
+.designation-crumb {
+  font-size: 11px;
+
+  font-weight: 400;
+
+  color: #1565c0;
+
+  background: #e9ecef;
+
+  padding: 4px 9px;
+
+  border-radius: 3px;
+}
+
+
+/* =========================================================
+   CARD BODY
+   ========================================================= */
+
+.designation-card-body {
+  padding: 16px 12px 12px;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   FORM GRID
+   ========================================================= */
+
+.designation-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 14px 14px;
+}
+
+
+/* =========================================================
+   LABEL
+   ========================================================= */
+
+.designation-master label {
+  display: block;
+
+  margin: 0 0 6px;
+
+  font-family:
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 400;
+
+  color: #4d4d4d;
+
+  text-align: left;
+}
+
+
+/* REQUIRED STAR */
+
+.designation-master label em {
+  display: inline;
+
+  color: #dc3545;
+
+  font-style: normal;
+
+  font-weight: 400;
+
+  margin-left: 2px;
+}
+
+
+/* =========================================================
+   INPUT + SELECT
+   ========================================================= */
+
+.app-shell .designation-master input,
+.app-shell .designation-master select {
+  height: 38px;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  border: 1px solid #b7c4d6;
+
+  background: #f5f5f5;
+
+  border-radius: 4px;
+
+  padding: 0 10px;
+
+  font-family:
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 400;
+
+  color: #212529;
+
+  outline: none;
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   FOCUS
+   ========================================================= */
+
+.app-shell .designation-master input:focus,
+.app-shell .designation-master select:focus {
+  border-color: #80bdff;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(0, 123, 255, 0.12);
+}
+
+
+/* =========================================================
+   BUTTON AREA
+   ========================================================= */
+
+.designation-actions {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  margin-top: 16px;
+
+  padding-top: 12px;
+
+  border-top: 1px solid #dee2e6;
+}
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+.designation-message {
+  margin-right: auto;
+
+  color: #2e7d32;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.designation-master .d-btn {
+  height: 36px;
+
+  padding: 0 14px;
+
+  border-radius: 3px;
+
+  border: 1px solid #ced4da;
+
+  font-family:
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+/* SAVE / SEARCH */
+
+.designation-master .d-primary {
+  background: #2c3e50;
+
+  border-color: #2c3e50;
+
+  color: #ffffff;
+}
+
+
+/* RESET */
+
+.designation-master .d-reset {
+  background: #5e6d7e;
+
+  border-color: #5e6d7e;
+
+  color: #ffffff;
+}
+
+
+/* CANCEL */
+
+.designation-master .d-cancel {
+  background: #ffffff;
+
+  border-color: #ced4da;
+
+  color: #212529;
+}
+
+
+/* HOVER */
+
+.designation-master .d-btn:hover {
+  opacity: 0.9;
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.designation-search-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1.2fr 1fr 1fr auto;
+
+  gap: 14px;
+
+  align-items: end;
+}
+
+
+/* SEARCH BUTTONS */
+
+.designation-search-buttons {
+  display: flex;
+
+  gap: 8px;
+
+  align-items: center;
+}
+
+
+/* =========================================================
+   LIST BODY
+   ========================================================= */
+
+.designation-list-body {
+  padding: 12px;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.designation-table-wrap {
+  overflow-x: auto;
+
+  border: 1px solid #dee2e6;
+}
+
+
+.designation-table {
+  width: 100%;
+
+  min-width: 900px;
+
+  border-collapse: collapse;
+
+  font-family:
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: 13px;
+}
+
+
+/* TABLE HEADER */
+
+.designation-table th {
+  height: 36px;
+
+  padding: 8px;
+
+  background: #2c3e50;
+
+  color: #ffffff;
+
+  border: 1px solid #3d5166;
+
+  text-align: left;
+
+  white-space: nowrap;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+
+/* TABLE DATA */
+
+.designation-table td {
+  padding: 7px 8px;
+
+  height: 34px;
+
+  border: 1px solid #dee2e6;
+
+  background: #ffffff;
+
+  color: #212529;
+
+  font-size: 13px;
+
+  white-space: nowrap;
+}
+
+
+/* CENTER */
+
+.designation-table .center {
+  text-align: center;
+}
+
+
+/* HOVER */
+
+.designation-table tbody tr:hover td {
+  background: #f8f9fa;
+}
+
+
+/* EMPTY */
+
+.designation-empty {
+  text-align: center;
+
+  color: #6c757d;
+
+  padding: 18px !important;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status-active {
+  color: #1e7e34;
+
+  font-weight: 600;
+}
+
+
+.status-inactive {
+  color: #6c757d;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.designation-actions-cell {
+  display: flex;
+
+  gap: 6px;
+
+  align-items: center;
+}
+
+
+/* EDIT */
+
+.edit-btn {
+  width: 28px;
+
+  height: 28px;
+
+  border: 1px solid #a5d6a7;
+
+  background: #ffffff;
+
+  color: #2e7d32;
+
+  border-radius: 3px;
+
+  cursor: pointer;
+
+  font-size: 15px;
+}
+
+
+/* DELETE */
+
+.delete-btn {
+  width: 28px;
+
+  height: 28px;
+
+  border: 1px solid #dc3545;
+
+  background: #dc3545;
+
+  color: #ffffff;
+
+  border-radius: 3px;
+
+  cursor: pointer;
+
+  font-size: 18px;
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   TABLE FOOTER
+   ========================================================= */
+
+.designation-table-footer {
+  display: flex;
+
+  justify-content: flex-end;
+
+  align-items: center;
+
+  margin-top: 10px;
+
+  color: #6c757d;
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .designation-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .designation-search-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .designation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .designation-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .designation-actions {
+    justify-content: flex-start;
+  }
+
+}

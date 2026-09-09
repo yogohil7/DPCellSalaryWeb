@@ -1,0 +1,619 @@
+/* =========================================================
+   GLOBAL DATA GRID — government office style
+   ========================================================= */
+
+.data-grid-shell {
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  color: #1f2937;
+  width: 100%;
+}
+
+.data-grid-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.data-grid-toolbar-left,
+.data-grid-toolbar-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.data-grid-tool-btn,
+.dg-btn {
+  height: 32px;
+  padding: 5px 10px;
+  border: 1px solid #b8c6d4;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1f2d3d;
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.data-grid-tool-btn:hover,
+.dg-btn:hover {
+  background: #eaf3fb;
+  border-color: #1976b8;
+}
+
+.data-grid-tool-btn:focus-visible,
+.dg-btn:focus-visible,
+.data-grid-search input:focus-visible {
+  outline: 2px solid #1976b8;
+  outline-offset: 1px;
+}
+
+.dg-btn-primary {
+  background: #1976b8;
+  border-color: #1976b8;
+  color: #ffffff;
+}
+
+.dg-btn-primary:hover {
+  background: #1565a8;
+  color: #ffffff;
+}
+
+.dg-btn-success {
+  background: #198754;
+  border-color: #198754;
+  color: #ffffff;
+}
+
+.dg-btn-success:hover {
+  background: #157347;
+  color: #ffffff;
+}
+
+.dg-btn-warning {
+  background: #b77900;
+  border-color: #b77900;
+  color: #ffffff;
+}
+
+.dg-btn-danger {
+  background: #c62828;
+  border-color: #c62828;
+  color: #ffffff;
+}
+
+.dg-btn-danger:hover {
+  background: #b71c1c;
+  color: #ffffff;
+}
+
+.dg-btn-secondary {
+  background: #5f7185;
+  border-color: #5f7185;
+  color: #ffffff;
+}
+
+.data-grid-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.data-grid-search input {
+  height: 36px;
+  min-width: 220px;
+  border: 1px solid #b8c6d4;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  background: #ffffff;
+}
+
+.data-grid-search input:focus {
+  border-color: #1976b8;
+  box-shadow: 0 0 0 2px rgba(25, 118, 184, 0.12);
+  outline: none;
+}
+
+.data-grid-columns-menu {
+  position: relative;
+}
+
+.data-grid-columns-panel {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  z-index: 30;
+  min-width: 220px;
+  max-height: 280px;
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid #c7d2de;
+  box-shadow: 0 6px 18px rgba(31, 45, 61, 0.12);
+  padding: 8px;
+}
+
+.data-grid-columns-panel label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #1f2937;
+}
+
+.data-grid-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 520px;
+  border: 1px solid #c7d2de;
+  background: #ffffff;
+}
+
+.data-grid {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.data-grid th,
+.data-grid td {
+  border-right: 1px solid #d5dde5;
+  border-bottom: 1px solid #d5dde5;
+  padding: 0 10px;
+  height: 42px;
+  vertical-align: middle;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.data-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #2f4e6f;
+  color: #ffffff;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  border-bottom: 1px solid #1f3c58;
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-grid thead tr.dg-group th {
+  background: #243c56;
+  cursor: default;
+}
+
+.data-grid thead tr.dg-group + tr th,
+.data-grid thead tr:nth-child(2) th {
+  top: 42px;
+  background: #35587a;
+}
+
+.data-grid .dg-sort {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.data-grid tbody td {
+  background: #ffffff;
+}
+
+.data-grid tbody tr:nth-child(even) td {
+  background: #f7f9fc;
+}
+
+.data-grid tbody tr:hover td {
+  background: #eaf3fb;
+  transition: background 0.15s ease;
+}
+
+.data-grid tbody tr.is-selected td {
+  background: #dceeff;
+  box-shadow: inset 3px 0 0 #1976b8;
+}
+
+.data-grid .dg-left {
+  text-align: left;
+}
+
+.data-grid .dg-center {
+  text-align: center;
+}
+
+.data-grid .dg-right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-grid th.dg-sticky,
+.data-grid td.dg-sticky {
+  position: sticky;
+  z-index: 4;
+  background: #ffffff;
+  box-shadow: 1px 0 0 #d5dde5;
+}
+
+.data-grid thead th.dg-sticky {
+  z-index: 12;
+  background: #2f4e6f;
+  color: #ffffff;
+}
+
+.data-grid tbody tr:nth-child(even) td.dg-sticky {
+  background: #f8fafc;
+}
+
+.data-grid tbody tr:hover td.dg-sticky {
+  background: #eef4fa;
+}
+
+.data-grid .dg-var-positive {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.data-grid .dg-var-negative {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.data-grid .dg-serial {
+  width: 60px;
+  min-width: 60px;
+  max-width: 70px;
+  text-align: center;
+}
+
+.data-grid tfoot td {
+  background: #e5edf5;
+  font-weight: 700;
+  font-size: 13px;
+  border-top: 2px solid #607d9a;
+  position: sticky;
+  bottom: 0;
+  z-index: 8;
+}
+
+.data-grid-empty {
+  text-align: center;
+  color: #607080;
+  padding: 18px !important;
+  white-space: normal;
+}
+
+.data-grid-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0 0;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+}
+
+.data-grid-pager {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.data-grid-pager button {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid #b8c6d4;
+  background: #ffffff;
+  border-radius: 4px;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.data-grid-pager button.is-active,
+.data-grid-pager button:hover:not(:disabled) {
+  background: #2f4e6f;
+  color: #ffffff;
+  border-color: #2f4e6f;
+}
+
+.data-grid-pager button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.data-grid-page-size {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.data-grid-page-size select {
+  height: 32px;
+  border: 1px solid #b8c6d4;
+  border-radius: 4px;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+}
+
+.data-grid-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.data-grid-status.is-active,
+.data-grid-status.is-approved,
+.data-grid-status.is-verified {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.data-grid-status.is-returned,
+.data-grid-status.is-inactive {
+  background: #fff8e1;
+  color: #6d4c00;
+}
+
+.data-grid-status.is-pending,
+.data-grid-status.is-draft,
+.data-grid-status.is-saved,
+.data-grid-status.is-submitted,
+.data-grid-status.is-resubmitted {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+.data-grid-status.is-rejected {
+  background: #fdecea;
+  color: #b71c1c;
+}
+
+.data-grid-status.is-open {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+.data-grid-status.is-completed {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.data-grid-status.is-locked {
+  background: #eceff1;
+  color: #37474f;
+}
+
+.data-grid-status.is-new {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.data-grid-status.is-continued {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.data-grid-status.is-removed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.data-grid-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.data-grid-shell .data-grid input[type="text"],
+.data-grid-shell .data-grid input[type="number"],
+.salary-table input[type="text"],
+.salary-table input[type="number"] {
+  appearance: textfield;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.salary-table input[type="number"]::-webkit-outer-spin-button,
+.salary-table input[type="number"]::-webkit-inner-spin-button,
+.data-grid input[type="number"]::-webkit-outer-spin-button,
+.data-grid input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@media print {
+  .app-header,
+  .app-sidebar,
+  .module-back,
+  .data-grid-toolbar,
+  .data-grid-footer,
+  .data-grid-search,
+  .dg-btn,
+  .data-grid-tool-btn,
+  .im-search-buttons,
+  .se-toolbar,
+  .ao-toolbar,
+  .rb-toolbar {
+    display: none !important;
+  }
+
+  .data-grid-container,
+  .salary-table-wrapper,
+  .ao-table-wrapper,
+  .rb-table-wrapper {
+    overflow: visible !important;
+    max-height: none !important;
+    border: 1px solid #c7d2de;
+  }
+
+  .data-grid,
+  .salary-table,
+  .ao-list-table,
+  .ao-salary-table,
+  .rb-table {
+    font-family: var(--font-family-base);
+    font-size: 13px;
+  }
+
+  .data-grid thead th,
+  .salary-table thead th {
+    background: #2f4e6f !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+}
+
+/* =========================================================
+   PHASE 3 — SHARED TABLE / DATA GRID EXPERIENCE
+
+   Additive only: existing .data-grid rules keep their values.
+   These refine hover, selection, sticky headers and the empty
+   state, and add opt-in cell classes for editable / calculated
+   / locked cells that Phase 4 will use in Salary Entry.
+   Financial density is preserved — no extra padding, no large
+   radii, nothing that reduces how many rows fit on screen.
+========================================================= */
+
+/* Row hover: a wash, not a highlight, so figures stay readable. */
+.data-grid tbody tr {
+  transition: background-color var(--transition-fast) var(--ease-standard);
+}
+
+.data-grid tbody tr:hover {
+  background: var(--color-info-surface);
+}
+
+/* Selection is marked by a left rule as well as a tint, so it
+   does not depend on colour alone. */
+.data-grid tbody tr.is-selected {
+  background: var(--color-info-surface);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+/* Sticky header for long grids inside a scrolling container. */
+.data-grid-container .data-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Numeric columns align right and use tabular figures so digits
+   line up column-wise — the single biggest readability win on a
+   salary table. */
+.data-grid td.num,
+.data-grid th.num,
+.data-grid .dp-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Cell states for editable grids (used from Phase 4 onward).
+   Each is distinguishable without colour: editable cells carry a
+   visible border, calculated cells a muted ground, locked cells
+   a subtle diagonal hatch. */
+.data-grid td.dp-cell-editable {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-accent);
+}
+
+.data-grid td.dp-cell-calculated {
+  background: var(--color-surface-muted);
+  color: var(--color-text-soft);
+}
+
+.data-grid td.dp-cell-locked {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-surface-muted),
+    var(--color-surface-muted) 6px,
+    #eeeeee 6px,
+    #eeeeee 12px
+  );
+  color: var(--color-muted);
+}
+
+.data-grid td.dp-cell-changed {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+/* Sort indicator. */
+.data-grid th[aria-sort] {
+  cursor: pointer;
+}
+
+.data-grid th[aria-sort] .dp-sort-mark {
+  display: inline-block;
+  margin-left: 4px;
+  transition: transform var(--transition-fast) var(--ease-standard),
+    opacity var(--transition-fast) var(--ease-standard);
+  opacity: 0.35;
+}
+
+.data-grid th[aria-sort="ascending"] .dp-sort-mark,
+.data-grid th[aria-sort="descending"] .dp-sort-mark {
+  opacity: 1;
+}
+
+.data-grid th[aria-sort="descending"] .dp-sort-mark {
+  transform: rotate(180deg);
+}
+
+/* Empty state inside a grid reads as information, not failure. */
+.data-grid-empty {
+  color: var(--color-muted);
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+}
+
+/* A grid awaiting data dims slightly rather than blanking. */
+.data-grid-container.is-loading {
+  position: relative;
+  opacity: 0.65;
+  transition: opacity var(--transition-normal) var(--ease-standard);
+}
+
+/* Smooth horizontal scrolling for wide financial tables. */
+.data-grid-container {
+  scroll-behavior: smooth;
+}
+
+@media print {
+  .data-grid-container {
+    opacity: 1 !important;
+  }
+  .data-grid-container .data-grid thead th {
+    position: static;
+  }
+}

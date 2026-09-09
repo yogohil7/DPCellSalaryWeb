@@ -1,0 +1,131 @@
+/* Notification toasts — Phase 3. Built entirely from the Phase 1 tokens. */
+
+.dp-toast-region {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: min(420px, calc(100vw - 40px));
+  pointer-events: none;
+}
+
+.dp-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: 10px var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-info);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text);
+  animation: dp-toast-in var(--transition-normal) var(--ease-standard) both;
+}
+
+@keyframes dp-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+  The colour is never the only signal: each toast also carries a distinct
+  mark (✓ ! ▲ i) and errors use role="alert", so the meaning survives
+  greyscale, colour blindness and screen readers.
+*/
+.dp-toast-mark {
+  flex: 0 0 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  line-height: 1;
+  color: #ffffff;
+  background: var(--color-info);
+  margin-top: 1px;
+}
+
+.dp-toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dp-toast-body strong {
+  font-weight: 600;
+}
+
+.dp-toast-body span {
+  word-break: break-word;
+}
+
+.dp-toast-close {
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast) var(--ease-standard),
+    background-color var(--transition-fast) var(--ease-standard);
+}
+
+.dp-toast-close:hover {
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+}
+
+.dp-toast-close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.dp-toast-success {
+  border-left-color: var(--color-success);
+  background: var(--color-success-surface);
+}
+.dp-toast-success .dp-toast-mark {
+  background: var(--color-success);
+}
+
+.dp-toast-error {
+  border-left-color: var(--color-danger);
+  background: var(--color-danger-surface);
+}
+.dp-toast-error .dp-toast-mark {
+  background: var(--color-danger);
+}
+
+.dp-toast-warning {
+  border-left-color: var(--color-warning);
+  background: var(--color-warning-surface);
+}
+.dp-toast-warning .dp-toast-mark {
+  background: var(--color-warning);
+}
+
+.dp-toast-info {
+  border-left-color: var(--color-info);
+  background: var(--color-info-surface);
+}
+
+/* Toasts must never appear on a printed report. */
+@media print {
+  .dp-toast-region {
+    display: none !important;
+  }
+}

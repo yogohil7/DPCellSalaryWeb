@@ -1,0 +1,260 @@
+/*
+  INCOME TAX & PROFESSIONAL TAX
+
+  Screen styling follows the other report sheets (see reportCommon.css). The
+  print block uses the project's established scoped report print strategy —
+  never the global body-star visibility hack, which would blank every other
+  report's print because page CSS is bundled application-wide.
+*/
+
+.itp-page {
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.itp-toolbar {
+  margin-bottom: 12px;
+}
+
+.itp-link {
+  background: none;
+  border: none;
+  color: var(--brand, #1d4ed8);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.itp-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.itp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.itp-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6b7f;
+}
+
+.itp-field select,
+.itp-field input {
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.itp-btn {
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.itp-btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.itp-btn-ghost {
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.itp-message {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #eef4ff;
+  border: 1px solid #c7d7f5;
+}
+
+.itp-sheet {
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.itp-head {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.itp-head-line {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+}
+
+.itp-head-line.itp-title {
+  font-size: 16px;
+}
+
+.itp-filter-summary {
+  text-align: center;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+/* The DA-Difference exclusion is stated on the report, never left implied. */
+.itp-scope-note {
+  text-align: center;
+  font-size: 12px;
+  color: #7c5807;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 12px;
+}
+
+.itp-table-wrap {
+  overflow-x: auto;
+}
+
+.itp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.itp-table th,
+.itp-table td {
+  border: 1px solid #94a3b8;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.itp-table th {
+  background: #eef2f7;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.itp-table td.itp-amt,
+.itp-table th.itp-amt {
+  text-align: right;
+}
+
+.itp-table td.itp-name {
+  white-space: normal;
+  min-width: 170px;
+}
+
+.itp-table tfoot td {
+  font-weight: 700;
+  background: #f6f8fb;
+}
+
+.itp-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #cbd5e1;
+}
+
+.itp-summary-item {
+  font-weight: 600;
+}
+
+.itp-summary-item span {
+  color: #5b6b7f;
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+.itp-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ---------------- print ---------------- */
+
+@page {
+  /* Fourteen columns need the wider page. */
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  /*
+     Print overflow safety — the same scoped reset the project's working
+     report print fixes use. .app-main is a scroll container on screen and
+     would otherwise clip the table to the viewport.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .itp-page {
+    padding: 0;
+    font-size: 10px;
+  }
+
+  .itp-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  .itp-table-wrap {
+    overflow: visible !important;
+  }
+
+  /* The header repeats on every printed page. */
+  .itp-table thead {
+    display: table-header-group;
+  }
+
+  .itp-table tfoot {
+    display: table-footer-group;
+  }
+
+  .itp-table tr {
+    page-break-inside: avoid;
+  }
+
+  .itp-table th {
+    background: #eef2f7 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

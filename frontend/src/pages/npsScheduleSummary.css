@@ -1,0 +1,639 @@
+/*
+  NPS SCHEDULE SUMMARY
+  Screen styling follows the existing report pages (Employee Wise Salary,
+  NPS Summary, GPF Summary); typography comes from the global tokens in
+  App.css (Inter / 13px / weight 500) and is never re-declared here.
+*/
+
+.nsch-page {
+  padding: 14px 0 26px;
+}
+
+.nsch-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.nsch-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nsch-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+  margin-bottom: 14px;
+}
+
+.nsch-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.nsch-field-wide {
+  min-width: 260px;
+}
+
+.nsch-field label {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: #55606e;
+}
+
+.nsch-field select,
+.nsch-field input[type="search"] {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.nsch-field select:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+.nsch-month-pair {
+  display: flex;
+  gap: 6px;
+}
+
+.nsch-field-check label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.nsch-field-action {
+  min-width: 0;
+}
+
+.nsch-btn {
+  height: 30px;
+  padding: 0 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.nsch-btn:hover {
+  background: #f3f4f6;
+}
+
+.nsch-btn.primary {
+  background: #203f61;
+  border-color: #203f61;
+  color: #ffffff;
+}
+
+.nsch-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.nsch-message {
+  padding: 10px 14px;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #7c2d12;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.nsch-sheet {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 18px 20px 22px;
+}
+
+.nsch-head {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.nsch-head-line {
+  line-height: 1.5;
+}
+
+.nsch-head-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.nsch-search {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.nsch-search input[type="search"] {
+  height: 30px;
+  padding: 0 10px;
+  min-width: 280px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+}
+
+.nsch-count {
+  color: #55606e;
+  font-size: 12px;
+}
+
+.nsch-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.nsch-table {
+  width: 100%;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.nsch-table th,
+.nsch-table td {
+  border: 1px solid #e5e7eb;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+
+.nsch-table thead th {
+  background: #f1f5f9;
+  color: #1f2937;
+  text-align: center;
+}
+
+.nsch-c {
+  text-align: left;
+}
+
+.nsch-n {
+  text-align: right;
+}
+
+.nsch-bold {
+  font-weight: 700;
+}
+
+.nsch-table tfoot td {
+  background: #f8fafc;
+}
+
+.nsch-grand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.nsch-grand div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nsch-grand span {
+  color: #55606e;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.nsch-grand strong {
+  font-size: 14px;
+}
+
+.nsch-sign {
+  margin-top: 34px;
+  text-align: right;
+  line-height: 1.7;
+}
+
+.nsch-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.nsch-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+@page {
+  /* Six columns fit A4 portrait comfortably. */
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@media print {
+  /*
+    The app shell is a CSS grid whose .app-main scrolls; left alone it clips
+    the printed report to the visible viewport and produces a blank page.
+    These resets follow the pattern already proven on the Employee Wise
+    Salary report. Deliberately NOT used here: the global body-star
+    visibility-isolation hack — because all page CSS is bundled
+    application-wide, such a rule blanks the print output of every OTHER
+    report in the app.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  /* Application chrome and every control disappear; content never does. */
+  .no-print,
+  .app-sidebar,
+  .app-header,
+  .sidebar-backdrop,
+  .nsch-toolbar,
+  .nsch-filters,
+  .nsch-search,
+  .nsch-actions,
+  .data-grid-toolbar,
+  .data-grid-footer {
+    display: none !important;
+  }
+
+  .nsch-page {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  .nsch-sheet {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .nsch-head-title {
+    font-size: 14pt;
+  }
+
+  /* Show every column instead of clipping the wide table. */
+  .nsch-table-wrap {
+    overflow: visible !important;
+    border: none;
+  }
+
+  .nsch-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed;
+    font-size: 8.5pt;
+    border-collapse: collapse;
+  }
+
+  .nsch-table th,
+  .nsch-table td {
+    border: 1px solid #000000 !important;
+    padding: 2px 3px !important;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .nsch-table thead th {
+    background: #e9ecef !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Repeat the header on every page and keep the totals with the table. */
+  .nsch-table thead {
+    display: table-header-group;
+  }
+
+  .nsch-table tfoot {
+    display: table-footer-group;
+  }
+
+  .nsch-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .nsch-grand {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .nsch-sign {
+    margin-top: 26px;
+  }
+}
+
+/* Saved-schedule list, duplicate prompt, meta strip and signature row. */
+.nsch-saved {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 14px 16px 18px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+
+.nsch-saved h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.nsch-empty {
+  color: #55606e;
+  margin: 0;
+}
+
+.nsch-saved-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.nsch-saved-table th,
+.nsch-saved-table td {
+  border: 1px solid #e5e7eb;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+
+.nsch-saved-table thead th {
+  background: #f1f5f9;
+  text-align: center;
+}
+
+.nsch-btn-sm {
+  height: 24px;
+  padding: 0 10px;
+}
+
+.nsch-duplicate {
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #7c2d12;
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nsch-duplicate-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nsch-snapshot {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1e3a5f;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.nsch-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nsch-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nsch-meta span {
+  color: #55606e;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.nsch-l {
+  text-align: left;
+}
+
+.nsch-sign {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  margin-top: 44px;
+}
+
+.nsch-sign-box {
+  flex: 1;
+  text-align: center;
+}
+
+.nsch-sign-line {
+  border-top: 1px solid #1f2937;
+  margin-bottom: 6px;
+}
+
+@media print {
+  .nsch-saved,
+  .nsch-duplicate,
+  .nsch-snapshot {
+    display: none !important;
+  }
+
+  .nsch-meta {
+    display: flex !important;
+    gap: 24px;
+  }
+
+  .nsch-sign {
+    display: flex !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-top: 34px;
+  }
+}
+
+/* =====================================================================
+   NPS BANK LETTER
+
+   An additive section. The report table above is untouched — it keeps its
+   existing markup, styling and print behaviour. The letter has its own
+   scoped print rules so the two can print correctly without either
+   affecting the other, and without the global body-star visibility hack
+   that would blank every other report in the bundled stylesheet.
+   ===================================================================== */
+
+.nsch-letter-wrap {
+  margin-top: 18px;
+}
+
+.nsch-letter-inputs {
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.nsch-letter-inputs-note {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b45309;
+  margin-bottom: 8px;
+}
+
+.nsch-letter-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.nsch-letter-fields .nsch-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.nsch-letter-fields .nsch-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6b7f;
+}
+
+.nsch-letter-fields .nsch-field input {
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 13px;
+  background: #fff;
+}
+
+/* ---------------- the letter document ---------------- */
+
+.nsch-letter {
+  background: #fff;
+  border: 1px solid #94a3b8;
+  color: #000;
+  margin: 0 auto;
+  padding: 22px 26px 34px;
+  width: 210mm;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.nsch-letter-from {
+  text-align: right;
+  margin-bottom: 26px;
+}
+
+.nsch-letter-to {
+  text-align: left;
+  margin-bottom: 22px;
+}
+
+.nsch-letter-subject {
+  font-weight: 700;
+  margin-bottom: 18px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.nsch-letter-body {
+  text-align: justify;
+  margin-bottom: 40px;
+}
+
+.nsch-letter-sign {
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* ---------------- letter print: A4 portrait ---------------- */
+
+@media print {
+  /*
+     Same scoped reset the report above already uses: .app-main is a scroll
+     container on screen and would otherwise clip the letter. The global
+     body-star visibility hack is deliberately NOT used — page CSS is bundled
+     application-wide and such a rule blanks every other report's print.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .nsch-letter-wrap {
+    margin-top: 0;
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .nsch-letter {
+    width: auto;
+    border: none;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    page-break-inside: auto;
+  }
+
+  .nsch-letter-body {
+    orphans: 3;
+    widows: 3;
+  }
+}

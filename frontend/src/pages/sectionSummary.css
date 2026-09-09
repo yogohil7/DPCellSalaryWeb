@@ -1,0 +1,283 @@
+/*
+  SECTION SUMMARY — old government report appearance.
+
+  The filter bar keeps the application's own styling; everything inside
+  .ss-sheet is deliberately traditional: a serif face, compact rows, thin
+  black rules and centred bold headings, matching the legacy report rather
+  than the modern card styling used elsewhere.
+*/
+
+.ss-page {
+  padding: 16px 18px 28px;
+}
+
+.ss-toolbar {
+  margin-bottom: 10px;
+}
+
+.ss-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.ss-filters {
+  align-items: flex-end;
+  background: #f7f8fa;
+  border: 1px solid #d8dde5;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+
+.ss-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.ss-field label {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ss-field select,
+.ss-field input {
+  border: 1px solid #c9d2de;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 6px 8px;
+}
+
+.ss-btn {
+  background: #1f4e79;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+}
+
+.ss-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ss-message {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 4px;
+  color: #9a3412;
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+
+/* ---------- the report sheet (legacy appearance) ---------- */
+
+.ss-sheet {
+  background: #fff;
+  border: 1px solid #d8dde5;
+  /* Traditional serif report face. */
+  /* On screen the report follows the application's standard type. */
+  font-family: var(--font-family-base);
+  font-size: 15px;
+  color: #000;
+  padding: 20px 22px 24px;
+}
+
+.ss-head {
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.ss-head-line {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+}
+
+.ss-table-wrap {
+  overflow-x: auto;
+}
+
+.ss-table {
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 15px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ss-table th,
+.ss-table td {
+  border: 1px solid #000;
+  /* Compact legacy row height. */
+  padding: 2px 8px;
+  vertical-align: middle;
+}
+
+.ss-table thead th {
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Alignment, per the printed form. */
+.ss-c-sr { text-align: center; width: 10%; }
+.ss-c-section { text-align: center; width: 40%; }
+.ss-c-num { text-align: center; width: 15%; }
+.ss-c-amt { text-align: right; width: 20%; }
+
+.ss-table tfoot td {
+  font-weight: 700;
+}
+
+.ss-words {
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+/* ---------- cheque no. / date ---------- */
+
+.ss-cheque {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  margin-top: 18px;
+}
+
+.ss-cheque-field {
+  align-items: center;
+  display: flex;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.ss-cheque-input {
+  border: none;
+  border-bottom: 1px solid #000;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  min-width: 200px;
+  padding: 2px 4px;
+}
+
+.ss-cheque-input:focus {
+  outline: none;
+  background: #fffbe6;
+}
+
+/* The typed value is printed as plain text; the input itself is not. */
+.ss-cheque-print {
+  display: none;
+  font-weight: 400;
+  min-width: 160px;
+  border-bottom: 1px solid #000;
+}
+
+.ss-sign {
+  font-weight: 700;
+  line-height: 1.6;
+  margin-top: 40px;
+  text-align: right;
+}
+
+.ss-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.ss-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  /*
+    Print overflow safety — same reset as Employee Wise Salary:
+    .app-main is a scroll container on screen, which clips the printed
+    table to the viewport. Orientation, table, pagination, data untouched.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .ss-table-wrap {
+    overflow: visible !important;
+  }
+
+  /*
+     The printed form keeps its traditional serif face: the screen uses the
+     application's standard Inter type, paper keeps the government look.
+  */
+  .ss-sheet {
+    font-family: "Times New Roman", "Liberation Serif", "Nimbus Roman", Times, serif;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  .no-print,
+  .app-sidebar,
+  .app-header,
+  .ss-filters,
+  .ss-toolbar,
+  .ss-actions {
+    display: none !important;
+  }
+
+  .ss-page {
+    padding: 0;
+  }
+
+  .ss-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  /* Show the typed cheque no./date as report text, not as form fields. */
+  .ss-cheque-print {
+    display: inline-block;
+  }
+
+  .ss-table thead {
+    display: table-header-group;
+  }
+
+  .ss-table tfoot {
+    display: table-footer-group;
+  }
+
+  .ss-table th,
+  .ss-table td {
+    border: 1px solid #000;
+  }
+}

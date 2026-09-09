@@ -1,0 +1,364 @@
+.cr-page {
+  padding: 16px 20px 40px;
+  color: #1f2937;
+}
+
+.cr-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cr-back,
+.cr-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.cr-btn-primary {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+  font-weight: 600;
+  min-width: 110px;
+}
+
+.cr-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.cr-header h1 {
+  margin: 0;
+  font-size: 1.45rem;
+  letter-spacing: 0.04em;
+}
+
+.cr-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  max-width: 820px;
+}
+
+.cr-filters {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: end;
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.cr-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.cr-filters select {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  color: #0f172a;
+  background: #fff;
+}
+
+.cr-filter-actions {
+  display: flex;
+  align-items: end;
+}
+
+.cr-message {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+}
+
+.cr-result {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 14px 16px 18px;
+}
+
+.cr-result-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.cr-section-label {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.cr-result-head h2 {
+  margin: 4px 0 0;
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+}
+
+.cr-user-line {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.cr-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.cr-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.cr-table th,
+.cr-table td {
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #f1f5f9;
+  padding: 8px 10px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.cr-table th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 1;
+  font-weight: 700;
+  color: #334155;
+}
+
+.cr-table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+
+.cr-table tfoot td {
+  background: #eef2ff;
+  font-weight: 700;
+}
+
+.cr-left {
+  text-align: left !important;
+}
+
+.cr-num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.cr-empty {
+  text-align: center !important;
+  color: #64748b;
+  padding: 24px 10px !important;
+}
+
+.cr-type {
+  display: inline-block;
+  min-width: 72px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.cr-type.is-regular {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.cr-type.is-old {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+@media (max-width: 1100px) {
+  .cr-filters {
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .cr-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* =====================================================
+   REPORT ACTIONS — below the table, right aligned
+   ===================================================== */
+
+.cr-report-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #dee2e6;
+}
+
+.cr-report-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+.cr-btn-excel {
+  background: #1d6f42;
+  border: 1px solid #1d6f42;
+  color: #ffffff;
+}
+
+.cr-btn-print {
+  background: #2c3e50;
+  border: 1px solid #2c3e50;
+  color: #ffffff;
+}
+
+.cr-btn-excel:disabled,
+.cr-btn-print:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   PRINT — the report only, on landscape paper
+   ===================================================== */
+
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  /* Hide every application chrome element: header, sidebar, filters,
+     toolbars, search and the action buttons themselves. */
+  .no-print,
+  .app-sidebar,
+  .app-header,
+  .sidebar-backdrop,
+  .cr-toolbar,
+  .cr-filters,
+  .cr-report-actions,
+  .data-grid-toolbar,
+  .data-grid-footer {
+    display: none !important;
+  }
+
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* The report is the whole printed page. */
+  .cr-page {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  .cr-result {
+    border: none;
+    padding: 0;
+  }
+
+  /* Title block: CHEQUE REGISTER - MONTH-YEAR plus the section context. */
+  .cr-result-head {
+    display: block;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .cr-result-head h2 {
+    font-size: 15pt;
+    font-weight: 700;
+    margin: 0 0 2px;
+  }
+
+  .cr-section-label {
+    font-size: 10pt;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .cr-user-line {
+    font-size: 8pt;
+    margin: 0;
+  }
+
+  /* Fit every column onto the sheet rather than clipping. */
+  .cr-table-wrap {
+    overflow: visible !important;
+    border: none;
+  }
+
+  .cr-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed;
+    font-size: 6.5pt;
+    border-collapse: collapse;
+  }
+
+  .cr-table th,
+  .cr-table td {
+    padding: 2px 3px !important;
+    border: 1px solid #000000 !important;
+    word-break: break-word;
+  }
+
+  .cr-table th {
+    position: static;
+    background: #e9ecef !important;
+    color: #000000 !important;
+    font-size: 6.5pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Repeat headers and keep the totals row with the table across pages. */
+  .cr-table thead {
+    display: table-header-group;
+  }
+
+  .cr-table tfoot {
+    display: table-footer-group;
+    font-weight: 700;
+  }
+
+  .cr-table tr {
+    page-break-inside: avoid;
+  }
+}

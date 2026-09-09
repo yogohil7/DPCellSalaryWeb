@@ -1,0 +1,161 @@
+.section-master {
+  --sm-header: #5e6d7e;
+  --sm-border: #c5d4e8;
+  --sm-input-border: #b7c4d6;
+  --sm-input-bg: #f5f5f5;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  color: #212529;
+}
+
+.sm-top {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sm-back {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  color: #1565c0;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+}
+
+.sm-top h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.sm-card {
+  background: #ffffff;
+  border: 1px solid var(--sm-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.sm-card-head {
+  min-height: 36px;
+  padding: 0 14px;
+  background: var(--sm-header);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sm-crumb {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+.sm-card-body {
+  padding: 14px;
+}
+
+.sm-list-body {
+  padding: 0;
+}
+
+.sm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px 16px;
+}
+
+.sm-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #4d4d4d;
+  font-weight: 600;
+}
+
+.sm-grid label em {
+  color: #c62828;
+  font-style: normal;
+}
+
+.sm-grid input,
+.sm-grid select {
+  height: 32px;
+  border: 1px solid var(--sm-input-border);
+  background: var(--sm-input-bg);
+  padding: 0 8px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.sm-grid input:focus,
+.sm-grid select:focus {
+  outline: none;
+  border-color: #5e6d7e;
+  background: #ffffff;
+}
+
+.sm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.sm-btn {
+  min-width: 88px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sm-btn.primary,
+.sm-btn.reset {
+  background: #5e6d7e;
+  color: #ffffff;
+}
+
+.sm-btn.cancel {
+  background: #ffffff;
+  border-color: #9aa7b5;
+  color: #333;
+}
+
+.sm-message {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid #c5d4e8;
+  font-size: 12px;
+}
+
+.sm-message.is-error {
+  border-color: #d9a0a0;
+  background: #fdf2f2;
+  color: #8a2b2b;
+}
+
+.sm-message.is-success {
+  border-color: #9ccc9c;
+  background: #f1f8f1;
+  color: #1b5e20;
+}
+
+@media (max-width: 900px) {
+  .sm-grid {
+    grid-template-columns: 1fr;
+  }
+}

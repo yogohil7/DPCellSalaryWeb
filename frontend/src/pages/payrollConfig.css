@@ -1,0 +1,271 @@
+.payroll-config {
+  --pc-header: #5e6d7e;
+  --pc-border: #c5d4e8;
+  --pc-input-bg: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  color: #212529;
+}
+
+.pc-top {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pc-back {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  color: #1565c0;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+}
+
+.pc-top h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.pc-card {
+  background: #fff;
+  border: 1px solid var(--pc-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pc-card-head {
+  min-height: 36px;
+  padding: 0 14px;
+  background: var(--pc-header);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pc-crumb {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+.pc-card-body {
+  padding: 14px;
+}
+
+.pc-search-row {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.pc-search-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.pc-search-row input,
+.pc-search-row select,
+.pc-config-grid input[type="date"],
+.pc-filters input,
+.pc-filters select {
+  border: 1px solid #b7c4d6;
+  border-radius: 3px;
+  padding: 7px 9px;
+  background: var(--pc-input-bg);
+  font: inherit;
+}
+
+.pc-btn {
+  border: 1px solid #90a4ae;
+  background: #eceff1;
+  color: #263238;
+  border-radius: 3px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.pc-btn-primary {
+  background: #1565c0;
+  border-color: #1565c0;
+  color: #fff;
+}
+
+.pc-btn-danger {
+  background: #c62828;
+  border-color: #c62828;
+  color: #fff;
+}
+
+.pc-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pc-msg {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 3px;
+}
+
+.pc-msg.error {
+  background: #ffebee;
+  color: #b71c1c;
+  border: 1px solid #ffcdd2;
+}
+
+.pc-msg.success {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #c8e6c9;
+}
+
+.pc-employee-results {
+  margin-top: 10px;
+  border: 1px solid #d5dde5;
+  border-radius: 3px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.pc-employee-results button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid #eef2f6;
+  background: #fff;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.pc-employee-results button:hover,
+.pc-employee-results button.is-selected {
+  background: #e3f2fd;
+}
+
+.pc-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 10px 14px;
+}
+
+.pc-info-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pc-info-grid span {
+  color: #607d8b;
+  font-size: 11px;
+}
+
+.pc-info-grid strong {
+  font-size: 13px;
+  color: #263238;
+}
+
+.pc-config-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 640px;
+}
+
+.pc-config-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.pc-config-row label.pc-field-label {
+  font-weight: 600;
+  color: #37474f;
+}
+
+.pc-toggle-group {
+  display: inline-flex;
+  gap: 0;
+  border: 1px solid #90a4ae;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pc-toggle-group button {
+  border: 0;
+  background: #f5f5f5;
+  padding: 7px 18px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  color: #546e7a;
+}
+
+.pc-toggle-group button.is-on {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.pc-toggle-group button.is-off.is-on {
+  background: #c62828;
+}
+
+.pc-toggle-group button.is-na.is-on {
+  background: #546e7a;
+}
+
+.pc-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.pc-filters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pc-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pc-view-only {
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .pc-info-grid,
+  .pc-filters {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+
+  .pc-config-row {
+    grid-template-columns: 1fr;
+  }
+}

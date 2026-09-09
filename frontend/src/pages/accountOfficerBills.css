@@ -1,0 +1,765 @@
+.ao-page {
+  min-height: calc(100vh - 70px);
+  background: #f3f6f9;
+  padding: 22px 30px 40px;
+  color: #172b4d;
+  font-family: var(--font-family-base);
+}
+
+.ao-back {
+  margin-bottom: 8px;
+}
+
+.ao-link-button {
+  border: none;
+  background: transparent;
+  color: #1769aa;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.ao-link-button:hover {
+  text-decoration: underline;
+}
+
+.ao-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ao-title-row h1 {
+  margin: 0;
+  font-size: 22px;
+  color: #173d68;
+}
+
+.ao-title-row p {
+  margin: 4px 0 0;
+  color: #66788a;
+  font-size: 13px;
+}
+
+.ao-user-box {
+  background: #e9eef4;
+  border: 1px solid #cbd6e1;
+  padding: 8px 15px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ao-card {
+  background: #ffffff;
+  border: 1px solid #c9d5e1;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.ao-section-title {
+  background: #526b82;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 12px;
+  text-transform: uppercase;
+}
+
+.ao-flex-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ao-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  padding: 10px;
+}
+
+.ao-info {
+  min-height: 45px;
+  padding: 7px 12px;
+  border: 1px solid #e0e6ec;
+  background: #fafbfd;
+}
+
+.ao-info-label {
+  display: block;
+  font-size: 11px;
+  color: #4f6478;
+  margin-bottom: 4px;
+}
+
+.ao-info-value {
+  display: block;
+  color: #172b4d;
+  font-size: 13px;
+}
+
+.ao-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border: 1px solid #c9d5e1;
+  margin-bottom: 14px;
+  background: white;
+}
+
+.ao-summary {
+  padding: 12px;
+  border-right: 1px solid #d8e0e8;
+}
+
+.ao-summary:last-child {
+  border-right: none;
+}
+
+.ao-summary span {
+  display: block;
+  color: #4d6173;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.ao-summary strong {
+  font-size: 16px;
+  color: #172b4d;
+}
+
+.ao-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 12px;
+}
+
+.ao-count {
+  font-size: 13px;
+}
+
+.ao-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 320px;
+  border: 1px solid #c5d1dd;
+  background: white;
+  padding: 3px 8px;
+}
+
+.ao-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  height: 30px;
+  font-size: 13px;
+}
+
+.ao-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.ao-list-table,
+.ao-salary-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.ao-list-table th,
+.ao-list-table td {
+  border: 1px solid #d3dce5;
+  padding: 8px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ao-list-table th {
+  background: #263f56;
+  color: white;
+  font-weight: 700;
+  text-align: left;
+}
+
+.ao-list-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.ao-list-table tbody tr:hover {
+  background: #eef5fb;
+}
+
+.ao-salary-table {
+  min-width: 1850px;
+}
+
+.ao-salary-table th,
+.ao-salary-table td {
+  border: 1px solid #d5dde5;
+  padding: 7px 8px;
+  font-size: 13px;
+  font-family: var(--font-family-base);
+  white-space: nowrap;
+  text-align: right;
+  height: 42px;
+  color: #1f2937;
+}
+
+.ao-salary-table th {
+  background: #2f4e6f;
+  color: white;
+  text-align: center;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ao-salary-table th.ao-group {
+  background: #243c56;
+  font-size: 13px;
+}
+
+.ao-salary-table th.earning {
+  background: #1f3c58;
+}
+
+.ao-salary-table th.deduction {
+  background: #1a334c;
+}
+
+.ao-salary-table td.sticky-col {
+  position: sticky;
+  background: white;
+  z-index: 3;
+  text-align: left;
+}
+
+.ao-salary-table th:nth-child(1),
+.ao-salary-table th:nth-child(2),
+.ao-salary-table th:nth-child(3),
+.ao-salary-table th:nth-child(4) {
+  position: sticky;
+  z-index: 7;
+}
+
+.ao-salary-table th:nth-child(1),
+.ao-salary-table td.sticky-1 {
+  left: 0;
+  width: 55px;
+  min-width: 55px;
+}
+
+.ao-salary-table th:nth-child(2),
+.ao-salary-table td.sticky-2 {
+  left: 55px;
+  width: 180px;
+  min-width: 180px;
+}
+
+.ao-salary-table th:nth-child(3),
+.ao-salary-table td.sticky-3 {
+  left: 235px;
+  width: 140px;
+  min-width: 140px;
+}
+
+.ao-salary-table th:nth-child(4),
+.ao-salary-table td.sticky-4 {
+  left: 375px;
+  width: 100px;
+  min-width: 100px;
+}
+
+.ao-salary-table tbody tr:nth-child(even) td.sticky-col {
+  background: #f8fafc;
+}
+
+.ao-salary-table tbody tr:hover td.sticky-col {
+  background: #eef5fb;
+}
+
+.ao-gpf {
+  color: #155724;
+  font-weight: 700;
+}
+
+.ao-nps {
+  color: #174a8b;
+  font-weight: 700;
+}
+
+.ao-total-cell {
+  font-weight: 700;
+}
+
+.ao-net-cell {
+  font-weight: 700;
+  background: #eef8f0;
+}
+
+.ao-cheque-cell {
+  font-weight: 700;
+  background: #eef4fb;
+}
+
+.ao-empty {
+  text-align: center !important;
+  padding: 30px !important;
+  color: #7b8794;
+}
+
+.ao-remarks {
+  margin: 12px;
+  min-height: 70px;
+  border: 1px solid #d1dbe5;
+  padding: 12px;
+  background: #fafbfd;
+  font-size: 13px;
+}
+
+.ao-history-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 10px;
+}
+
+.ao-small-button {
+  border: 1px solid #d5e0e9;
+  background: white;
+  color: #263f56;
+  padding: 5px 9px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.ao-action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.ao-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ao-btn {
+  border: none;
+  padding: 9px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.ao-btn.secondary {
+  background: #6c757d;
+}
+
+.ao-btn.info {
+  background: #2878b5;
+}
+
+.ao-btn.variation {
+  background: #6251a6;
+}
+
+.ao-btn.preview {
+  background: #49677f;
+}
+
+.ao-btn.print {
+  background: #34495e;
+}
+
+.ao-btn.verify {
+  background: #146c94;
+}
+
+.ao-btn.approve {
+  background: #198754;
+}
+
+.ao-btn.return {
+  background: #b02a37;
+}
+
+.ao-btn:hover {
+  opacity: 0.9;
+}
+
+.ao-view-button {
+  border: none;
+  background: #1769aa;
+  color: white;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.ao-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ao-status-SUBMITTED,
+.ao-status-RESUBMITTED {
+  background: #fff3cd;
+  color: #664d03;
+}
+
+.ao-status-AO_VERIFIED {
+  background: #cff4fc;
+  color: #055160;
+}
+
+.ao-status-APPROVED {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.ao-status-RETURNED {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.ao-info-card {
+  margin-top: 18px;
+}
+
+.ao-workflow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 20px;
+  text-align: center;
+}
+
+.ao-workflow > div:not(.arrow) {
+  min-width: 140px;
+  border: 1px solid #ccd7e1;
+  background: #f8fafc;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ao-workflow span {
+  display: block;
+  font-size: 20px;
+  color: #1769aa;
+  margin-bottom: 5px;
+}
+
+.ao-workflow small {
+  display: block;
+  color: #687888;
+  font-weight: normal;
+  margin-top: 4px;
+}
+
+.ao-workflow .arrow {
+  font-weight: bold;
+  color: #65788a;
+}
+
+.ao-workflow .return-workflow span {
+  color: #b02a37;
+}
+
+.ao-return-note {
+  margin: 0 20px 20px;
+  padding: 12px;
+  border-left: 4px solid #b02a37;
+  background: #fff5f5;
+  color: #4b5258;
+  font-size: 12px;
+}
+
+.ao-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.ao-modal {
+  width: 560px;
+  max-width: 100%;
+  background: white;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.ao-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #526b82;
+  color: white;
+  padding: 10px 14px;
+}
+
+.ao-modal-header h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.ao-modal-close {
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.ao-modal-body {
+  padding: 18px;
+}
+
+.ao-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.ao-return-info {
+  padding: 10px;
+  background: #f1f4f7;
+  border: 1px solid #d5dde5;
+  line-height: 1.7;
+  margin-bottom: 15px;
+  font-size: 13px;
+}
+
+.ao-field-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.ao-return-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #bfcbd6;
+  padding: 10px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.ao-inline-error { color: #b42318; font-size: 13px; margin-top: 8px; }
+
+.ao-approval-warning {
+  border-left: 4px solid #198754;
+  background: #f0fff6;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.ao-approval-warning p {
+  margin: 7px 0 0;
+  font-size: 13px;
+}
+
+.ao-approval-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+
+.ao-variation {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+
+@media (max-width: 900px) {
+  .ao-page {
+    padding: 15px;
+  }
+
+  .ao-info-grid,
+  .ao-history-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ao-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ao-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .ao-search {
+    width: auto;
+  }
+
+  .ao-workflow {
+    flex-wrap: wrap;
+  }
+}
+
+@media print {
+  .ao-back,
+  .ao-action-bar,
+  .ao-footer-actions,
+  .ao-toolbar,
+  .ao-modal-overlay {
+    display: none !important;
+  }
+
+  .ao-page {
+    background: white;
+    padding: 0;
+  }
+
+  .ao-card {
+    break-inside: avoid;
+  }
+}
+
+/* =========================================================
+   PHASE 4 — SALARY BILL APPROVAL VISUAL UPGRADE
+
+   CSS ONLY. AccountOfficerBills.jsx is untouched: no approval
+   logic, no authorization check, no stored value and no API
+   call is involved. Every rule attaches to classes the screen
+   already renders, and the existing colour of each button
+   variant is preserved — only depth, motion and focus are
+   added.
+========================================================= */
+
+/* Cards read as separated surfaces rather than outlined boxes. */
+.ao-card {
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-normal) var(--ease-standard);
+}
+
+.ao-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ---------------------------------------------------------
+   ACTION BUTTONS
+   Approve and Return keep their established colours; they gain
+   press feedback and a focus ring. Deliberately NOT enlarged —
+   an approval control should feel considered, not eager.
+   --------------------------------------------------------- */
+.ao-btn {
+  border-radius: var(--radius-md);
+  transition: filter var(--transition-fast) var(--ease-standard),
+    box-shadow var(--transition-fast) var(--ease-standard),
+    transform var(--transition-fast) var(--ease-standard);
+}
+
+.ao-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: var(--shadow-sm);
+}
+
+.ao-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.ao-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ao-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* ---------------------------------------------------------
+   STATUS
+   The existing per-status colours are kept. A status is also
+   spelled out in text by the markup, so meaning never rests on
+   colour alone.
+   --------------------------------------------------------- */
+.ao-status {
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------
+   FINANCIAL TABLE
+   Tabular figures so Gross, deductions, GPF Adv, NPS, CLA and
+   Net line up digit-for-digit down each column. Stored values
+   are displayed exactly as the component supplies them — this
+   changes how digits are drawn, never what they are.
+   --------------------------------------------------------- */
+.ao-salary-table td,
+.ao-salary-table th,
+.ao-net-cell,
+.ao-list-table td {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.ao-salary-table tbody tr {
+  transition: background-color var(--transition-fast) var(--ease-standard);
+}
+
+.ao-salary-table tbody tr:hover {
+  background: var(--color-info-surface);
+}
+
+/* The net figure is the conclusion of the row. */
+.ao-net-cell {
+  font-weight: 600;
+}
+
+/* Modals arrive rather than appear; a confirmation step keeps
+   its blocking behaviour — only its entrance is softened. */
+.ao-modal-buttons .ao-btn {
+  min-width: 96px;
+}
+
+/* Field labels sit quietly above their values. */
+.ao-field-label {
+  color: var(--color-text-soft);
+  letter-spacing: 0.02em;
+}
+
+.ao-link-button {
+  transition: color var(--transition-fast) var(--ease-standard);
+}
+
+.ao-link-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+/* PRINT: scoped to this page. No global visibility-hiding rule. */
+@media print {
+  .ao-card {
+    box-shadow: none;
+  }
+  .ao-salary-table tbody tr:hover {
+    background: transparent;
+  }
+}

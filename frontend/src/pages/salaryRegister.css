@@ -1,0 +1,233 @@
+/*
+  SALARY REGISTER — bill-wise register.
+
+  Screen styling follows the other report sheets (see reportCommon.css); the
+  print block uses the project's established report print architecture, not the
+  old global visibility-hidden pattern.
+*/
+
+.sr-page {
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sr-toolbar {
+  margin-bottom: 12px;
+}
+
+.sr-link {
+  background: none;
+  border: none;
+  color: var(--brand, #1d4ed8);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.sr-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.sr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.sr-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6b7f;
+}
+
+.sr-field select,
+.sr-field input {
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.sr-btn {
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sr-btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.sr-btn-ghost {
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.sr-message {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #eef4ff;
+  border: 1px solid #c7d7f5;
+}
+
+.sr-sheet {
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.sr-head {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.sr-head-line {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+}
+
+.sr-head-line.sr-title {
+  font-size: 16px;
+}
+
+.sr-filter-summary {
+  text-align: center;
+  margin-bottom: 12px;
+  color: #334155;
+}
+
+.sr-table-wrap {
+  overflow-x: auto;
+}
+
+.sr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-table th,
+.sr-table td {
+  border: 1px solid #94a3b8;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.sr-table th {
+  background: #eef2f7;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.sr-table td.sr-amt,
+.sr-table th.sr-amt {
+  text-align: right;
+}
+
+.sr-table td.sr-name {
+  white-space: normal;
+  min-width: 180px;
+}
+
+.sr-table tfoot td {
+  font-weight: 700;
+  background: #f6f8fb;
+}
+
+.sr-type {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.sr-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ---------------- print ---------------- */
+
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  /*
+    Print overflow safety — the same reset the project's working report print
+    fixes use. .app-main is a scroll container on screen, which would otherwise
+    clip the register to the viewport. No global visibility-hidden.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .sr-page {
+    padding: 0;
+    font-size: 10px;
+  }
+
+  .sr-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  .sr-table-wrap {
+    overflow: visible !important;
+  }
+
+  /* The header repeats on every printed page. */
+  .sr-table thead {
+    display: table-header-group;
+  }
+
+  .sr-table tfoot {
+    display: table-footer-group;
+  }
+
+  .sr-table tr {
+    page-break-inside: avoid;
+  }
+
+  .sr-table th {
+    background: #eef2f7 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

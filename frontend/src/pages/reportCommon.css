@@ -1,0 +1,204 @@
+/* =========================================================
+   PHASE 5 — SHARED REPORT REFINEMENTS
+
+   ONE stylesheet for all eleven report screens, which happen
+   to follow a strict naming convention (<prefix>-page,
+   -filters, -sheet, -table, -table-wrap). That let this phase
+   be done with NO JSX changes at all: not one report
+   component was touched, so no data, filter, grouping, total,
+   sorting or print implementation could be affected.
+
+   Everything here is presentational and additive. Each report
+   keeps its own stylesheet, its own layout and its own print
+   block; these rules only add what was missing consistently:
+   tabular figures, row hover, totals separation and focus
+   rings, all from the Phase 1 tokens.
+
+   Imported once from App.css, so no report page's imports
+   change either.
+========================================================= */
+
+/* ---------------------------------------------------------
+   TABULAR FIGURES
+
+   The single biggest readability win on a financial report:
+   digits become fixed-width, so rupee columns line up
+   digit-for-digit down the page and a mis-keyed figure is
+   visible at a glance. This changes how numerals are DRAWN
+   and never what they are.
+   --------------------------------------------------------- */
+.cr-table,
+.bc-table,
+.ss-table,
+.gs-table,
+.iwg-table,
+.nps-table,
+.npsiw-table,
+.nsch-table,
+.ngd-table,
+.ews-table,
+.iws-table,
+.eps-table,
+.sr-table,
+.itp-table {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---------------------------------------------------------
+   ROW HOVER
+
+   Applied to the row, never per cell, so a wide report does
+   not repaint cell-by-cell while the pointer crosses it.
+   A wash rather than a highlight: figures stay readable.
+   Header and totals rows are deliberately excluded.
+   --------------------------------------------------------- */
+.cr-table tbody tr,
+.bc-table tbody tr,
+.ss-table tbody tr,
+.gs-table tbody tr,
+.iwg-table tbody tr,
+.nps-table tbody tr,
+.npsiw-table tbody tr,
+.nsch-table tbody tr,
+.ngd-table tbody tr,
+.ews-table tbody tr,
+.iws-table,
+.eps-table,
+.sr-table,
+.itp-table tbody tr {
+  transition: background-color var(--transition-fast) var(--ease-standard);
+}
+
+.cr-table tbody tr:hover,
+.bc-table tbody tr:hover,
+.ss-table tbody tr:hover,
+.gs-table tbody tr:hover,
+.iwg-table tbody tr:hover,
+.nps-table tbody tr:hover,
+.npsiw-table tbody tr:hover,
+.nsch-table tbody tr:hover,
+.ngd-table tbody tr:hover,
+.ews-table tbody tr:hover,
+.iws-table,
+.eps-table,
+.sr-table,
+.itp-table tbody tr:hover {
+  background: var(--color-info-surface);
+}
+
+/* ---------------------------------------------------------
+   TOTALS
+
+   A total is a conclusion, so it gets a rule above it rather
+   than another colour. Weight and position carry the meaning,
+   which survives greyscale and printing.
+   --------------------------------------------------------- */
+.cr-table tfoot td,
+.bc-table tfoot td,
+.ss-table tfoot td,
+.gs-table tfoot td,
+.iwg-table tfoot td,
+.nps-table tfoot td,
+.npsiw-table tfoot td,
+.nsch-table tfoot td,
+.ngd-table tfoot td,
+.ews-table tfoot td,
+.iws-table,
+.eps-table,
+.sr-table,
+.itp-table tfoot td {
+  border-top: 2px solid var(--color-border-strong);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------
+   FILTER BARS
+
+   Consistent focus feedback across every report's controls.
+   The controls themselves, their labels, their order and
+   their meaning are untouched — only the focus ring is added,
+   so keyboard users can see where they are.
+   --------------------------------------------------------- */
+.cr-filters select:focus-visible,
+.cr-filters input:focus-visible,
+.bc-filters select:focus-visible,
+.bc-filters input:focus-visible,
+.ss-filters select:focus-visible,
+.ss-filters input:focus-visible,
+.gs-filters select:focus-visible,
+.gs-filters input:focus-visible,
+.iwg-filters select:focus-visible,
+.iwg-filters input:focus-visible,
+.nps-filters select:focus-visible,
+.nps-filters input:focus-visible,
+.npsiw-filters select:focus-visible,
+.npsiw-filters input:focus-visible,
+.nsch-filters select:focus-visible,
+.nsch-filters input:focus-visible,
+.ngd-filters select:focus-visible,
+.ngd-filters input:focus-visible,
+.ews-filters select:focus-visible,
+.ews-filters input:focus-visible,
+.iws-filters select:focus-visible,
+.iws-filters input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Report sheets read as one surface rather than an outline. */
+.bc-sheet,
+.ss-sheet,
+.gs-sheet,
+.iwg-sheet,
+.nps-sheet,
+.npsiw-sheet,
+.nsch-sheet,
+.ngd-sheet,
+.ews-sheet,
+.iws-sheet {
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------------------------------------------------------
+   PRINT
+
+   NO global visibility rule of any kind is used here. Each
+   report keeps its own print block, which continues to decide
+   what that report prints; this only neutralises the two
+   things added above that must not reach paper — the hover
+   wash and the sheet shadow — and leaves headings, totals,
+   numeric alignment, page orientation and every existing
+   print override exactly as they are.
+   --------------------------------------------------------- */
+@media print {
+  .cr-table tbody tr:hover,
+  .bc-table tbody tr:hover,
+  .ss-table tbody tr:hover,
+  .gs-table tbody tr:hover,
+  .iwg-table tbody tr:hover,
+  .nps-table tbody tr:hover,
+  .npsiw-table tbody tr:hover,
+  .nsch-table tbody tr:hover,
+  .ngd-table tbody tr:hover,
+  .ews-table tbody tr:hover,
+  .iws-table,
+.eps-table,
+.sr-table,
+.itp-table tbody tr:hover {
+    background: transparent;
+  }
+
+  .bc-sheet,
+  .ss-sheet,
+  .gs-sheet,
+  .iwg-sheet,
+  .nps-sheet,
+  .npsiw-sheet,
+  .nsch-sheet,
+  .ngd-sheet,
+  .ews-sheet,
+  .iws-sheet {
+    box-shadow: none;
+  }
+}

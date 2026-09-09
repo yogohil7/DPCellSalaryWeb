@@ -1,0 +1,360 @@
+.fsb-page {
+  padding: 16px 20px 40px;
+  color: #1f2937;
+}
+
+.fsb-back {
+  margin-bottom: 8px;
+}
+
+.fsb-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.fsb-title-row h1 {
+  margin: 0;
+  font-size: 1.45rem;
+  letter-spacing: 0.04em;
+}
+
+.fsb-title-row p {
+  margin: 4px 0 0;
+  color: #64748b;
+}
+
+.fsb-card {
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.fsb-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.fsb-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.fsb-filters select {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+  background: #fff;
+}
+
+.fsb-btn {
+  border: 1px solid #94a3b8;
+  background: #f8fafc;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+  margin-right: 8px;
+}
+
+.fsb-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fsb-btn-primary {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+  width: 100%;
+  margin-right: 0;
+}
+
+.fsb-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 12px;
+  font-size: 0.92rem;
+}
+
+.fsb-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+.status-open {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-locked {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.fsb-error {
+  margin-top: 12px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.fsb-warning {
+  margin-top: 12px;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+
+.fsb-warning-sub {
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.fsb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fsb-hint {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.fsb-bill-surface {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.fsb-print-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fsb-bill-header {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.fsb-dept {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.fsb-bill-header h2 {
+  margin: 6px 0 12px;
+  font-size: 1.25rem;
+}
+
+.fsb-header-grid,
+.fsb-summary-grid,
+.fsb-sign-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.fsb-header-grid {
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  text-align: left;
+  border: 1px solid #cbd5e1;
+  padding: 10px;
+}
+
+.fsb-header-grid span,
+.fsb-summary-grid span,
+.fsb-words span,
+.fsb-sign-grid span {
+  display: block;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.fsb-summary-box {
+  border: 1px solid #94a3b8;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.fsb-summary-box h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.fsb-summary-grid {
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+}
+
+.fsb-words {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.fsb-table-wrap {
+  overflow: auto;
+}
+
+.fsb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+}
+
+.fsb-table th,
+.fsb-table td {
+  border: 1px solid #94a3b8;
+  padding: 4px 5px;
+  white-space: nowrap;
+}
+
+.fsb-table thead th {
+  background: #e2e8f0;
+  font-weight: 700;
+}
+
+.fsb-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.fsb-total-row td {
+  font-weight: 700;
+  background: #f1f5f9;
+}
+
+.fsb-certification {
+  margin-top: 22px;
+  page-break-inside: avoid;
+}
+
+.fsb-certification h3 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+}
+
+.fsb-sign-grid {
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  gap: 28px 16px;
+}
+
+.fsb-sign-line {
+  margin-top: 36px;
+  border-top: 1px solid #334155;
+}
+
+.fsb-bill-footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #475569;
+  border-top: 1px solid #cbd5e1;
+  padding-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .fsb-filters,
+  .fsb-header-grid,
+  .fsb-summary-grid,
+  .fsb-sign-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@page {
+  size: A4 landscape;
+  margin: 12mm 10mm 16mm 10mm;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  /*
+    Print isolation for THIS bill only.  Scoped with :has() so the rule is
+    inert on every other page (see salaryEntryVariationReport.css).
+  */
+  body:has(#final-salary-bill-print) * {
+    visibility: hidden;
+  }
+
+  body:has(#final-salary-bill-print) #final-salary-bill-print,
+  body:has(#final-salary-bill-print) #final-salary-bill-print * {
+    visibility: visible;
+  }
+
+  #final-salary-bill-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .fsb-table thead {
+    display: table-header-group;
+  }
+
+  .fsb-table tfoot {
+    display: table-footer-group;
+  }
+
+  .fsb-bill-header {
+    page-break-after: avoid;
+  }
+
+  .fsb-table tr {
+    page-break-inside: avoid;
+  }
+
+  .fsb-bill-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+  }
+
+  .fsb-page-indicator::after {
+    content: " | Page " counter(page);
+  }
+}

@@ -1,0 +1,345 @@
+.emp-master {
+  --hr-header: #5e6d7e;
+  --hr-navy: #2c3e50;
+  --hr-border: #ced4da;
+  --hr-input-bg: #f5f5f5;
+  --hr-label: #4d4d4d;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: var(--font-family-base);
+  color: #212529;
+}
+
+.hr-card {
+  background: #ffffff;
+  border: 1px solid #c5d4e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hr-card-head {
+  background: var(--hr-header);
+  color: #ffffff;
+  min-height: 42px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 16px;
+  font-family: var(--font-family-base);
+  font-weight: 600;
+}
+
+.hr-crumb {
+  font-size: 12px;
+  font-weight: 400;
+  color: #1565c0;
+  background: #e9ecef;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+
+.hr-card-body {
+  padding: 18px 16px 16px;
+  background: #ffffff;
+}
+
+.emp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px 18px;
+}
+
+.emp-master label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: var(--font-family-base);
+  color: var(--hr-label);
+  text-align: left;
+}
+
+.emp-master label em {
+  color: #dc3545;
+  font-style: normal;
+  font-family: var(--font-family-base);
+}
+
+.app-shell .emp-master input,
+.app-shell .emp-master select {
+  height: 38px;
+  width: 100%;
+  border: 1px solid #b7c4d6;
+  background: var(--hr-input-bg);
+  border-radius: 4px;
+  padding: 0 10px;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: var(--font-family-base);
+  color: #212529;
+  box-shadow: none;
+}
+
+.app-shell .emp-master input:focus,
+.app-shell .emp-master select:focus {
+  border-color: #80bdff;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.12);
+  outline: none;
+}
+
+.app-shell .emp-master input.emp-readonly,
+.app-shell .emp-master input.emp-readonly:focus {
+  background: #e9ecef;
+  color: #495057;
+  cursor: default;
+  border-color: #ced4da;
+  box-shadow: none;
+}
+
+.app-shell .emp-master select:disabled {
+  background: #e9ecef;
+  color: #495057;
+  cursor: not-allowed;
+}
+
+.app-shell .emp-master .emp-field-error {
+  display: block;
+  margin-top: 4px;
+  color: #c62828;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.app-shell .emp-master .hr-msg {
+  color: #1565c0;
+}
+
+.hr-actions,
+.search-btns,
+.list-tools,
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hr-actions {
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #dee2e6;
+}
+
+.hr-msg {
+  margin-right: auto;
+  color: #2e7d32;
+  font-size: 13px;
+  font-family: var(--font-family-base);
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr) auto;
+  gap: 16px 14px;
+  align-items: end;
+}
+
+.list-tools {
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.list-tools.sub-tools {
+  justify-content: flex-start;
+}
+
+.export-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.export-btn {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #ced4da;
+  background: #f8f9fa;
+  color: #212529;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: var(--font-family-base);
+  cursor: pointer;
+}
+
+.show-entries,
+.table-search {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  font-size: 12px;
+  font-family: var(--font-family-base);
+}
+
+.show-entries select,
+.table-search input {
+  width: auto;
+  min-width: 120px;
+  height: 38px;
+  font-family: var(--font-family-base);
+}
+
+.emp-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dee2e6;
+}
+
+.emp-table {
+  width: 100%;
+  min-width: 1280px;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: var(--font-family-base);
+}
+
+.emp-table th {
+  background: #2c3e50;
+  color: #fff;
+  text-align: left;
+  padding: 8px;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 12px;
+  font-family: var(--font-family-base);
+  border: 1px solid #3d5166;
+  height: 36px;
+}
+
+.emp-table td { 
+  padding: 7px 8px;
+  border: 1px solid #dee2e6;
+  white-space: nowrap;
+  background: #fff;
+  font-size: 13px;
+  font-family: var(--font-family-base);
+  color: #212529;
+}
+
+.emp-table td:first-child {
+  text-align: center;
+}
+
+.emp-table tbody tr:hover td {
+  background: #f8f9fa;
+}
+
+.emp-table .empty {
+  text-align: center;
+  color: #6c757d;
+  padding: 18px;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.status-text.active {
+  color: #1e7e34;
+  font-weight: 600;
+  font-family: var(--font-family-base);
+}
+
+.status-text.inactive,
+.status-text.retired {
+  color: #6c757d;
+}
+
+.icon-x {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 3px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 16px;
+  font-family: var(--font-family-base);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.emp-master .btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 3px;
+  font-size: 14px;
+  font-family: var(--font-family-base);
+}
+
+.emp-master .btn.tiny {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-family: var(--font-family-base);
+}
+
+.emp-master .btn.tiny.edit {
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  background: #fff;
+  font-family: var(--font-family-base);
+}
+
+.pager {
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 13px;
+  font-family: var(--font-family-base);
+}
+
+.page-no {
+  min-width: 28px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: var(--hr-navy);
+  color: #fff;
+  border-radius: 3px;
+  font-weight: 600;
+  font-family: var(--font-family-base);
+}
+
+.app-shell .emp-master .btn.primary {
+  background: var(--hr-navy);
+  border-color: var(--hr-navy);
+  color: #fff;
+}
+
+.app-shell .emp-master .btn.reset {
+  background: var(--hr-header);
+  border-color: var(--hr-header);
+  color: #fff;
+}
+
+@media (max-width: 1100px) {
+  .emp-grid,
+  .search-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .emp-grid,
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+

@@ -1,0 +1,384 @@
+/*
+  EMPLOYEE WISE SALARY REPORT — legacy government report appearance.
+
+  The filter bar keeps the application's own styling; everything inside
+  .ews-sheet is traditional: light pink paper, thin black rules, centred
+  bold headings, compact rows. Type always comes from the application
+  tokens (Inter 13px/500); headings step up in size but keep the family.
+*/
+
+.ews-page {
+  padding: 16px 18px 28px;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-base);
+}
+
+.ews-toolbar {
+  margin-bottom: 10px;
+}
+
+.ews-link {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.ews-filters {
+  align-items: flex-end;
+  background: #f7f8fa;
+  border: 1px solid #d8dde5;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+
+.ews-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 130px;
+}
+
+.ews-field-wide {
+  min-width: 240px;
+}
+
+.ews-field label {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ews-field select,
+.ews-field input {
+  border: 1px solid #c9d2de;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 6px 8px;
+}
+
+.ews-month-pair {
+  display: flex;
+  gap: 6px;
+}
+
+.ews-field-check {
+  min-width: 90px;
+}
+
+.ews-check {
+  align-items: center;
+  color: #111827 !important;
+  display: flex;
+  flex-direction: row !important;
+  font-size: 14px !important;
+  gap: 8px;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.ews-check input {
+  height: 16px;
+  width: 16px;
+}
+
+.ews-btn {
+  background: #1f4e79;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+}
+
+.ews-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.ews-message {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 4px;
+  color: #9a3412;
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+
+/* ---------- the report sheet (legacy appearance) ---------- */
+
+.ews-sheet {
+  background: #fdf0f0;
+  border: 1px solid #d8dde5;
+  color: #000;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 20px 22px 24px;
+}
+
+.ews-head {
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.ews-head-line {
+  font-family: var(--font-family-base);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+}
+
+.ews-emp-block {
+  margin-bottom: 22px;
+  page-break-inside: avoid;
+}
+
+.ews-emp-title {
+  font-family: var(--font-family-base);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ews-emp-name {
+  font-family: var(--font-family-base);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 4px 0 10px;
+  text-align: center;
+}
+
+.ews-emp-code {
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.ews-emp-info {
+  border: 1px solid #000;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 10px;
+}
+
+.ews-emp-info-cell {
+  border-bottom: 1px solid #000;
+  border-right: 1px solid #000;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 6px;
+}
+
+.ews-emp-info-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ews-emp-info-value {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ews-table-wrap {
+  overflow-x: auto;
+}
+
+.ews-table {
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 auto;
+  min-width: 100%;
+  width: max-content;
+}
+
+.ews-table th,
+.ews-table td {
+  border: 1px solid #000;
+  padding: 2px 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.ews-table thead th {
+  font-weight: 700;
+  text-align: center;
+}
+
+.ews-c {
+  text-align: center;
+}
+
+.ews-n {
+  text-align: right;
+}
+
+.ews-bold {
+  font-weight: 700;
+}
+
+.ews-table tfoot td {
+  font-weight: 700;
+}
+
+.ews-sign {
+  font-weight: 700;
+  line-height: 1.6;
+  margin-top: 40px;
+  text-align: right;
+}
+
+.ews-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.ews-actions-main {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- print ---------- */
+
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  /*
+    ROOT FIX: The app-shell uses a CSS grid with grid-template-rows: 52px 1fr,
+    and app-main has overflow-y: auto — this clips the print content to the
+    visible scroll viewport, producing a blank page.
+
+    These resets mirror chequeRegister.css (the working reference) and must
+    come before any component-specific rules so they have highest specificity.
+  */
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;   /* removes scroll-container clipping   */
+    height: auto !important;        /* un-constrains the grid row height    */
+    display: block !important;      /* collapses grid layout to normal flow */
+    min-height: 0 !important;
+  }
+
+  /* Hide every application chrome element. */
+  .no-print,
+  .app-sidebar,
+  .app-header,
+  .sidebar-backdrop,
+  .ews-filters,
+  .ews-toolbar,
+  .ews-actions,
+  .data-grid-toolbar {
+    display: none !important;
+  }
+
+  /* Report container. */
+  .ews-page {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  .ews-sheet {
+    background: #ffffff !important;
+    border: none;
+    color: #000000;
+    font-family: Inter, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Employee info grid — keep the 4-column layout. */
+  .ews-emp-info {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /*
+    TABLE WRAP FIX: overflow-x: auto on-screen clips the 23-column table
+    inside its scroll container during print.  Reset to visible so Chrome's
+    print renderer sees the full table width.
+  */
+  .ews-table-wrap {
+    overflow: visible !important;
+    border: none;
+  }
+
+  .ews-table {
+    border-collapse: collapse;
+    font-family: Inter, sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: auto;
+  }
+
+  .ews-table thead {
+    display: table-header-group;
+  }
+
+  .ews-table tfoot {
+    display: table-footer-group;
+  }
+
+  .ews-table th,
+  .ews-table td {
+    border: 1px solid #000000 !important;
+    padding: 2px 4px;
+    white-space: nowrap;
+  }
+
+  .ews-table thead th {
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .ews-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep each employee block together where possible. */
+  .ews-emp-block {
+    break-inside: auto;
+    page-break-inside: auto;
+    margin-bottom: 16px;
+  }
+
+  /* Signature stays right-aligned. */
+  .ews-sign {
+    margin-top: 28px;
+  }
+}

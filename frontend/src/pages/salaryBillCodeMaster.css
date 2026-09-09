@@ -1,0 +1,1067 @@
+.salary-bill-code-master {
+  --sbc-header: #5e6d7e;
+  --sbc-navy: #2c3e50;
+  --sbc-border: #b7c4d6;
+  --sbc-input-bg: #f5f5f5;
+  --sbc-label: #4d4d4d;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  color: #212529;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.sbc-card {
+  background: #ffffff;
+  border: 1px solid #c5d4e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* =========================
+   CARD HEADER
+========================= */
+
+.sbc-card-head {
+  background: var(--sbc-header);
+  color: #ffffff;
+
+  min-height: 36px;
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sbc-crumb {
+  font-size: 10px;
+  font-weight: 400;
+
+  color: #1565c0;
+  background: #e9ecef;
+
+  padding: 4px 9px;
+  border-radius: 3px;
+}
+
+/* =========================
+   CARD BODY
+========================= */
+
+.sbc-card-body {
+  padding: 16px 12px;
+  background: #ffffff;
+}
+
+/* =========================
+   FORM GRID
+========================= */
+
+.sbc-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 14px 16px;
+}
+
+/* =========================
+   LABEL
+========================= */
+
+.salary-bill-code-master label {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+  padding: 0;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  color: var(--sbc-label);
+
+  text-align: left;
+}
+
+/* =========================
+   LABEL TEXT
+========================= */
+
+.sbc-label-text {
+  display: block;
+
+  height: 16px;
+  line-height: 16px;
+
+  margin-bottom: 6px;
+}
+
+/* REQUIRED STAR */
+
+.sbc-label-text em {
+  color: #dc3545;
+  font-style: normal;
+
+  margin-left: 3px;
+}
+
+/* =========================
+   INPUT + SELECT
+========================= */
+
+.app-shell .salary-bill-code-master input,
+.app-shell .salary-bill-code-master select {
+  display: block;
+  box-sizing: border-box;
+
+  height: 32px;
+  width: 100%;
+
+  border: 1px solid var(--sbc-border);
+
+  background: var(--sbc-input-bg);
+
+  border-radius: 3px;
+
+  padding: 0 9px;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  color: #212529;
+
+  box-shadow: none;
+}
+
+/* =========================
+   FOCUS
+========================= */
+
+.app-shell .salary-bill-code-master input:focus,
+.app-shell .salary-bill-code-master select:focus {
+  border-color: #80bdff;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 2px rgba(0, 123, 255, 0.12);
+
+  outline: none;
+}
+
+/* =========================
+   BILL CODE
+========================= */
+
+.app-shell .salary-bill-code-master input[value] {
+  letter-spacing: 0.2px;
+}
+
+/* =========================
+   DESCRIPTION
+========================= */
+
+.sbc-description {
+  grid-column: span 2;
+}
+
+/* =========================
+   MESSAGE
+========================= */
+
+.sbc-message {
+  margin-top: 14px;
+
+  padding: 8px 10px;
+
+  border: 1px solid #c5d4e8;
+  border-radius: 3px;
+
+  background: #f8f9fa;
+
+  color: #2e7d32;
+
+  font-size: 12px;
+}
+
+/* =========================
+   BUTTON AREA
+========================= */
+
+.sbc-actions {
+  display: flex;
+
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 16px;
+  padding-top: 12px;
+
+  border-top: 1px solid #dee2e6;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.sbc-btn {
+  height: 32px;
+
+  padding: 0 13px;
+
+  border-radius: 3px;
+
+  font-size: 12px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  cursor: pointer;
+}
+
+/* PRIMARY */
+
+.sbc-btn.primary {
+  background: var(--sbc-navy);
+
+  border: 1px solid var(--sbc-navy);
+
+  color: #ffffff;
+}
+
+/* RESET */
+
+.sbc-btn.reset {
+  background: var(--sbc-header);
+
+  border: 1px solid var(--sbc-header);
+
+  color: #ffffff;
+}
+
+/* CANCEL */
+
+.sbc-btn.cancel {
+  background: #ffffff;
+
+  border: 1px solid #ced4da;
+
+  color: #212529;
+}
+
+/* =========================
+   LIST TOOLS
+========================= */
+
+.sbc-list-tools {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  margin-bottom: 10px;
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+.sbc-search {
+  width: 260px;
+}
+
+.sbc-search span {
+  display: block;
+
+  height: 16px;
+  line-height: 16px;
+
+  margin-bottom: 6px;
+
+  font-size: 12px;
+
+  color: var(--sbc-label);
+}
+
+.sbc-search input {
+  width: 100%;
+}
+
+/* =========================
+   TABLE WRAPPER
+========================= */
+
+.sbc-table-wrap {
+  overflow-x: auto;
+
+  border: 1px solid #dee2e6;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.sbc-table {
+  width: 100%;
+
+  min-width: 1200px;
+
+  border-collapse: collapse;
+
+  font-size: 12px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+/* =========================
+   TABLE HEADER
+========================= */
+
+.sbc-table th {
+  background: #2c3e50;
+
+  color: #ffffff;
+
+  text-align: left;
+
+  padding: 8px;
+
+  height: 32px;
+
+  white-space: nowrap;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  border: 1px solid #3d5166;
+}
+
+/* =========================
+   TABLE DATA
+========================= */
+
+.sbc-table td {
+  padding: 7px 8px;
+
+  border: 1px solid #dee2e6;
+
+  white-space: nowrap;
+
+  background: #ffffff;
+
+  font-size: 12px;
+
+  color: #212529;
+}
+
+/* SERIAL */
+
+.sbc-table td:first-child {
+  text-align: center;
+}
+
+/* BILL CODE */
+
+.sbc-table td strong {
+  font-weight: 600;
+
+  color: #2c3e50;
+}
+
+/* =========================
+   HOVER
+========================= */
+
+.sbc-table tbody tr:hover td {
+  background: #f8f9fa;
+}
+
+/* =========================
+   EMPTY
+========================= */
+
+.sbc-empty {
+  text-align: center;
+
+  color: #6c757d;
+
+  padding: 18px !important;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.sbc-status.active {
+  color: #1e7e34;
+
+  font-weight: 600;
+}
+
+.sbc-status.inactive {
+  color: #6c757d;
+
+  font-weight: 600;
+}
+
+/* =========================
+   ACTIONS
+========================= */
+
+.sbc-actions-cell {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+}
+
+/* EDIT */
+
+.sbc-edit {
+  height: 26px;
+
+  padding: 0 8px;
+
+  background: #ffffff;
+
+  color: #2e7d32;
+
+  border: 1px solid #a5d6a7;
+
+  border-radius: 3px;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+/* DELETE */
+
+.sbc-delete {
+  width: 26px;
+  height: 26px;
+
+  border: 0;
+
+  border-radius: 3px;
+
+  background: #dc3545;
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+/* =========================
+   HOVER BUTTONS
+========================= */
+
+.sbc-edit:hover {
+  background: #f1f8f1;
+}
+
+.sbc-delete:hover {
+  background: #c82333;
+}
+
+.sbc-btn.primary:hover {
+  background: #1f2d3a;
+}
+
+.sbc-btn.reset:hover {
+  background: #4f5d6c;
+}
+
+.sbc-btn.cancel:hover {
+  background: #f8f9fa;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+  .sbc-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sbc-description {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 700px) {
+  .sbc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sbc-description {
+    grid-column: span 1;
+  }
+
+  .sbc-actions {
+    justify-content: flex-start;
+  }
+
+  .sbc-list-tools {
+    justify-content: flex-start;
+  }
+
+  .sbc-search {
+    width: 100%;
+  }
+}
+/* =========================
+   BILL CODE PREVIEW
+========================= */
+
+.sbc-preview {
+  margin-top: 14px;
+
+  padding: 12px 14px;
+
+  border: 1px solid #c5d4e8;
+  border-radius: 4px;
+
+  background: #f8f9fa;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sbc-preview-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5e6d7e;
+  white-space: nowrap;
+}
+
+.sbc-preview-code {
+  min-width: 150px;
+
+  padding: 7px 12px;
+
+  background: #2c3e50;
+  color: #ffffff;
+
+  border-radius: 3px;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  text-align: center;
+  letter-spacing: 0.4px;
+}
+
+.sbc-preview-info {
+  font-size: 11px;
+  color: #6c757d;
+}
+.sbc-page {
+  min-height: calc(100vh - 100px);
+  padding: 18px 15px 40px;
+  background: #f3f5f8;
+  box-sizing: border-box;
+}
+
+.sbc-back-button {
+  border: none;
+  background: transparent;
+  color: #315a86;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 3px 0 10px;
+}
+
+.sbc-back-button:hover {
+  text-decoration: underline;
+}
+
+.sbc-page-title {
+  margin: 0 0 6px;
+  color: #173b63;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+/* ============================= */
+/* CARD */
+/* ============================= */
+
+.sbc-card {
+  background: #ffffff;
+  border: 1px solid #c9d2dc;
+  border-radius: 3px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+/* ============================= */
+/* SECTION HEADER */
+/* ============================= */
+
+.sbc-section-title {
+  min-height: 31px;
+  background: #607387;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 11px;
+  box-sizing: border-box;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sbc-breadcrumb {
+  background: #f3f6f9;
+  color: #245a91;
+  border-radius: 3px;
+  padding: 5px 9px;
+  font-size: 9px;
+  font-weight: 500;
+}
+
+/* ============================= */
+/* FORM */
+/* ============================= */
+
+.sbc-form {
+  padding: 15px 11px 8px;
+  display: grid;
+  grid-template-columns:
+    1.05fr
+    1.05fr
+    1.05fr
+    1.05fr;
+  gap: 12px 14px;
+}
+
+.sbc-form label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sbc-label-text {
+  font-size: 11px;
+  color: #263746;
+  margin-bottom: 5px;
+}
+
+.sbc-label-text em {
+  color: #e53935;
+  font-style: normal;
+}
+
+.sbc-form input,
+.sbc-form select {
+  height: 29px;
+  box-sizing: border-box;
+  border: 1px solid #bfcbd7;
+  background: #f8fafc;
+  border-radius: 2px;
+  padding: 4px 9px;
+  color: #273746;
+  font-size: 12px;
+  outline: none;
+}
+
+.sbc-form input:focus,
+.sbc-form select:focus {
+  border-color: #337ab7;
+  box-shadow: 0 0 0 1px rgba(51, 122, 183, 0.12);
+}
+
+.sbc-readonly {
+  background: #eef2f5 !important;
+  color: #31465a;
+  font-weight: 600;
+}
+
+.sbc-description-field {
+  grid-column: span 2;
+}
+
+/* ============================= */
+/* PREVIEW */
+/* ============================= */
+
+.sbc-preview {
+  margin: 3px 11px 10px;
+  min-height: 49px;
+  border: 1px solid #c7d5e2;
+  background: #f8fafc;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+.sbc-preview-label {
+  color: #3f5264;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.sbc-preview-code {
+  min-width: 130px;
+  height: 30px;
+  padding: 0 18px;
+  background: #2d4358;
+  color: #ffffff;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.sbc-preview-help {
+  color: #647483;
+  font-size: 10px;
+}
+
+/* ============================= */
+/* MESSAGE */
+/* ============================= */
+
+.sbc-message {
+  margin: 0 11px 10px;
+  border: 1px solid #d4dde5;
+  padding: 8px 10px;
+  font-size: 11px;
+  border-radius: 2px;
+}
+
+.sbc-message-success {
+  background: #f1f9f2;
+  color: #26733b;
+}
+
+.sbc-message-error {
+  background: #fff3f3;
+  color: #b42318;
+}
+
+/* ============================= */
+/* BUTTONS */
+/* ============================= */
+
+.sbc-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  border-top: 1px solid #e0e4e8;
+  padding: 10px 11px;
+}
+
+.sbc-btn {
+  height: 29px;
+  min-width: 45px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  padding: 0 13px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.sbc-btn-save {
+  background: #293e53;
+  color: white;
+}
+
+.sbc-btn-save:hover {
+  background: #1f3245;
+}
+
+.sbc-btn-reset {
+  background: #697b8c;
+  color: white;
+}
+
+.sbc-btn-reset:hover {
+  background: #586a7a;
+}
+
+.sbc-btn-cancel {
+  background: white;
+  border-color: #c2cbd4;
+  color: #34495e;
+}
+
+.sbc-btn-cancel:hover {
+  background: #f2f4f6;
+}
+
+/* ============================= */
+/* LIST */
+/* ============================= */
+
+.sbc-list-card {
+  padding-bottom: 9px;
+}
+
+.sbc-search-row {
+  display: grid;
+  grid-template-columns: 1fr 225px;
+  align-items: end;
+  gap: 10px;
+  padding: 12px 11px 8px;
+}
+
+.sbc-search {
+  display: flex;
+  flex-direction: column;
+}
+
+.sbc-search span {
+  color: #364a5d;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.sbc-search input {
+  height: 29px;
+  border: 1px solid #c3ced9;
+  border-radius: 2px;
+  padding: 5px 9px;
+  font-size: 11px;
+  outline: none;
+}
+
+.sbc-search input:focus {
+  border-color: #337ab7;
+}
+
+/* ============================= */
+/* TABLE */
+/* ============================= */
+
+.sbc-table-wrapper {
+  overflow-x: auto;
+  padding: 0 11px;
+}
+
+.sbc-table {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+.sbc-table thead th {
+  background: #293f55;
+  color: white;
+  height: 29px;
+  padding: 5px 7px;
+  border-right: 1px solid #52677b;
+  text-align: left;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sbc-table tbody td {
+  height: 32px;
+  padding: 5px 7px;
+  border: 1px solid #d6dde4;
+  color: #263746;
+  background: #ffffff;
+}
+
+.sbc-table tbody tr:nth-child(even) td {
+  background: #f7f9fb;
+}
+
+.sbc-table tbody tr:hover td {
+  background: #edf4fb;
+}
+
+.sbc-no-record {
+  text-align: center !important;
+  height: 43px !important;
+  color: #657584 !important;
+}
+
+.sbc-code-cell {
+  font-weight: 700;
+  color: #244f78 !important;
+  white-space: nowrap;
+}
+
+/* ============================= */
+/* STATUS */
+/* ============================= */
+
+.sbc-status-active,
+.sbc-status-inactive {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.sbc-status-active {
+  background: #e8f6ec;
+  color: #26733b;
+}
+
+.sbc-status-inactive {
+  background: #fbeaea;
+  color: #a02c2c;
+}
+
+/* ============================= */
+/* ACTIONS */
+/* ============================= */
+
+.sbc-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.sbc-actions button {
+  border: none;
+  border-radius: 2px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 9px;
+}
+
+.sbc-action-edit {
+  background: #315f91;
+  color: white;
+}
+
+.sbc-action-edit:hover {
+  background: #254d78;
+}
+
+.sbc-action-delete {
+  background: #b64a4a;
+  color: white;
+}
+
+.sbc-action-delete:hover {
+  background: #963b3b;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 1100px) {
+  .sbc-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sbc-description-field {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 650px) {
+  .sbc-form {
+    grid-template-columns: 1fr;
+  }
+
+  .sbc-description-field {
+    grid-column: span 1;
+  }
+
+  .sbc-preview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sbc-search-row {
+    grid-template-columns: 1fr;
+  }
+}
+/* ============================= */
+/* COPY MODAL */
+/* ============================= */
+
+.sbc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(28, 39, 84, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow: auto;
+}
+
+.sbc-modal {
+  width: min(760px, 100%);
+  background: #ffffff;
+  border: 1px solid #c7d2de;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.sbc-modal-head {
+  background: #2f4e6f;
+  color: #ffffff;
+  font-family: var(--font-family-base);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+.sbc-modal-body {
+  padding: 14px;
+}
+
+.sbc-copy-source {
+  margin-bottom: 12px;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+}
+
+.sbc-copy-form {
+  margin-top: 8px;
+}
+
+.sbc-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid #dee2e6;
+  background: #f8fafc;
+}

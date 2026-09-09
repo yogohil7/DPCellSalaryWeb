@@ -1,0 +1,43 @@
+◇ injected env (2) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Connecting to SQL Server...
+SQL Server connected successfully
+[ensureAdmin] Admin user OK (UserId=2, RoleId=1, active).
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Connecting to SQL Server...
+SQL Server connected successfully
+SalaryBillCodes approval workflow columns/status ensured.
+Applied 28_SalaryBillCodes_ApprovalWorkflow.sql
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Connecting to SQL Server...
+SQL Server connected successfully
+29_SalaryBillInstituteWorkflow.sql completed.
+Applied 29_SalaryBillInstituteWorkflow.sql
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+Connecting to SQL Server...
+SQL Server connected successfully
+SalaryEmployeeDetails snapshot columns ensured.
+Applied 24_SalaryEmployeeDetails_Snapshot.sql
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Connecting to SQL Server...
+SQL Server connected successfully
+30_SalaryEmployeeDetailHistory.sql completed.
+Applied 30_SalaryEmployeeDetailHistory.sql
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Connecting to SQL Server...
+SQL Server connected successfully
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Connecting to SQL Server...
+SQL Server connected successfully
+SalaryEmployeeDetails CLA columns ensured.
+Applied 26_SalaryEmployeeDetails_CLA.sql
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+Connecting to SQL Server...
+SQL Server connected successfully
+SalaryEmployeeDetails DAPercentage/HRAPercentage ensured.
+Applied 27_SalaryEmployeeDetails_BasicRates.sql
+Server running on port 5001
+Salary Bill Codes: http://localhost:5001/api/salary-bill-codes

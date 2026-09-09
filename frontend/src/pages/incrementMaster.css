@@ -1,0 +1,487 @@
+/*
+  Increment Master styles.
+  Generated from transportAllowanceMaster.css so the new modules use the
+  exact same design system as the existing masters.
+*/
+
+.inc-master {
+  --inc-header: #5e6d7e;
+  --inc-navy: #2c3e50;
+  --inc-border: #b7c4d6;
+  --inc-input-bg: #f5f5f5;
+  --inc-label: #4d4d4d;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  color: #212529;
+}
+
+/* CARD */
+
+.inc-card {
+  background: #ffffff;
+  border: 1px solid #c5d4e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* HEADER */
+
+.inc-card-head {
+  background: var(--inc-header);
+  color: #ffffff;
+
+  min-height: 36px;
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inc-crumb {
+  font-size: 10px;
+  font-weight: 400;
+
+  color: #1565c0;
+  background: #e9ecef;
+
+  padding: 4px 9px;
+  border-radius: 3px;
+}
+
+/* BODY */
+
+.inc-card-body {
+  padding: 16px 12px;
+  background: #ffffff;
+}
+
+/* FORM GRID */
+
+.inc-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 14px 16px;
+}
+
+/* LABEL */
+
+.inc-master label {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+  padding: 0;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  color: var(--inc-label);
+
+  text-align: left;
+}
+
+/* LABEL TEXT */
+
+.inc-label-text {
+  display: block;
+
+  height: 16px;
+  line-height: 16px;
+
+  margin-bottom: 6px;
+}
+
+/* STAR */
+
+.inc-label-text em {
+  color: #dc3545;
+  font-style: normal;
+  margin-left: 3px;
+}
+
+/* INPUT + SELECT */
+
+.app-shell .inc-master input,
+.app-shell .inc-master select {
+  display: block;
+
+  box-sizing: border-box;
+
+  height: 32px;
+  width: 100%;
+
+  border: 1px solid var(--inc-border);
+
+  background: var(--inc-input-bg);
+
+  border-radius: 3px;
+
+  padding: 0 9px;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  color: #212529;
+
+  box-shadow: none;
+}
+
+/* FOCUS */
+
+.app-shell .inc-master input:focus,
+.app-shell .inc-master select:focus {
+  border-color: #80bdff;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 2px rgba(0, 123, 255, 0.12);
+
+  outline: none;
+}
+
+/* DESCRIPTION */
+
+.inc-description {
+  grid-column: span 2;
+}
+
+/* BUTTON AREA */
+
+.inc-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 16px;
+  padding-top: 12px;
+
+  border-top: 1px solid #dee2e6;
+}
+
+/* BUTTON */
+
+.inc-btn {
+  height: 32px;
+
+  padding: 0 13px;
+
+  border-radius: 3px;
+
+  font-size: 12px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  cursor: pointer;
+}
+
+/* PRIMARY */
+
+.inc-btn.primary {
+  background: var(--inc-navy);
+  border: 1px solid var(--inc-navy);
+  color: #ffffff;
+}
+
+/* RESET */
+
+.inc-btn.reset {
+  background: var(--inc-header);
+  border: 1px solid var(--inc-header);
+  color: #ffffff;
+}
+
+/* CANCEL */
+
+.inc-btn.cancel {
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  color: #212529;
+}
+
+/* SEARCH GRID */
+
+.inc-search-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1.3fr 0.8fr 0.9fr auto;
+
+  gap: 14px;
+
+  align-items: end;
+}
+
+.inc-search-grid label span {
+  display: block;
+
+  height: 16px;
+  line-height: 16px;
+
+  margin-bottom: 6px;
+
+  font-size: 12px;
+  color: var(--inc-label);
+}
+
+/* SEARCH BUTTONS */
+
+.inc-search-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* TABLE */
+
+.inc-table-wrap {
+  overflow-x: auto;
+
+  border: 1px solid #dee2e6;
+}
+
+.inc-table {
+  width: 100%;
+
+  min-width: 1100px;
+
+  border-collapse: collapse;
+
+  font-size: 12px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+/* TABLE HEADER */
+
+.inc-table th {
+  background: #2c3e50;
+
+  color: #ffffff;
+
+  text-align: left;
+
+  padding: 8px;
+
+  height: 32px;
+
+  white-space: nowrap;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  border: 1px solid #3d5166;
+}
+
+/* TABLE DATA */
+
+.inc-table td {
+  padding: 7px 8px;
+
+  border: 1px solid #dee2e6;
+
+  white-space: nowrap;
+
+  background: #ffffff;
+
+  font-size: 12px;
+
+  color: #212529;
+}
+
+/* CENTER SERIAL */
+
+.inc-table td:first-child {
+  text-align: center;
+}
+
+/* HOVER */
+
+.inc-table tbody tr:hover td {
+  background: #f8f9fa;
+}
+
+/* EMPTY */
+
+.inc-empty {
+  text-align: center;
+
+  color: #6c757d;
+
+  padding: 18px !important;
+}
+
+/* STATUS */
+
+.inc-status.active {
+  color: #1e7e34;
+  font-weight: 600;
+}
+
+.inc-status.inactive {
+  color: #6c757d;
+}
+
+/* ACTIONS */
+
+.inc-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inc-edit {
+  height: 26px;
+
+  padding: 0 8px;
+
+  background: #ffffff;
+
+  color: #2e7d32;
+
+  border: 1px solid #a5d6a7;
+
+  border-radius: 3px;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.inc-delete {
+  width: 26px;
+  height: 26px;
+
+  border: 0;
+
+  border-radius: 3px;
+
+  background: #dc3545;
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .inc-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .inc-search-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .inc-description {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 700px) {
+  .inc-grid,
+  .inc-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inc-description {
+    grid-column: span 1;
+  }
+
+  .inc-actions {
+    justify-content: flex-start;
+  }
+}
+.inc-back button {
+  border: 0;
+  background: transparent;
+  color: #1565c0;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.inc-message {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid #b7c4d6;
+  background: #f5f8fb;
+  color: #2c3e50;
+  font-size: 12px;
+}
+
+.inc-search-actions {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+
+/* Increment preview panel. */
+.inc-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px 16px;
+  margin-top: 4px;
+}
+
+.inc-preview-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  background: #ffffff;
+  border: 1px solid var(--inc-border);
+  border-radius: 3px;
+  padding: 6px 9px;
+}
+
+.inc-preview-grid span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--inc-label);
+}
+
+.inc-preview-grid strong {
+  font-size: 13px;
+  color: #2c3e50;
+}
+
+.inc-message.is-warning {
+  color: #664d03;
+  background: #fff3cd;
+  border: 1px solid #ffecb5;
+  border-radius: 3px;
+}
+
+.inc-message.is-error {
+  color: #842029;
+  background: #f8d7da;
+  border: 1px solid #f5c2c7;
+  border-radius: 3px;
+  text-align: left;
+}

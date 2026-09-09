@@ -1,0 +1,1300 @@
+/* Shared report refinements (Phase 5). Must precede other rules. */
+@import "./pages/reportCommon.css";
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   TYPOGRAPHY — the single source for the whole application.
+   Every other stylesheet refers to these tokens rather than
+   naming a font of its own.
+========================================================= */
+
+:root {
+  --font-family-base: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-size-base: 13px;
+  --font-weight-base: 500;
+
+  /* Kept for the shell's existing variable name. */
+  --font-family: var(--font-family-base);
+
+  /* =======================================================
+     DESIGN TOKENS
+
+     These are DESCRIPTIVE, not a new palette: every value is
+     one already used across the application's stylesheets
+     (#2c3e50 navy, #1565c0 blue, #dee2e6 borders, #212529
+     text, #6c757d muted, #dc3545 danger, #2e7d32 success).
+     Adding them changes nothing on screen — existing rules
+     still carry their own literals — but new and refactored
+     styles can refer to one source instead of repeating hex
+     codes. Typography above is unchanged and remains the
+     project-wide Inter / 13px / 500 requirement.
+     ======================================================= */
+
+  /* Brand and surfaces */
+  --color-primary: #2c3e50;
+  --color-primary-hover: #1f2d3d;
+  --color-accent: #1565c0;
+  --color-accent-hover: #0f4c9a;
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-surface-muted: #f5f5f5;
+  --color-surface-header: #e9ecef;
+
+  /* Lines and type */
+  --color-border: #dee2e6;
+  --color-border-strong: #ced4da;
+  --color-border-accent: #c5d4e8;
+  --color-text: #212529;
+  --color-muted: #6c757d;
+  --color-text-soft: #5e6d7e;
+
+  /* Status — never the only signal for a state; pair with
+     text or an icon so meaning does not rely on colour. */
+  --color-success: #2e7d32;
+  --color-success-surface: #e8f5e9;
+  --color-warning: #b26a00;
+  --color-warning-surface: #fff7ed;
+  --color-danger: #dc3545;
+  --color-danger-surface: #fdecea;
+  --color-info: #1565c0;
+  --color-info-surface: #eff6ff;
+
+  /* Shape — kept tight; financial tables are not cards. */
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
+  /* Depth — restrained. */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 2px 8px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.12);
+
+  /* Motion — short enough never to delay data entry. */
+  --transition-fast: 120ms;
+  --transition-normal: 200ms;
+  --transition-slow: 300ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Focus — visible for keyboard users on every control. */
+  --focus-ring: 0 0 0 3px rgba(21, 101, 192, 0.25);
+}
+
+/*
+   Reduced motion: honour the operating-system preference.
+   Animation is decoration in this application — every
+   function stays identical, transitions simply stop. Values
+   are near-zero rather than 0 so animation end events still
+   fire and nothing that waits on them can hang.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-base);
+}
+
+/*
+   Form controls, tables and links do not inherit type from their parent by
+   default, so they are told to. This is inheritance rather than an override,
+   which keeps every component's own sizing and weight intact.
+*/
+button,
+input,
+select,
+textarea,
+optgroup,
+table,
+thead,
+tbody,
+tfoot,
+th,
+td,
+label,
+legend,
+fieldset,
+a {
+  font-family: inherit;
+}
+
+.app-breadcrumb-home {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.app-breadcrumb-home:hover,
+.app-breadcrumb-home:focus-visible {
+  text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/*
+   Headings keep their existing hierarchy: only the family is standardised,
+   their size and weight are left to the components that set them.
+*/
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-base);
+}
+
+body {
+  background: #f5f7fb;
+}
+
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
+.login-page {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   LEFT PANEL
+========================================================= */
+
+.left-panel {
+  width: 58%;
+  min-height: 100vh;
+
+  position: relative;
+
+  background: #29245f;
+
+  overflow: hidden;
+
+  /*
+    Creates the large curved right edge
+  */
+  border-radius:
+    0
+    55%
+    55%
+    0;
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.brand {
+  position: absolute;
+
+  top: 38px;
+  left: 35px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  z-index: 10;
+}
+
+
+/* =========================================================
+   ROUND DP LOGO CONTAINER
+========================================================= */
+
+.logo-circle {
+  width: 55px;
+  height: 55px;
+
+  min-width: 55px;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  flex-shrink: 0;
+
+  box-shadow:
+    0 2px 6px
+    rgba(0, 0, 0, 0.12);
+}
+
+
+/* =========================================================
+   DP LOGO IMAGE
+========================================================= */
+
+.brand-logo {
+  width: 43px;
+  height: 43px;
+
+  display: block;
+
+  object-fit: contain;
+
+  object-position: center;
+
+  border-radius: 50%;
+}
+
+
+/* =========================================================
+   BRAND TEXT
+========================================================= */
+
+.brand-text {
+  display: flex;
+
+  flex-direction: column;
+}
+
+
+.brand-title {
+  color: #ffffff;
+
+  font-size: 24px;
+
+  font-weight: bold;
+
+  letter-spacing: 1px;
+
+  line-height: 1.1;
+}
+
+
+.brand-subtitle {
+  color: #ffffff;
+
+  font-size: 13px;
+
+  margin-top: 5px;
+
+  letter-spacing: 1px;
+
+  line-height: 1.1;
+}
+
+
+/* =========================================================
+   GUJARATI TEXT
+========================================================= */
+
+.gujarat-text {
+  position: absolute;
+
+  left: 72px;
+
+  top: 48%;
+
+  color: #ffffff;
+
+  font-size: 25px;
+
+  font-weight: bold;
+
+  line-height: 1.7;
+
+  z-index: 5;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   DECORATIVE LINES
+========================================================= */
+
+.blue-line,
+.orange-line,
+.green-line {
+  position: absolute;
+
+  height: 8px;
+
+  border-radius: 50%;
+
+  transform: rotate(-8deg);
+
+  z-index: 3;
+}
+
+
+/* BLUE */
+
+.blue-line {
+  width: 650px;
+
+  background: #d9edf7;
+
+  left: 48%;
+
+  top: 43%;
+}
+
+
+/* ORANGE */
+
+.orange-line {
+  width: 700px;
+
+  background: #ffb000;
+
+  left: 43%;
+
+  top: 49%;
+}
+
+
+/* GREEN */
+
+.green-line {
+  width: 700px;
+
+  background: #159600;
+
+  left: 38%;
+
+  top: 56%;
+}
+
+
+/* =========================================================
+   RIGHT PANEL
+========================================================= */
+
+.right-panel {
+  width: 42%;
+
+  min-height: 100vh;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #fdf8ff 100%
+    );
+
+  padding: 30px;
+
+  flex: 1;
+}
+
+
+/* =========================================================
+   LOGIN CARD
+========================================================= */
+
+.login-card {
+  width: 480px;
+
+  min-height: 455px;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    #29245f;
+
+  border-radius: 18px;
+
+  padding:
+    38px
+    30px;
+
+  box-shadow:
+    0 15px 35px
+    rgba(40, 35, 95, 0.20);
+}
+
+
+/* =========================================================
+   GOVERNMENT ICON
+========================================================= */
+
+.government-icon {
+  text-align: center;
+
+  font-size: 42px;
+
+  line-height: 1;
+
+  margin-bottom: 10px;
+}
+
+
+/* =========================================================
+   LOGIN TITLE
+========================================================= */
+
+.login-card h1 {
+  text-align: center;
+
+  color: #29245f;
+
+  font-size: 25px;
+ font-family: var(--font-family-base);
+  font-weight: bold;
+
+  margin:
+    5px 0;
+}
+
+
+/* =========================================================
+   SUBTITLE
+========================================================= */
+
+.subtitle {
+  text-align: center;
+
+  color: #555555;
+
+  font-size: 14px;
+ font-family: var(--font-family-base);
+  margin:
+    8px 0
+    28px;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   FORM LABEL — login only (scoped so it cannot leak into
+   unrelated pages; appearance inside login is unchanged).
+======================================================== */
+
+.login-page form label {
+  display: block;
+
+  font-size: 14px;
+ font-family: var(--font-family-base);
+  font-weight: bold;
+
+  margin:
+    16px 0
+    7px;
+
+  color: #222222;
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+/* Login only — scoped so these rules cannot leak into unrelated pages. */
+.login-page input {
+  width: 100%;
+
+  height: 48px;
+
+  border:
+    1px solid
+    #c8d0dc;
+
+  border-radius: 7px;
+
+  padding:
+    0 14px;
+
+  font-size: 14px;
+
+  font-family: var(--font-family-base);
+  background: #f8fbff;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.login-page input:focus {
+  border-color: #29245f;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(41, 36, 95, 0.08);
+
+  background: #ffffff;
+}
+
+
+.login-page input::placeholder {
+  color: #7a7f88;
+}
+
+
+/* =========================================================
+   PASSWORD BOX
+========================================================= */
+
+.password-box {
+  position: relative;
+
+  width: 100%;
+}
+
+
+.password-box input {
+  padding-right: 52px;
+}
+
+
+/* =========================================================
+   EYE BUTTON
+========================================================= */
+
+.eye-button {
+  position: absolute;
+
+  right: 4px;
+  top: 3px;
+
+  width: 42px;
+  height: 42px;
+
+  margin: 0;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #555555;
+
+  box-shadow: none;
+
+  font-size: 17px;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+
+.eye-button:hover {
+  background: transparent;
+
+  color: #29245f;
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   FORGOT PASSWORD
+========================================================= */
+
+.forgot-password {
+  text-align: right;
+
+  margin-top: 10px;
+
+  color: #29245f;
+
+  font-size: 13px;
+
+  cursor: pointer;
+
+  user-select: none;
+}
+
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   LOGIN BUTTON
+========================================================= */
+
+.login-button {
+  width: 100%;
+
+  height: 50px;
+
+  margin-top: 22px;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: #29245f;
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  font-family: var(--font-family-base);
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 10px
+    rgba(41, 36, 95, 0.25);
+
+  transition:
+    background 0.2s ease,
+    transform 0.1s ease;
+}
+
+
+.login-button:hover {
+  background: #211c50;
+}
+
+
+.login-button:active {
+  transform: translateY(1px);
+}
+
+
+.login-button:disabled {
+  opacity: 0.7;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =========================================================
+   LOGIN MESSAGE
+========================================================= */
+
+.message {
+  text-align: center;
+
+  margin-top: 12px;
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+  line-height: 1.4;
+}
+
+
+.message.success {
+  color: green;
+}
+
+
+.message.error {
+  color: red;
+}
+
+
+/* =========================================================
+   MOBILE / TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .login-page {
+    flex-direction: column;
+
+    overflow-y: auto;
+  }
+
+
+  .left-panel {
+    width: 100%;
+
+    min-height: 330px;
+
+    border-radius:
+      0
+      0
+      50%
+      50%;
+  }
+
+
+  .right-panel {
+    width: 100%;
+
+    min-height: auto;
+
+    padding:
+      30px
+      15px;
+  }
+
+
+  .brand {
+    top: 25px;
+
+    left: 25px;
+  }
+
+
+  .gujarat-text {
+    left: 40px;
+
+    top: 45%;
+
+    font-size: 20px;
+  }
+
+
+  .blue-line {
+    width: 500px;
+
+    left: 30%;
+
+    top: 43%;
+  }
+
+
+  .orange-line {
+    width: 550px;
+
+    left: 20%;
+
+    top: 49%;
+  }
+
+
+  .green-line {
+    width: 550px;
+
+    left: 15%;
+
+    top: 56%;
+  }
+
+
+  .login-card {
+    width: 100%;
+
+    max-width: 480px;
+
+    min-height: 455px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .left-panel {
+    min-height: 280px;
+  }
+
+
+  .logo-circle {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+
+  .brand-logo {
+  width: 43px;
+  height: 43px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+
+  .brand-title {
+    font-size: 20px;
+  }
+
+
+  .brand-subtitle {
+    font-size: 11px;
+  }
+
+
+  .gujarat-text {
+    left: 30px;
+
+    font-size: 18px;
+  }
+
+
+  .login-card {
+    padding:
+      30px
+      22px;
+
+    border-radius: 15px;
+  }
+
+
+  .login-card h1 {
+    font-size: 21px;
+  }
+
+
+  .subtitle {
+    font-size: 13px;
+  }
+  /* =========================================
+   DP LOGO - FORCE SMALL ROUND SIZE
+========================================= */
+
+.brand {
+  position: absolute !important;
+  top: 38px !important;
+  left: 35px !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  gap: 12px !important;
+
+  z-index: 100 !important;
+}
+
+
+/* White round container */
+
+.logo-circle {
+  width: 55px !important;
+  height: 55px !important;
+
+  min-width: 55px !important;
+  max-width: 55px !important;
+
+  min-height: 55px !important;
+  max-height: 55px !important;
+
+  border-radius: 50% !important;
+
+  background: white !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  overflow: hidden !important;
+
+  flex-shrink: 0 !important;
+}
+
+
+/* Actual image */
+
+.logo-circle .brand-logo {
+  width: 43px !important;
+  height: 43px !important;
+
+  min-width: 43px !important;
+  max-width: 43px !important;
+
+  min-height: 43px !important;
+  max-height: 43px !important;
+
+  display: block !important;
+
+  object-fit: contain !important;
+  object-position: center !important;
+
+  border-radius: 50% !important;
+
+  padding: 0 !important;
+
+  margin: 0 !important;
+}
+}
+/* =========================================================
+   PHASE 2 — CINEMATIC LOGIN ENTRANCE
+
+   Additive only: no existing login rule is redefined, so the
+   layout, colours and controls are exactly as before. These
+   rules add a short, restrained entrance and refine focus
+   feedback. All durations come from the Phase 1 tokens, and
+   the Phase 1 prefers-reduced-motion block neutralises every
+   animation here without changing any behaviour.
+========================================================= */
+
+@keyframes dp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dp-settle {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* The panels reveal first, then the card, then the emblem and
+   title — a short stagger, finished well under half a second. */
+.login-page .left-panel {
+  animation: dp-rise var(--transition-slow) var(--ease-standard) both;
+}
+
+.login-page .right-panel {
+  animation: dp-rise var(--transition-slow) var(--ease-standard) 60ms both;
+}
+
+.login-page .login-card {
+  animation: dp-settle var(--transition-slow) var(--ease-standard) 120ms both;
+}
+
+.login-page .government-icon {
+  animation: dp-settle var(--transition-slow) var(--ease-standard) 200ms both;
+}
+
+.login-page .login-card h1,
+.login-page .login-card .subtitle {
+  animation: dp-rise var(--transition-normal) var(--ease-standard) 260ms both;
+}
+
+/* Refined focus: a visible ring for keyboard users on top of
+   the existing border treatment, never replacing it. */
+.login-page input:focus-visible,
+.login-page button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Press feedback — subtle, and only while actually pressed. */
+.login-page .login-button {
+  transition: background-color var(--transition-fast) var(--ease-standard),
+    box-shadow var(--transition-fast) var(--ease-standard),
+    transform var(--transition-fast) var(--ease-standard);
+}
+
+.login-page .login-button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+/* A disabled button during sign-in reads as busy rather than broken. */
+.login-page .login-button:disabled {
+  cursor: progress;
+}
+
+.login-page .eye-button {
+  transition: color var(--transition-fast) var(--ease-standard),
+    background-color var(--transition-fast) var(--ease-standard);
+}
+
+/* An error should arrive, not appear abruptly. */
+.login-page .message.error {
+  animation: dp-rise var(--transition-fast) var(--ease-standard) both;
+}
+
+/* =========================================================
+   PHASE 3 — SHARED PRIMITIVES
+
+   Skeletons, empty states, badges and control classes, all
+   opt-in: nothing existing is restyled, and a screen picks
+   these up only when it is upgraded. Every value comes from
+   the Phase 1 tokens. The Phase 1 reduced-motion block stops
+   the shimmer without changing any layout.
+========================================================= */
+
+/* ---------- SKELETON ---------- */
+@keyframes dp-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.dp-skeleton {
+  border-radius: var(--radius-sm);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-surface-muted) 25%,
+    #ececec 37%,
+    var(--color-surface-muted) 63%
+  );
+  background-size: 200% 100%;
+  animation: dp-shimmer 1.4s ease-in-out infinite;
+}
+
+/* A skeleton is decoration around missing data: hide it from
+   assistive technology and never print it. */
+.dp-skeleton[aria-hidden="true"] {
+  pointer-events: none;
+}
+
+.dp-skeleton-line {
+  height: 12px;
+  margin: 6px 0;
+}
+
+.dp-skeleton-line.is-short {
+  width: 40%;
+}
+.dp-skeleton-line.is-medium {
+  width: 65%;
+}
+
+.dp-skeleton-row {
+  height: 28px;
+  margin: 4px 0;
+}
+
+.dp-skeleton-block {
+  height: 84px;
+}
+
+@media print {
+  .dp-skeleton {
+    display: none !important;
+  }
+}
+
+/* ---------- EMPTY STATE ---------- */
+/* Informational, not an error: neutral colours, no alarm. */
+.dp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.dp-empty-title {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.dp-empty-hint {
+  color: var(--color-muted);
+  max-width: 52ch;
+}
+
+/* ---------- BADGES ---------- */
+/* Each badge carries its own text, so status never depends on
+   colour alone. */
+.dp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text-soft);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.dp-badge-success {
+  background: var(--color-success-surface);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+.dp-badge-warning {
+  background: var(--color-warning-surface);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+.dp-badge-danger {
+  background: var(--color-danger-surface);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.dp-badge-info {
+  background: var(--color-info-surface);
+  border-color: var(--color-border-accent);
+  color: var(--color-info);
+}
+
+/* ---------- BUTTONS ---------- */
+.dp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color var(--transition-fast) var(--ease-standard),
+    border-color var(--transition-fast) var(--ease-standard),
+    box-shadow var(--transition-fast) var(--ease-standard),
+    transform var(--transition-fast) var(--ease-standard);
+}
+
+.dp-btn:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.dp-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.dp-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.dp-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dp-btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+.dp-btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.dp-btn-success {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #ffffff;
+}
+.dp-btn-warning {
+  background: var(--color-warning);
+  border-color: var(--color-warning);
+  color: #ffffff;
+}
+.dp-btn-danger {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #ffffff;
+}
+.dp-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-accent);
+}
+.dp-btn-ghost:hover:not(:disabled) {
+  background: var(--color-info-surface);
+}
+
+/* ---------- FILTER BAR ---------- */
+.dp-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.dp-field-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-1);
+}
+
+/* Required asterisk stays inline with its label. */
+.dp-field-label em {
+  color: var(--color-danger);
+  font-style: normal;
+  margin-left: 2px;
+}

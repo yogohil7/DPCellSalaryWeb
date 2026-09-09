@@ -1,0 +1,647 @@
+/*
+  DA Difference Master / DA Difference Entry styles.
+  Generated from transportAllowanceMaster.css so the new modules use the
+  exact same design system as the existing masters.
+*/
+
+.dad-master {
+  --dad-header: #5e6d7e;
+  --dad-navy: #2c3e50;
+  --dad-border: #b7c4d6;
+  --dad-input-bg: #f5f5f5;
+  --dad-label: #4d4d4d;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  color: #212529;
+}
+
+/* CARD */
+
+.dad-card {
+  background: #ffffff;
+  border: 1px solid #c5d4e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* HEADER */
+
+.dad-card-head {
+  background: var(--dad-header);
+  color: #ffffff;
+
+  min-height: 36px;
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dad-crumb {
+  font-size: 10px;
+  font-weight: 400;
+
+  color: #1565c0;
+  background: #e9ecef;
+
+  padding: 4px 9px;
+  border-radius: 3px;
+}
+
+/* BODY */
+
+.dad-card-body {
+  padding: 16px 12px;
+  background: #ffffff;
+}
+
+/* FORM GRID */
+
+.dad-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 14px 16px;
+}
+
+/* LABEL */
+
+.dad-master label {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+  padding: 0;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  color: var(--dad-label);
+
+  text-align: left;
+}
+
+/* LABEL TEXT */
+
+.dad-label-text {
+  display: block;
+
+  height: 16px;
+  line-height: 16px;
+
+  margin-bottom: 6px;
+}
+
+/* STAR */
+
+.dad-label-text em {
+  color: #dc3545;
+  font-style: normal;
+  margin-left: 3px;
+}
+
+/* INPUT + SELECT */
+
+.app-shell .dad-master input,
+.app-shell .dad-master select {
+  display: block;
+
+  box-sizing: border-box;
+
+  height: 32px;
+  width: 100%;
+
+  border: 1px solid var(--dad-border);
+
+  background: var(--dad-input-bg);
+
+  border-radius: 3px;
+
+  padding: 0 9px;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  color: #212529;
+
+  box-shadow: none;
+}
+
+/* FOCUS */
+
+.app-shell .dad-master input:focus,
+.app-shell .dad-master select:focus {
+  border-color: #80bdff;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 2px rgba(0, 123, 255, 0.12);
+
+  outline: none;
+}
+
+/* DESCRIPTION */
+
+.dad-description {
+  grid-column: span 2;
+}
+
+/* BUTTON AREA */
+
+.dad-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 16px;
+  padding-top: 12px;
+
+  border-top: 1px solid #dee2e6;
+}
+
+/* BUTTON */
+
+.dad-btn {
+  height: 32px;
+
+  padding: 0 13px;
+
+  border-radius: 3px;
+
+  font-size: 12px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  cursor: pointer;
+}
+
+/* PRIMARY */
+
+.dad-btn.primary {
+  background: var(--dad-navy);
+  border: 1px solid var(--dad-navy);
+  color: #ffffff;
+}
+
+/* RESET */
+
+.dad-btn.reset {
+  background: var(--dad-header);
+  border: 1px solid var(--dad-header);
+  color: #ffffff;
+}
+
+/* CANCEL */
+
+.dad-btn.cancel {
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  color: #212529;
+}
+
+/* SEARCH GRID */
+
+.dad-search-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1.3fr 0.8fr 0.9fr auto;
+
+  gap: 14px;
+
+  align-items: end;
+}
+
+.dad-search-grid label span {
+  display: block;
+
+  height: 16px;
+  line-height: 16px;
+
+  margin-bottom: 6px;
+
+  font-size: 12px;
+  color: var(--dad-label);
+}
+
+/* SEARCH BUTTONS */
+
+.dad-search-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* TABLE */
+
+.dad-table-wrap {
+  overflow-x: auto;
+
+  border: 1px solid #dee2e6;
+}
+
+.dad-table {
+  width: 100%;
+
+  min-width: 1100px;
+
+  border-collapse: collapse;
+
+  font-size: 12px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+/* TABLE HEADER */
+
+.dad-table th {
+  background: #2c3e50;
+
+  color: #ffffff;
+
+  text-align: left;
+
+  padding: 8px;
+
+  height: 32px;
+
+  white-space: nowrap;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  border: 1px solid #3d5166;
+}
+
+/* TABLE DATA */
+
+.dad-table td {
+  padding: 7px 8px;
+
+  border: 1px solid #dee2e6;
+
+  white-space: nowrap;
+
+  background: #ffffff;
+
+  font-size: 12px;
+
+  color: #212529;
+}
+
+/* CENTER SERIAL */
+
+.dad-table td:first-child {
+  text-align: center;
+}
+
+/* HOVER */
+
+.dad-table tbody tr:hover td {
+  background: #f8f9fa;
+}
+
+/* EMPTY */
+
+.dad-empty {
+  text-align: center;
+
+  color: #6c757d;
+
+  padding: 18px !important;
+}
+
+/* STATUS */
+
+.dad-status.active {
+  color: #1e7e34;
+  font-weight: 600;
+}
+
+.dad-status.inactive {
+  color: #6c757d;
+}
+
+/* ACTIONS */
+
+.dad-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dad-edit {
+  height: 26px;
+
+  padding: 0 8px;
+
+  background: #ffffff;
+
+  color: #2e7d32;
+
+  border: 1px solid #a5d6a7;
+
+  border-radius: 3px;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.dad-delete {
+  width: 26px;
+  height: 26px;
+
+  border: 0;
+
+  border-radius: 3px;
+
+  background: #dc3545;
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .dad-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dad-search-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dad-description {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 700px) {
+  .dad-grid,
+  .dad-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dad-description {
+    grid-column: span 1;
+  }
+
+  .dad-actions {
+    justify-content: flex-start;
+  }
+}
+.dad-back button {
+  border: 0;
+  background: transparent;
+  color: #1565c0;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dad-message {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid #b7c4d6;
+  background: #f5f8fb;
+  color: #2c3e50;
+  font-size: 12px;
+}
+
+.dad-search-actions {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+
+/* =====================================================
+   DA DIFFERENCE ENTRY — extras
+   ===================================================== */
+
+/* Period summary strip above the grid. */
+.dad-period-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+
+  padding: 10px 12px;
+  margin-bottom: 12px;
+
+  background: #eef3fa;
+  border: 1px solid #c5d4e8;
+  border-radius: 3px;
+
+  font-size: 12px;
+  color: #212529;
+}
+
+.dad-period-bar strong {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.dad-period-chip {
+  background: #ffffff;
+  border: 1px solid var(--dad-border);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+/* Workflow status pill. */
+.dad-status-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #e9ecef;
+  color: #2c3e50;
+}
+
+.dad-status-pill.is-draft      { background: #e2e3e5; color: #41464b; }
+.dad-status-pill.is-submitted  { background: #cfe2ff; color: #084298; }
+.dad-status-pill.is-returned   { background: #fff3cd; color: #664d03; }
+.dad-status-pill.is-approved   { background: #d1e7dd; color: #0f5132; }
+.dad-status-pill.is-locked     { background: #f8d7da; color: #842029; }
+
+/* Month column group headers in the grid. */
+.dad-month-group {
+  background: #3d5166 !important;
+  color: #ffffff;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+
+.dad-total-group {
+  background: #1f4e79 !important;
+  color: #ffffff;
+  text-align: center;
+}
+
+/* A month with no salary snapshot. */
+.dad-missing {
+  color: #842029;
+  font-style: italic;
+}
+
+/* Messages. */
+.dad-loading,
+.dad-message {
+  padding: 14px;
+  font-size: 12px;
+  color: #4d4d4d;
+  text-align: center;
+}
+
+.dad-message.is-error {
+  color: #842029;
+  background: #f8d7da;
+  border: 1px solid #f5c2c7;
+  border-radius: 3px;
+  text-align: left;
+}
+
+.dad-message.is-warning {
+  color: #664d03;
+  background: #fff3cd;
+  border: 1px solid #ffecb5;
+  border-radius: 3px;
+  text-align: left;
+}
+
+/* Six controls fit the entry filter row. */
+.dad-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 16px;
+  align-items: end;
+}
+
+@media (max-width: 1100px) {
+  .dad-grid,
+  .dad-entry-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Inline NPS editor in the DA Difference grid. */
+.app-shell .dad-master .dad-nps-input {
+  width: 96px;
+  height: 26px;
+  text-align: right;
+  padding: 0 6px;
+  font-size: 12px;
+  border: 1px solid var(--dad-border);
+  border-radius: 3px;
+  background: #ffffff;
+}
+
+.app-shell .dad-master .dad-nps-input.is-manual {
+  border-color: #0d6efd;
+  background: #f0f6ff;
+  font-weight: 600;
+}
+
+.app-shell .dad-master .dad-nps-input.is-invalid {
+  border-color: #dc3545;
+  background: #fdf2f3;
+}
+
+.app-shell .dad-master .dad-nps-input:disabled {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+/* Month lock bar — DA Difference Master only */
+.dad-month-lock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--dad-border);
+  background: #f8fafc;
+}
+
+.dad-month-lock-bar.is-hint {
+  color: #5a6a7a;
+  font-size: 12px;
+}
+
+.dad-month-lock-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+.dad-month-lock-status {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.dad-month-lock-status.is-open {
+  color: #0f7b3a;
+}
+
+.dad-month-lock-status.is-locked {
+  color: #b42318;
+}
+
+.dad-btn.lock {
+  background: #2c3e50;
+  color: #fff;
+  border: 1px solid #1f2d3a;
+  min-width: 120px;
+}
+
+.dad-btn.lock:hover:not(:disabled) {
+  background: #1f2d3a;
+}
+
+.dad-btn.lock.locked,
+.dad-btn.lock:disabled {
+  background: #8a939c;
+  border-color: #8a939c;
+  cursor: not-allowed;
+}
+
+.dad-message.is-success {
+  background: #e8f6ee;
+  border: 1px solid #9fd5b3;
+  color: #0f7b3a;
+  padding: 8px 10px;
+  font-size: 12px;
+}

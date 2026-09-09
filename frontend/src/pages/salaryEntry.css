@@ -1,0 +1,1182 @@
+.salary-entry-page {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 28px 40px 40px;
+  background: #f3f6f9;
+  font-family: var(--font-family-base);
+  color: #173a5e;
+  font-size: 14px;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.salary-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.salary-page-header h1 {
+  margin: 7px 0 2px;
+  font-family: var(--font-family-base);
+  font-size: 22px;
+  font-weight: 700;
+  color: #174f7c;
+}
+
+.page-subtitle {
+  color: #6d7f90;
+  font-size: 13px;
+}
+
+.back-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #006bb6;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.logged-user {
+  color: #60758a;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.logged-user strong {
+  color: #162b3d;
+  margin-left: 5px;
+}
+
+.bill-code-locked-banner,
+.bill-code-status-banner,
+.bill-code-load-banner,
+.bill-code-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #d1dbe5;
+  background: #ffffff;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  color: #173a5e;
+}
+
+.bill-code-locked-banner {
+  border-color: #c9a227;
+  background: #fff8e1;
+  color: #5c4b00;
+}
+
+.bill-code-status-banner {
+  border-color: #9eb5c9;
+  background: #eef4f9;
+}
+
+.bill-code-load-banner {
+  color: #4a6278;
+}
+
+.bill-code-error-banner {
+  border-color: #d9a0a0;
+  background: #fdf2f2;
+  color: #8a2b2b;
+}
+
+.bill-code-status-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.get-data-message {
+  margin-top: 8px;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  color: #36536c;
+}
+
+.status-badge-open {
+  background: #e8f5e9;
+  border-color: #81c784;
+  color: #1b5e20;
+}
+
+.status-badge-completed {
+  background: #e3f2fd;
+  border-color: #64b5f6;
+  color: #0d47a1;
+}
+
+.status-badge-locked {
+  background: #fff3e0;
+  border-color: #ffb74d;
+  color: #e65100;
+}
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+
+.salary-card,
+.salary-grid-card,
+.remarks-card,
+.status-card {
+  background: #ffffff;
+  border: 1px solid #d1dbe5;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   SECTION TITLE
+   ========================================================= */
+
+.section-title {
+  background: #617b92;
+  color: #ffffff;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.salary-card {
+  position: relative;
+  margin-bottom: 12px;
+  padding-bottom: 16px;
+}
+
+.salary-form-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr
+    1fr
+    1fr;
+
+  column-gap: 22px;
+  row-gap: 15px;
+
+  padding: 15px 14px 8px;
+}
+
+.form-group {
+  min-width: 0;
+}
+
+.form-group-wide {
+  grid-column: span 2;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #173a5e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  height: 34px;
+  box-sizing: border-box;
+
+  border: 1px solid #bdcbd8;
+  border-radius: 3px;
+
+  background: #ffffff;
+
+  padding: 6px 10px;
+
+  color: #173a5e;
+
+  font-family: var(--font-family-base);
+  font-size: 13px;
+
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #2182c5;
+  box-shadow: 0 0 0 1px #2182c5;
+}
+
+.form-group input[readonly] {
+  background: #f4f7f9;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 3px;
+  color: #758899;
+  font-size: 10px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 5px 14px 0;
+}
+
+/* =========================================================
+   MONTH INFORMATION
+   ========================================================= */
+
+.month-info {
+  margin: 10px 0;
+  padding: 10px 13px;
+
+  background: #ffffff;
+
+  border: 1px solid #d1dbe5;
+
+  color: #294e6d;
+
+  font-size: 12px;
+}
+
+.month-arrow {
+  margin: 0 10px;
+  color: #2274a9;
+  font-weight: 700;
+}
+
+.month-description {
+  margin-left: 15px;
+  color: #687e91;
+}
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 11px 13px;
+  margin-bottom: 12px;
+
+  font-size: 12px;
+}
+
+.status-badge {
+  display: inline-block;
+
+  padding: 3px 10px;
+
+  border: 1px solid #cad6e0;
+
+  border-radius: 12px;
+
+  background: #f4f7fa;
+
+  color: #36536c;
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.salary-grid-card {
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.drag-help {
+  padding: 8px 12px;
+
+  background: #f4f7fa;
+
+  border-bottom: 1px solid #d3dde6;
+
+  color: #627789;
+
+  font-size: 11px;
+}
+
+.salary-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 520px;
+  background: #ffffff;
+  border: 1px solid #c7d2de;
+  scrollbar-width: thin;
+}
+
+.salary-table-wrapper::-webkit-scrollbar {
+  height: 11px;
+}
+
+.salary-table-wrapper::-webkit-scrollbar-track {
+  background: #e7edf2;
+}
+
+.salary-table-wrapper::-webkit-scrollbar-thumb {
+  background: #91a5b5;
+  border-radius: 8px;
+}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.salary-table {
+  border-collapse: separate;
+  border-spacing: 0;
+
+  width: max-content;
+  min-width: 2350px;
+
+  table-layout: fixed;
+
+  font-family: var(--font-family-base);
+  font-size: 13px;
+
+  color: #173a5e;
+}
+
+.salary-table th,
+.salary-table td {
+  box-sizing: border-box;
+
+  border-right: 1px solid #d5dde5;
+  border-bottom: 1px solid #d5dde5;
+
+  padding: 6px 8px;
+
+  height: 42px;
+
+  white-space: nowrap;
+
+  text-align: center;
+  vertical-align: middle;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  color: #1f2937;
+}
+
+/* =========================================================
+   FIRST IDENTITY COLUMNS (sticky while scrolling)
+   ========================================================= */
+
+.sr-col {
+  width: 56px;
+  min-width: 56px;
+}
+
+.empid-col {
+  width: 88px;
+  min-width: 88px;
+}
+
+.name-col {
+  width: 150px;
+  min-width: 150px;
+  text-align: left;
+}
+
+.designation-col {
+  width: 120px;
+  min-width: 120px;
+  text-align: left;
+}
+
+.type-col {
+  width: 90px;
+  min-width: 90px;
+}
+
+.pension-col {
+  width: 72px;
+  min-width: 72px;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.group-header th {
+  height: 42px;
+  padding: 4px 6px;
+  background: #243c56;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.group-header .earning-header {
+  background: #1f3c58;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.group-header .deduction-header {
+  background: #1a334c;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.column-header th {
+  height: 42px;
+  background: #2f4e6f;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  position: sticky;
+  top: 42px;
+  z-index: 9;
+  min-width: 130px;
+}
+
+.salary-table tbody tr:nth-child(even) td {
+  background: #f7f9fc;
+}
+
+.salary-table tbody tr:hover td {
+  background: #eaf3fb;
+  transition: background 0.15s ease;
+}
+
+.salary-table tbody tr.is-selected td {
+  background: #dceeff;
+  box-shadow: inset 3px 0 0 #1976b8;
+}
+
+.salary-table tfoot td {
+  background: #e5edf5;
+  font-weight: 700;
+  font-size: 13px;
+  border-top: 2px solid #607d9a;
+}
+
+/* =========================================================
+   STICKY IDENTITY COLUMNS
+   ========================================================= */
+
+.salary-table .sticky-col {
+  position: sticky;
+  z-index: 4;
+  background: #ffffff;
+}
+
+.salary-table thead .sticky-col {
+  z-index: 11;
+  background: #2f4e6f;
+  color: #ffffff;
+}
+
+.salary-table tbody .sticky-col {
+  background: #ffffff;
+}
+
+.salary-table tfoot .sticky-col {
+  background: #e5edf4;
+}
+
+.salary-table .sr-col {
+  left: 0;
+}
+
+.salary-table .empid-col {
+  left: 56px;
+}
+
+.salary-table .name-col {
+  left: 144px;
+}
+
+.salary-table .designation-col {
+  left: 294px;
+}
+
+.salary-table .type-col {
+  left: 414px;
+}
+
+.salary-table .pension-col {
+  left: 504px;
+}
+
+/* =========================================================
+   ROW DRAGGING
+   ========================================================= */
+
+.employee-row {
+  cursor: grab;
+  background: #ffffff;
+
+  transition:
+    background 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.employee-row:hover {
+  background: #f7fbfe;
+}
+
+.employee-row:active {
+  cursor: grabbing;
+}
+
+.employee-row.dragging {
+  opacity: 0.45;
+  background: #e8f3fb;
+}
+
+.employee-row.drag-over {
+  background: #dff0fc;
+
+  outline: 2px dashed #2380b9;
+  outline-offset: -2px;
+}
+
+/* =========================================================
+   DRAG HANDLE
+   ========================================================= */
+
+.drag-handle {
+  display: inline-block;
+
+  margin-right: 5px;
+
+  color: #7890a1;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: grab;
+}
+
+/* =========================================================
+   EMPLOYEE TYPE
+   ========================================================= */
+
+.employee-type {
+  display: inline-block;
+
+  padding: 3px 8px;
+
+  border-radius: 3px;
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+.type-gpf {
+  background: #e7f1f8;
+  color: #14618e;
+}
+
+.type-nps {
+  background: #fff3d9;
+  color: #906500;
+}
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+
+.salary-table input {
+  width: 100%;
+  min-width: 90px;
+  height: 30px;
+  box-sizing: border-box;
+  padding: 4px 7px;
+  border: 1px solid #c5d1dc;
+  border-radius: 2px;
+  background: #ffffff;
+  color: #173a5e;
+  font-family: var(--font-family-base);
+  font-size: 13px;
+  text-align: right;
+  outline: none;
+  appearance: textfield;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.salary-table input::-webkit-outer-spin-button,
+.salary-table input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.salary-table input:focus {
+  border-color: #2182c5;
+
+  box-shadow: 0 0 0 1px #2182c5;
+}
+
+/* =========================================================
+   REMOVE UP/DOWN ARROWS
+   ========================================================= */
+
+.salary-entry-page input[type="number"]::-webkit-inner-spin-button,
+.salary-entry-page input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.salary-entry-page input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* =========================================================
+   CALCULATED CELLS
+   ========================================================= */
+
+.calculated-cell {
+  background: #f6f9fb;
+
+  color: #173a5e;
+
+  font-weight: 700;
+
+  text-align: right !important;
+}
+
+.gross-cell {
+  background: #edf5fa;
+  color: #124f77;
+}
+
+.deduction-total {
+  background: #fff8e8;
+  color: #765300;
+}
+
+.net-cell {
+  background: #eef6ee;
+  color: #185c28;
+}
+
+/* =========================================================
+   TOTAL ROW
+   ========================================================= */
+
+.total-row td {
+  height: 40px;
+
+  background: #e4edf4;
+
+  color: #173a5e;
+
+  font-weight: 700;
+
+  text-align: right;
+}
+
+.total-row .total-label {
+  text-align: center;
+}
+
+/* =========================================================
+   REMARKS
+   ========================================================= */
+
+.remarks-card {
+  margin-top: 12px;
+  padding: 11px 13px;
+}
+
+.remarks-card label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #173a5e;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+.remarks-card textarea {
+  width: 100%;
+
+  min-height: 62px;
+
+  box-sizing: border-box;
+
+  resize: vertical;
+
+  border: 1px solid #c4d0db;
+
+  border-radius: 3px;
+
+  padding: 8px 10px;
+
+  font-family: var(--font-family-base);
+
+  font-size: 13px;
+
+  color: #173a5e;
+
+  outline: none;
+}
+
+.remarks-card textarea:focus {
+  border-color: #2182c5;
+
+  box-shadow: 0 0 0 1px #2182c5;
+}
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+
+.summary-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1.5fr
+    1.5fr
+    1.5fr
+    1.5fr;
+
+  gap: 10px;
+
+  margin-top: 12px;
+}
+
+.summary-box {
+  min-height: 58px;
+
+  box-sizing: border-box;
+
+  padding: 9px 12px;
+
+  background: #ffffff;
+
+  border: 1px solid #d1dbe5;
+}
+
+.summary-box span {
+  display: block;
+
+  color: #667d90;
+
+  font-size: 11px;
+
+  margin-bottom: 4px;
+}
+
+.summary-box strong {
+  display: block;
+
+  color: #173f63;
+
+  font-size: 14px;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn {
+  border: none;
+
+  border-radius: 3px;
+
+  min-height: 35px;
+
+  padding: 7px 15px;
+
+  font-family: var(--font-family-base);
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+}
+
+.btn:hover {
+  filter: brightness(0.96);
+}
+
+.btn-primary {
+  background: #1674c5;
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: #63788a;
+  color: #ffffff;
+}
+
+.btn-variation {
+  background: #806000;
+  color: #ffffff;
+}
+
+.btn-print {
+  background: #5b7082;
+  color: #ffffff;
+}
+
+.btn-save {
+  background: #24814c;
+  color: #ffffff;
+}
+
+.btn-submit {
+  background: #0875b7;
+  color: #ffffff;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.footer-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 12px;
+
+  padding: 12px;
+
+  background: #ffffff;
+
+  border: 1px solid #d1dbe5;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .salary-entry-page {
+    padding: 20px;
+  }
+
+  .salary-form-grid {
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+  .form-group-wide {
+    grid-column: span 2;
+  }
+
+  .summary-grid {
+    grid-template-columns:
+      1fr
+      1fr
+      1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .salary-entry-page {
+    padding: 12px;
+  }
+
+  .salary-page-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .salary-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group-wide {
+    grid-column: span 1;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+  .salary-entry-page {
+    padding: 0;
+    background: #ffffff;
+    font-size: 10px;
+  }
+
+  .back-link,
+  .form-actions,
+  .footer-actions,
+  .drag-help,
+  .logged-user {
+    display: none !important;
+  }
+
+  .salary-card,
+  .salary-grid-card,
+  .remarks-card,
+  .status-card {
+    border: 1px solid #999;
+    break-inside: avoid;
+  }
+
+  .salary-table {
+    font-size: 9px;
+    min-width: 0;
+  }
+
+  .salary-table-wrapper {
+    overflow: visible;
+  }
+
+  .salary-table .sticky-col {
+    position: static;
+  }
+
+  .summary-grid {
+    grid-template-columns:
+      repeat(5, 1fr);
+  }
+}
+/* =====================================================
+   INCREMENT NOTICE
+   Explains why Basic Pay differs from Employee Master.
+   ===================================================== */
+
+.increment-notice {
+  margin-top: 10px;
+  padding: 10px 12px;
+
+  background: #e7f1ff;
+  border: 1px solid #b6d4fe;
+  border-left: 3px solid #0d6efd;
+  border-radius: 3px;
+
+  font-size: 12px;
+  color: #084298;
+}
+
+.increment-notice-head {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.increment-notice ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.increment-notice li {
+  margin: 2px 0;
+  line-height: 1.5;
+}
+
+.increment-notice-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+
+  background: #cfe2ff;
+  border-radius: 9px;
+
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* =========================================================
+   PHASE 4 — SALARY ENTRY VISUAL UPGRADE
+
+   CSS ONLY. SalaryEntry.jsx is untouched: no calculation, no
+   state, no workflow, no permission check is involved here.
+   These rules attach to the classes and element states the
+   screen ALREADY produces, so an editable, calculated or
+   locked cell is styled by what it genuinely is rather than
+   by a class applied on faith.
+
+   Density is preserved — no padding, height or font-size on
+   the grid is changed, so the same number of rows fits.
+   All values come from the Phase 1 tokens.
+========================================================= */
+
+/* ---------------------------------------------------------
+   EDITABLE vs CALCULATED vs LOCKED
+
+   The distinction is derived from real DOM state:
+     editable   = an input that is neither readonly nor disabled
+     calculated = readonly (the screen computes it)
+     locked     = disabled (the bill is submitted/approved/locked)
+   None of these rules can make a locked field editable; they
+   only describe what the existing markup already enforces.
+   --------------------------------------------------------- */
+
+/* Editable: a slightly stronger border so the cell invites entry. */
+.salary-table input:not([readonly]):not(:disabled) {
+  border-color: var(--color-border-accent);
+  transition: border-color var(--transition-fast) var(--ease-standard),
+    box-shadow var(--transition-fast) var(--ease-standard),
+    background-color var(--transition-fast) var(--ease-standard);
+}
+
+/* Focus: a clear ring, no size change, so nothing shifts while
+   the user tabs across a row of figures. */
+.salary-table input:not([readonly]):not(:disabled):focus {
+  background: var(--color-info-surface);
+  box-shadow: var(--focus-ring);
+}
+
+/*
+   Calculated: a muted ground and no caret. Distinguishable from
+   editable by BOTH background and cursor, not by colour alone.
+*/
+.salary-table input[readonly] {
+  background: var(--color-surface-muted);
+  color: var(--color-text-soft);
+  border-color: var(--color-border);
+  cursor: default;
+}
+
+/*
+   Locked (submitted / approved / locked bill): a faint diagonal
+   hatch, so read-only status is legible in greyscale and to a
+   colour-blind user. The hatch is the only new visual signal;
+   the disabled attribute itself still does the enforcing.
+*/
+.salary-table input:disabled {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-surface-muted),
+    var(--color-surface-muted) 6px,
+    #ededed 6px,
+    #ededed 12px
+  );
+  color: var(--color-muted);
+  border-color: var(--color-border);
+  cursor: not-allowed;
+}
+
+/* Money reads column-wise: tabular figures line the digits up. */
+.salary-table input,
+.salary-table td,
+.summary-box,
+.total-row {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* The first four columns are structural, not financial — give
+   them the calm of a header rather than the weight of data. */
+.salary-table .sticky-col.sr-col,
+.salary-table .sticky-col.name-col,
+.salary-table .sticky-col.designation-col,
+.salary-table .sticky-col.type-col {
+  color: var(--color-text);
+}
+
+/* Row hover: a wash, applied to the row only — never per cell,
+   which would cost a repaint on a grid this wide. */
+.salary-table tbody tr {
+  transition: background-color var(--transition-fast) var(--ease-standard);
+}
+
+.salary-table tbody tr:hover {
+  background: var(--color-info-surface);
+}
+
+/* The totals row is a conclusion: separate it clearly. */
+.salary-table .total-row {
+  border-top: 2px solid var(--color-border-strong);
+}
+
+/* ---------------------------------------------------------
+   STATUS + LOCK BANNER
+   --------------------------------------------------------- */
+.status-badge {
+  transition: background-color var(--transition-fast) var(--ease-standard),
+    color var(--transition-fast) var(--ease-standard);
+}
+
+.bill-code-locked-banner {
+  border-left: 3px solid var(--color-warning);
+  animation: dp-rise var(--transition-normal) var(--ease-standard) both;
+}
+
+/* ---------------------------------------------------------
+   FILTER / HEADER AREA
+   Bill Month and Salary Month are independent fields and must
+   stay visually separate — no merging, no shared control.
+   --------------------------------------------------------- */
+.salary-form-grid .form-group input:focus,
+.salary-form-grid .form-group select:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.salary-grid-card {
+  box-shadow: var(--shadow-sm);
+}
+
+/*
+   PRINT: scoped to this page only. No global visibility-hiding
+   rule is used here — an unscoped body-star selector in two other
+   stylesheets previously blanked the printed output of every
+   other report, and that must not be recreated.
+*/
+@media print {
+  .salary-table tbody tr:hover {
+    background: transparent;
+  }
+
+  .salary-table input:disabled,
+  .salary-table input[readonly] {
+    background-image: none;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .bill-code-locked-banner {
+    animation: none;
+  }
+}

@@ -1,0 +1,417 @@
+.cla-master {
+  --cla-header: #5e6d7e;
+  --cla-navy: #2c3e50;
+  --cla-border: #b7c4d6;
+  --cla-input-bg: #f5f5f5;
+  --cla-label: #4d4d4d;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  color: #212529;
+}
+
+/* BACK */
+
+.cla-back button {
+  border: 0;
+  background: transparent;
+  color: #1565c0;
+  padding: 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* PAGE TITLE */
+
+.cla-page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* CARD */
+
+.cla-card {
+  background: #ffffff;
+  border: 1px solid #c5d4e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* HEADER */
+
+.cla-card-head {
+  background: var(--cla-header);
+  color: #ffffff;
+
+  min-height: 36px;
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cla-crumb {
+  font-size: 10px;
+  font-weight: 400;
+
+  color: #1565c0;
+  background: #e9ecef;
+
+  padding: 4px 9px;
+  border-radius: 3px;
+}
+
+/* BODY */
+
+.cla-card-body {
+  padding: 16px 12px;
+  background: #ffffff;
+}
+
+/* FORM GRID */
+
+.cla-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 14px 16px;
+}
+
+/* LABEL */
+
+.cla-master label {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+  padding: 0;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  color: var(--cla-label);
+  text-align: left;
+}
+
+/* LABEL TEXT */
+
+.cla-label-text {
+  display: block;
+
+  height: 16px;
+  line-height: 16px;
+
+  margin-bottom: 6px;
+}
+
+/* STAR */
+
+.cla-label-text em {
+  color: #dc3545;
+  font-style: normal;
+  margin-left: 3px;
+}
+
+/* INPUT + SELECT */
+
+.app-shell .cla-master input,
+.app-shell .cla-master select {
+  display: block;
+  box-sizing: border-box;
+
+  height: 32px;
+  width: 100%;
+
+  border: 1px solid var(--cla-border);
+  background: var(--cla-input-bg);
+
+  border-radius: 3px;
+
+  padding: 0 9px;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  color: #212529;
+
+  box-shadow: none;
+}
+
+/* FOCUS */
+
+.app-shell .cla-master input:focus,
+.app-shell .cla-master select:focus {
+  border-color: #80bdff;
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 2px rgba(0, 123, 255, 0.12);
+
+  outline: none;
+}
+
+/* DESCRIPTION */
+
+.cla-description {
+  grid-column: span 2;
+}
+
+/* BUTTON AREA */
+
+.cla-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 16px;
+  padding-top: 12px;
+
+  border-top: 1px solid #dee2e6;
+}
+
+/* BUTTON */
+
+.cla-btn {
+  height: 32px;
+  padding: 0 13px;
+
+  border-radius: 3px;
+
+  font-size: 12px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+
+  cursor: pointer;
+}
+
+/* PRIMARY */
+
+.cla-btn.primary {
+  background: var(--cla-navy);
+  border: 1px solid var(--cla-navy);
+  color: #ffffff;
+}
+
+/* RESET */
+
+.cla-btn.reset {
+  background: var(--cla-header);
+  border: 1px solid var(--cla-header);
+  color: #ffffff;
+}
+
+/* CANCEL */
+
+.cla-btn.cancel {
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  color: #212529;
+}
+
+/* SEARCH */
+
+.cla-search-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1.3fr 1fr 0.9fr auto;
+
+  gap: 14px;
+
+  align-items: end;
+}
+
+.cla-search-grid label span {
+  display: block;
+
+  height: 16px;
+  line-height: 16px;
+
+  margin-bottom: 6px;
+
+  font-size: 12px;
+  color: var(--cla-label);
+}
+
+/* SEARCH BUTTONS */
+
+.cla-search-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* TABLE */
+
+.cla-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #dee2e6;
+}
+
+.cla-table {
+  width: 100%;
+  min-width: 1100px;
+
+  border-collapse: collapse;
+
+  font-size: 12px;
+
+  font-family:
+    "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+/* TABLE HEADER */
+
+.cla-table th {
+  background: #2c3e50;
+  color: #ffffff;
+
+  text-align: left;
+
+  padding: 8px;
+
+  height: 32px;
+
+  white-space: nowrap;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  border: 1px solid #3d5166;
+}
+
+/* TABLE DATA */
+
+.cla-table td {
+  padding: 7px 8px;
+
+  border: 1px solid #dee2e6;
+
+  white-space: nowrap;
+
+  background: #ffffff;
+
+  font-size: 12px;
+
+  color: #212529;
+}
+
+/* SERIAL */
+
+.cla-table td:first-child {
+  text-align: center;
+}
+
+/* HOVER */
+
+.cla-table tbody tr:hover td {
+  background: #f8f9fa;
+}
+
+/* EMPTY */
+
+.cla-empty {
+  text-align: center;
+  color: #6c757d;
+
+  padding: 18px !important;
+}
+
+/* STATUS */
+
+.cla-status.active {
+  color: #1e7e34;
+  font-weight: 600;
+}
+
+.cla-status.inactive {
+  color: #6c757d;
+}
+
+/* ACTIONS */
+
+.cla-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cla-edit {
+  height: 26px;
+  padding: 0 8px;
+
+  background: #ffffff;
+  color: #2e7d32;
+
+  border: 1px solid #a5d6a7;
+  border-radius: 3px;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.cla-delete {
+  width: 26px;
+  height: 26px;
+
+  border: 0;
+  border-radius: 3px;
+
+  background: #dc3545;
+  color: #ffffff;
+
+  font-size: 16px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .cla-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cla-search-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cla-description {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 700px) {
+  .cla-grid,
+  .cla-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cla-description {
+    grid-column: span 1;
+  }
+
+  .cla-actions {
+    justify-content: flex-start;
+  }
+}
