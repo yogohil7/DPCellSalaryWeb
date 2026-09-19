@@ -10,16 +10,6 @@ const {
   withTransaction,
 } = require("./salaryEmployeeDetails");
 const { isAdminRole } = require("../middleware/auth");
-const {
-  monthMeta,
-  periodOfBillRow,
-  nextCalendarMonth,
-  periodLabel,
-  formatMonthLike,
-  rollDescription,
-  findExistingNextMonthBill,
-  evaluateLockMonthGate,
-} = require("../utils/salaryBillMonthRollover");
 
 const router = express.Router();
 
@@ -81,23 +71,6 @@ const MONTHS = [
   { number: "12", name: "December", short: "DEC" },
 ];
 
-const DIFFERENCE_SUFFIX_BY_TYPE = {
-  "Higher Gradepay Diff. Difference": "HGP-DIFF",
-  "DA Difference": "DA-DIFF",
-  "HRA Difference": "HRA-DIFF",
-  "CLA Difference": "CLA-DIFF",
-  "Medical Allowance Difference": "MEDICAL-DIFF",
-  "Transport Allowance Difference": "TA-DIFF",
-};
-
-/* The one bill-code generation rule: MON-YYYY, plus a suffix for Difference bills. */
-function buildExpectedBillCode(month, year, category, billType) {
-  if (!month) return null;
-  if (category === "Salary") return `${month.short}-${year}`;
-  const suffix = DIFFERENCE_SUFFIX_BY_TYPE[billType];
-  return suffix ? `${month.short}-${year}-${suffix}` : null;
-}
-
 function normalizeBillPayload(body = {}) {
   const year = String(body.salaryYear || "").trim();
   const month = MONTHS.find((item) => item.number === String(body.salaryMonthNumber || ""));
@@ -108,7 +81,14 @@ function normalizeBillPayload(body = {}) {
     return { error: "A valid Salary Month, four-digit Salary Year, Category and Type are required." };
   }
 
-  const suffixByType = DIFFERENCE_SUFFIX_BY_TYPE;
+  const suffixByType = {
+    "Higher Gradepay Diff. Difference": "HGP-DIFF",
+    "DA Difference": "DA-DIFF",
+    "HRA Difference": "HRA-DIFF",
+    "CLA Difference": "CLA-DIFF",
+    "Medical Allowance Difference": "MEDICAL-DIFF",
+    "Transport Allowance Difference": "TA-DIFF",
+  };
   if (category === "Salary" && billType !== "Regular Salary") {
     return { error: "Salary Bill Category requires the Regular Salary Bill Type." };
   }
@@ -118,7 +98,12 @@ function normalizeBillPayload(body = {}) {
   if (category !== "Salary" && category !== "Difference") {
     return { error: "Select a valid Bill Category." };
   }
-  const expectedBillCode = buildExpectedBillCode(month, year, category, billType);
+  const expectedBillCode =
+    category === "Salary"
+      ? `${month.short}-${year}`
+      : suffixByType[billType]
+        ? `${month.short}-${year}-${suffixByType[billType]}`
+        : null;
 
   if (!expectedBillCode || String(body.billCode || "").trim() !== expectedBillCode) {
     return { error: `Bill Code must be ${expectedBillCode || "generated from the selected category and type"}.` };
@@ -292,11 +277,6 @@ async function countPendingSalaryBills(billCode) {
 
 function lockedMessage(billCode) {
   return `Bill Code ${billCode} is locked and cannot be modified.`;
-}
-
-/* Salary Bill Code Master edit/delete refusal for a LOCKED month. */
-function lockedMasterMessage(billCode) {
-  return `Salary Bill Code month ${billCode} is locked. Edit and delete are not allowed.`;
 }
 
 /* GET /api/salary-bill-codes */
@@ -756,9 +736,9 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ message: "Bill Code not found." });
     }
 
-    if (String(current.Status || "").trim().toUpperCase() === "LOCKED") {
+    if (current.Status === "LOCKED") {
       return res.status(403).json({
-        message: lockedMasterMessage(current.BillCode),
+        message: lockedMessage(current.BillCode),
       });
     }
 
@@ -839,28 +819,12 @@ router.put("/:id", async (req, res) => {
 });
 
 /* DELETE /api/salary-bill-codes/:id — disabled for UI; keep API blocked for safety */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (_req, res) => {
   return res.status(403).json({
-    message: await deleteRefusalMessage(req.params.id),
+    message:
+      "Deleting Salary Bill Codes from the Master is not allowed. Use Complete & Lock Month instead.",
   });
 });
-
-/* Every delete is refused; a LOCKED month gets the explicit lock message. */
-async function deleteRefusalMessage(idParam) {
-  const generic =
-    "Deleting Salary Bill Codes from the Master is not allowed. Use Complete & Lock Month instead.";
-  const id = Number(idParam);
-  if (!Number.isInteger(id) || id <= 0) return generic;
-  try {
-    const row = await getById(id);
-    if (row && String(row.Status || "").trim().toUpperCase() === "LOCKED") {
-      return lockedMasterMessage(row.BillCode);
-    }
-  } catch (_) {
-    /* the refusal itself never depends on the lookup */
-  }
-  return generic;
-}
 
 /* POST /api/salary-bill-codes/:id/complete */
 router.post("/:id/complete", async (req, res) => {
@@ -1073,281 +1037,6 @@ router.post("/:id/lock", async (req, res) => {
   } catch (error) {
     console.error("Lock salary bill code error:", error);
     res.status(500).json({ message: "Unable to lock bill code." });
-  }
-});
-
-/*
- * POST /api/salary-bill-codes/:id/lock-month
- *
- * One-click month closure for a MAIN salary bill (Salary / Regular Salary,
- * no -BM- suffix, not archived):
- *
- *   BEGIN TRAN
- *     1. read the row WITH (UPDLOCK, HOLDLOCK) — a second concurrent request
- *        waits here and then sees LOCKED, so it can never roll over twice
- *     2. require Status = OPEN
- *     3. completeness gate: every institute workflow row APPROVED/LOCKED
- *     4. OPEN -> LOCKED (guarded UPDATE ... WHERE Status = N'OPEN')
- *     5. next calendar month (DEC -> JAN of next year)
- *     6. look for an existing next-month master row (range-locked)
- *     7. insert it as OPEN only when missing — master row only; no employee,
- *        workflow, approval or audit-history rows are copied
- *   COMMIT  (any failure rolls back, so the month is never left LOCKED
- *            without its successor having been ensured)
- *
- * Admin-only on the server, same rule as /complete and /lock.
- */
-function httpError(status, message, extra = {}) {
-  const error = new Error(message);
-  error.status = status;
-  error.extra = extra;
-  return error;
-}
-
-function isUniqueViolation(error) {
-  const number = Number(error?.number ?? error?.originalError?.info?.number);
-  return (
-    number === 2627 ||
-    number === 2601 ||
-    /unique|duplicate key/i.test(String(error?.message || ""))
-  );
-}
-
-router.post("/:id/lock-month", async (req, res) => {
-  if (!isAdminRole(req.user?.roleName)) {
-    return res.status(403).json({
-      message:
-        "Only System Administrator can lock salary months in Salary Bill Code Master.",
-    });
-  }
-
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    return res.status(400).json({ message: "A valid Bill Code id is required." });
-  }
-
-  /* Stamp the authenticated user, not whatever the body claims. */
-  const bodyActor = actorFromBody(req.body);
-  const actor = {
-    userName: req.user?.userName || bodyActor.userName,
-    fullName: req.user?.fullName || req.user?.userName || bodyActor.fullName,
-  };
-
-  try {
-    const outcome = await withTransaction(async (transaction) => {
-      const read = await new sql.Request(transaction).query`
-        SELECT TOP 1 *
-        FROM dbo.SalaryBillCodes WITH (UPDLOCK, HOLDLOCK, ROWLOCK)
-        WHERE BillCodeId = ${id}
-      `;
-      const current = read.recordset[0];
-      if (!current) {
-        throw httpError(404, "Bill Code not found.");
-      }
-
-      const status = String(current.Status || "").trim().toUpperCase();
-      const period = periodOfBillRow(current);
-      const currentLabel = period ? periodLabel(period) : current.BillCode;
-
-      if (status === "LOCKED") {
-        throw httpError(
-          409,
-          `${currentLabel} (${current.BillCode}) is already locked. No further lock or next-month creation was performed.`
-        );
-      }
-      if (status !== "OPEN") {
-        throw httpError(
-          409,
-          `Bill Code ${current.BillCode} is ${status || "UNKNOWN"}. Only an OPEN salary month can be locked with Lock Month.`
-        );
-      }
-      if (!isMainSalaryBill(current)) {
-        throw httpError(
-          400,
-          `Lock Month is available only for the main Regular Salary bill code. ${current.BillCode} is not a main salary bill.`
-        );
-      }
-      if (!period) {
-        throw httpError(
-          400,
-          `Salary month of Bill Code ${current.BillCode} could not be determined.`
-        );
-      }
-
-      const workflow = await new sql.Request(transaction).query`
-        SELECT
-          w.InstituteCode,
-          ISNULL(i.InstituteName, w.InstituteCode) AS InstituteName,
-          w.Status
-        FROM dbo.SalaryBillInstituteWorkflow w
-        LEFT JOIN dbo.Institutes i ON i.InstituteCode = w.InstituteCode
-        WHERE w.SalaryBillCodeId = ${id}
-      `;
-      const gate = evaluateLockMonthGate(workflow.recordset, current.BillCode);
-      if (gate) {
-        const { status: gateStatus, message, ...extra } = gate;
-        throw httpError(gateStatus, message, extra);
-      }
-
-      /* Next month's identity — derived, never hard-coded. */
-      const next = nextCalendarMonth(period);
-      const nextMeta = monthMeta(next?.month);
-      const nextYear = String(next?.year || "");
-      const validated = normalizeBillPayload({
-        salaryYear: nextYear,
-        salaryMonthNumber: nextMeta ? String(nextMeta.number).padStart(2, "0") : "",
-        billCategory: current.BillCategory,
-        billType: current.BillType,
-        billCode: buildExpectedBillCode(
-          nextMeta,
-          nextYear,
-          current.BillCategory,
-          current.BillType
-        ),
-      });
-      if (validated.error) {
-        throw httpError(
-          400,
-          `Next month Bill Code could not be generated for ${current.BillCode}: ${validated.error}`
-        );
-      }
-      const nextLabel = periodLabel(next);
-
-      const lockedResult = await new sql.Request(transaction).query`
-        UPDATE dbo.SalaryBillCodes
-        SET
-          Status = N'LOCKED',
-          CompletedDate = ISNULL(CompletedDate, SYSUTCDATETIME()),
-          CompletedBy = ISNULL(CompletedBy, ${actor.fullName}),
-          LockedDate = SYSUTCDATETIME(),
-          LockedBy = ${actor.fullName},
-          UpdatedDate = SYSUTCDATETIME(),
-          UpdatedBy = ${actor.fullName}
-        OUTPUT INSERTED.*
-        WHERE BillCodeId = ${id}
-          AND Status = N'OPEN'
-      `;
-      const lockedRow = lockedResult.recordset[0];
-      if (!lockedRow) {
-        throw httpError(
-          409,
-          `Bill Code ${current.BillCode} is no longer OPEN and could not be locked.`
-        );
-      }
-
-      const candidates = await new sql.Request(transaction).query`
-        SELECT *
-        FROM dbo.SalaryBillCodes WITH (UPDLOCK, HOLDLOCK)
-        WHERE BillCode = ${validated.billCode}
-           OR (
-             SalaryYear = ${validated.salaryYear}
-             AND BillCategory = ${current.BillCategory}
-             AND BillType = ${current.BillType}
-           )
-      `;
-      const existingNext = findExistingNextMonthBill(candidates.recordset, {
-        billCode: validated.billCode,
-        period: next,
-        billCategory: current.BillCategory,
-        billType: current.BillType,
-      });
-
-      let nextRow = existingNext;
-      let nextCreated = false;
-      if (!existingNext) {
-        const nextSalaryMonth = formatMonthLike(current.SalaryMonth, next);
-        const nextBillMonth = formatMonthLike(
-          current.BillMonth || current.SalaryMonth,
-          next
-        );
-        const inserted = await new sql.Request(transaction).query`
-          INSERT INTO dbo.SalaryBillCodes
-            (
-              BillCode, BillMonth, SalaryMonth, SalaryMonthNumber, SalaryYear,
-              BillCategory, BillType, Description, Status,
-              CreatedBy, CopiedFromBillCode
-            )
-          OUTPUT INSERTED.*
-          VALUES
-            (
-              ${validated.billCode},
-              ${nextBillMonth},
-              ${nextSalaryMonth},
-              ${validated.salaryMonthNumber},
-              ${validated.salaryYear},
-              ${current.BillCategory},
-              ${current.BillType},
-              ${rollDescription(current.Description, period, next)},
-              N'OPEN',
-              ${actor.fullName},
-              ${current.BillCode}
-            )
-        `;
-        nextRow = inserted.recordset[0];
-        nextCreated = true;
-      }
-
-      await new sql.Request(transaction).query`
-        INSERT INTO dbo.AuditLogs
-          (ModuleName, ActionName, EntityKey, SourceKey, NewKey, Details, UserName, FullName)
-        VALUES
-          (
-            N'SalaryBillCode',
-            N'Bill Code Month Locked',
-            ${current.BillCode},
-            ${current.BillCode},
-            ${nextRow ? nextRow.BillCode : null},
-            ${`OPEN -> LOCKED via Lock Month (${workflow.recordset.length} institute(s) APPROVED/LOCKED); next month ${validated.billCode} ${nextCreated ? "created OPEN" : "already existed, not duplicated"}`},
-            ${actor.userName},
-            ${actor.fullName}
-          )
-      `;
-
-      if (nextCreated) {
-        await new sql.Request(transaction).query`
-          INSERT INTO dbo.AuditLogs
-            (ModuleName, ActionName, EntityKey, SourceKey, NewKey, Details, UserName, FullName)
-          VALUES
-            (
-              N'SalaryBillCode',
-              N'Bill Code Created',
-              ${validated.billCode},
-              ${current.BillCode},
-              ${validated.billCode},
-              N'Auto-created OPEN by Lock Month rollover; only the bill-code master row was created (no employee, workflow or approval data copied)',
-              ${actor.userName},
-              ${actor.fullName}
-            )
-        `;
-      }
-
-      return { lockedRow, nextRow, nextCreated, currentLabel, nextLabel };
-    });
-
-    const { lockedRow, nextRow, nextCreated, currentLabel, nextLabel } = outcome;
-    return res.json({
-      message: nextCreated
-        ? `${currentLabel} has been locked and ${nextLabel} has been created.`
-        : `${currentLabel} has been locked. ${nextLabel} (${nextRow?.BillCode}) already exists, so no duplicate was created.`,
-      data: mapRow(lockedRow),
-      nextMonth: nextRow ? mapRow(nextRow) : null,
-      nextMonthCreated: nextCreated,
-    });
-  } catch (error) {
-    if (error.status) {
-      return res.status(error.status).json({ message: error.message, ...(error.extra || {}) });
-    }
-    console.error("Lock month salary bill code error:", error);
-    if (isUniqueViolation(error)) {
-      return res.status(409).json({
-        message:
-          "The next month's Bill Code was created by another request at the same time. Nothing was locked; refresh the list and try again.",
-      });
-    }
-    return res.status(500).json({
-      message: "Unable to lock the salary month. No changes were saved.",
-      error: error.message,
-    });
   }
 });
 

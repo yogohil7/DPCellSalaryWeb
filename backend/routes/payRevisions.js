@@ -126,7 +126,10 @@ router.post("/", async (req, res) => {
     const description = String(req.body?.description || "").trim();
     const status = normalizeStatus(req.body?.status, req.body?.isActive);
     const isActive = status === "Active" ? 1 : 0;
-    const srNo = req.body?.srNo != null && req.body.srNo !== "" ? Number(req.body.srNo) : null;
+    const sr = await sql.query`
+      SELECT ISNULL(MAX(SrNo), 0) + 1 AS NextSr FROM dbo.PayRevisionMaster
+    `;
+    const srNo = Number(sr.recordset[0]?.NextSr || 1);
 
     if (!revisionCode) {
       return res.status(400).json({ message: "Revision Code is required." });

@@ -33,15 +33,93 @@ const CORS_ORIGINS = String(process.env.CORS_ORIGIN || "http://localhost:5173")
     .map((o) => o.trim())
     .filter(Boolean);
 
-app.use(cors({
-    origin(origin, callback) {
-        if (!origin) return callback(null, true);
-        if (CORS_ORIGINS.includes(origin)) return callback(null, true);
-        return callback(new Error(`Origin ${origin} is not allowed by CORS.`));
-    },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}));
+/*
+  SAME-ORIGIN WITHOUT A HARD-CODED ADDRESS.
+
+  The browser reaches this API through the IIS reverse proxy:
+
+      browser -> http://<server>/api/...  ->  IIS  ->  http://127.0.0.1:5000/api/...
+
+  That is a SAME-ORIGIN call from the browser's point of view, so CORS is not
+  protecting anything there. The problem is that a browser still sends an
+  Origin header on POST, and the old rule only accepted an origin that was
+  literally listed in CORS_ORIGIN. A change of the server's LAN address
+  therefore broke every POST with an opaque 500 (a rejected origin is thrown,
+  and this app has no global error handler).
+
+  The rules below decide from the REQUEST itself instead of from a fixed
+  address, so no LAN IP appears here and none is needed in the environment.
+  Explicitly configured origins still work, so the Vite dev server on :5173
+  is unaffected.
+
+  Credentials are deliberately NOT enabled: this API authenticates with a
+  Bearer token in the Authorization header, never a cookie. Reflecting the
+  request origin is therefore safe and carries none of the wildcard-plus-
+  credentials risk.
+*/
+
+/** The host the BROWSER addressed, not the loopback address IIS proxies to. */
+function browserFacingHost(req) {
+    const forwarded = String(req.headers["x-forwarded-host"] || "")
+        .split(",")[0]
+        .trim();
+    return forwarded || String(req.headers.host || "").trim();
+}
+
+/** The host part of an Origin header value, or "" when it cannot be parsed. */
+function hostOfOrigin(origin) {
+    try {
+        return new URL(String(origin)).host;
+    } catch (_) {
+        return "";
+    }
+}
+
+/** True when the TCP peer is this machine - i.e. the local IIS proxy. */
+function arrivedOverLoopback(req) {
+    const addr = String((req.socket && req.socket.remoteAddress) || "");
+    return addr === "127.0.0.1" || addr === "::1" || addr === "::ffff:127.0.0.1";
+}
+
+const CORS_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
+const CORS_ALLOWED_HEADERS = ["Content-Type", "Authorization"];
+
+function corsOptionsFor(req, callback) {
+    const base = {
+        methods: CORS_METHODS,
+        allowedHeaders: CORS_ALLOWED_HEADERS
+    };
+    const allow = () => callback(null, Object.assign({}, base, { origin: true }));
+
+    const origin = req.headers.origin;
+
+    /* 1. No Origin: curl, server-to-server, most same-origin GETs. Unchanged. */
+    if (!origin) return allow();
+
+    /* 2. An explicitly configured origin. Unchanged, so a separately hosted
+          client keeps working exactly as before. */
+    if (CORS_ORIGINS.includes(origin)) return allow();
+
+    /* 3. Same origin: the Origin names the very host this request was
+          addressed to. True for every browser call through IIS, whatever the
+          server's address happens to be today. */
+    const originHost = hostOfOrigin(origin);
+    if (originHost && originHost === browserFacingHost(req)) return allow();
+
+    /* 4. The request arrived over the loopback interface, which on this
+          deployment means the IIS reverse proxy on this same machine
+          forwarded it. This covers the default ARR behaviour of replacing the
+          Host header with 127.0.0.1:5000 without sending X-Forwarded-Host, in
+          which case rule 3 cannot see the browser's host. A remote client
+          cannot forge a loopback source address. Enabling ARR's "Preserve
+          client Host header" makes rule 3 do the work and reduces this to an
+          unused fallback. */
+    if (arrivedOverLoopback(req)) return allow();
+
+    return callback(new Error(`Origin ${origin} is not allowed by CORS.`));
+}
+
+app.use(cors(corsOptionsFor));
 
 app.use(express.json());
 

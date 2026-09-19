@@ -6,7 +6,6 @@ import {
   updateSalaryBillCode,
   completeSalaryBillCode,
   lockSalaryBillCode,
-  lockSalaryMonthAndCreateNext,
   copySalaryBillCode,
 } from "../utils/salaryBillCodeApi";
 import { getSalaryBills } from "../utils/salaryBillStore";
@@ -114,38 +113,6 @@ function generateBillCode(monthValue, year, billCategory, billTypeValue) {
   return `${baseCode}-${selected.suffix}`;
 }
 
-/*
- * Main salary bill = Salary category, Regular (non-Difference) type, no
- * "-BM-XXX" Bill-Month variant suffix, not archived. Same rule as
- * isMainSalaryBill() in backend/routes/salaryBillCodes.js — keep identical.
- * Only main bills get the one-click Lock Month (OPEN -> LOCKED + next month).
- */
-function isMainSalaryBillRecord(record) {
-  const code = String(record?.billCode || "");
-  const category = String(record?.billCategory || "").trim().toUpperCase();
-  const type = String(record?.billType || "").trim().toUpperCase();
-  if (!code || /-BM-[A-Z]{3}$/i.test(code)) return false;
-  if (category !== "SALARY") return false;
-  if (type.includes("DIFFERENCE")) return false;
-  if (record?.isArchived) return false;
-  return true;
-}
-
-/* "AUGUST 2026" for the lock confirmation. */
-function recordMonthYearLabel(record) {
-  const byNumber = MONTHS.find(
-    (m) => Number(m.value) === Number(record?.salaryMonthNumber)
-  );
-  const text = String(record?.salaryMonth || record?.monthName || "").trim().toUpperCase();
-  const byText = MONTHS.find(
-    (m) => text === m.label.toUpperCase() || text.startsWith(m.short)
-  );
-  const month = byNumber || byText;
-  return `${month ? month.label.toUpperCase() : text || record?.billCode || ""} ${
-    record?.salaryYear || ""
-  }`.trim();
-}
-
 function emptyForm() {
   return {
     salaryMonth: "",
@@ -169,11 +136,6 @@ function emptyCopyForm() {
   };
 }
 
-const normalizeStatus = (status) =>
-  String(status || "")
-    .trim()
-    .toUpperCase();
-
 function SalaryBillCodeMaster({ onBack, user }) {
   const [form, setForm] = useState(emptyForm);
   const [records, setRecords] = useState([]);
@@ -184,8 +146,6 @@ function SalaryBillCodeMaster({ onBack, user }) {
   const [copyOpen, setCopyOpen] = useState(false);
   const [copySource, setCopySource] = useState(null);
   const [copyForm, setCopyForm] = useState(emptyCopyForm);
-  const [lockMonthTarget, setLockMonthTarget] = useState(null);
-  const [lockMonthBusy, setLockMonthBusy] = useState(false);
   const canLockMonth = isAdminUser(user);
   const formYears = useMemo(() => availableYears(form.salaryYear), [form.salaryYear]);
   const copyYears = useMemo(
@@ -491,58 +451,6 @@ function SalaryBillCodeMaster({ onBack, user }) {
     }
   };
 
-  const openLockMonthConfirm = (record) => {
-    if (!canLockMonth) {
-      setMessage({
-        type: "error",
-        text: "Only System Administrator can lock salary months.",
-      });
-      return;
-    }
-    if (normalizeStatus(record.status) !== "OPEN") {
-      setMessage({
-        type: "error",
-        text: `Only an OPEN salary month can be locked. ${record.billCode} is ${normalizeStatus(record.status)}.`,
-      });
-      return;
-    }
-    setLockMonthTarget(record);
-  };
-
-  const handleLockMonthConfirmed = async () => {
-    const record = lockMonthTarget;
-    if (!record || lockMonthBusy) return;
-    try {
-      setLockMonthBusy(true);
-      setLoading(true);
-      const result = await lockSalaryMonthAndCreateNext(
-        record.id || record.billCodeId,
-        user
-      );
-      setLockMonthTarget(null);
-      if (editingId && editingId === (record.id || record.billCodeId)) {
-        setForm(emptyForm());
-        setEditingId(null);
-        setViewOnly(false);
-      }
-      setMessage({
-        type: "success",
-        text: result?.message || `Salary month ${record.billCode} has been locked.`,
-      });
-      await loadRecords();
-    } catch (error) {
-      setLockMonthTarget(null);
-      setMessage({
-        type: "error",
-        text: error.message || "Unable to lock the salary month.",
-      });
-      await loadRecords();
-    } finally {
-      setLockMonthBusy(false);
-      setLoading(false);
-    }
-  };
-
   const openCopyModal = (record) => {
     const status = String(record.status || "").trim().toUpperCase();
     if (status !== "LOCKED" && status !== "APPROVED") {
@@ -639,6 +547,10 @@ function SalaryBillCodeMaster({ onBack, user }) {
     }
   };
 
+  const normalizeStatus = (status) =>
+    String(status || "")
+      .trim()
+      .toUpperCase();
 
   const renderStatus = (record) => {
     const key = normalizeStatus(record.status).toLowerCase();
@@ -663,16 +575,7 @@ function SalaryBillCodeMaster({ onBack, user }) {
           >
             Edit
           </button>
-          {canLockMonth && isMainSalaryBillRecord(record) ? (
-            <button
-              type="button"
-              className="dg-btn dg-btn-warning"
-              disabled={loading || lockMonthBusy}
-              onClick={() => openLockMonthConfirm(record)}
-            >
-              Lock Month
-            </button>
-          ) : canLockMonth ? (
+          {canLockMonth ? (
             <button
               type="button"
               className="dg-btn dg-btn-success"
@@ -965,50 +868,6 @@ function SalaryBillCodeMaster({ onBack, user }) {
           ]}
         />
       </section>
-
-      {lockMonthTarget ? (
-        <div className="sbc-modal-overlay">
-          <div
-            className="sbc-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="sbc-lock-month-title"
-          >
-            <div className="sbc-modal-head" id="sbc-lock-month-title">
-              LOCK SALARY MONTH
-            </div>
-            <div className="sbc-modal-body">
-              <p>
-                Are you sure you want to lock{" "}
-                <strong>{recordMonthYearLabel(lockMonthTarget)}</strong> (
-                {lockMonthTarget.billCode})?
-              </p>
-              <p>
-                After locking, this month&apos;s Salary Bill Code Master cannot be
-                edited or deleted. The next month will be created automatically.
-              </p>
-            </div>
-            <div className="sbc-modal-actions">
-              <button
-                type="button"
-                className="sbc-btn sbc-btn-cancel"
-                disabled={lockMonthBusy}
-                onClick={() => setLockMonthTarget(null)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="sbc-btn sbc-btn-save"
-                disabled={lockMonthBusy}
-                onClick={handleLockMonthConfirmed}
-              >
-                {lockMonthBusy ? "Locking..." : "Lock Month"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       {copyOpen && copySource ? (
         <div className="sbc-modal-overlay">

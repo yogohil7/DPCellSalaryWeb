@@ -107,16 +107,6 @@ export async function lockSalaryBillCode(id, user) {
   return parseResponse(response);
 }
 
-/* Atomic OPEN -> LOCKED + create next month's OPEN master (server-enforced). */
-export async function lockSalaryMonthAndCreateNext(id, user) {
-  const response = await apiFetch(`${API_BASE}/${id}/lock-month`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(withActor({}, user)),
-  });
-  return parseResponse(response);
-}
-
 export async function copySalaryBillCode(id, payload, user) {
   const response = await apiFetch(`${API_BASE}/${id}/copy`, {
     method: "POST",

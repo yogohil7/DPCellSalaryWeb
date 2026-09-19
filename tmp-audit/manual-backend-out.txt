@@ -1,0 +1,132 @@
+◇ injected env (12) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+[ensureAdmin] BOOTSTRAP_ADMIN_PASSWORD is not configured. Existing admin left untouched; no password was written.
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (12) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+SalaryBillCodes approval workflow columns/status ensured.
+Applied 28_SalaryBillCodes_ApprovalWorkflow.sql
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (12) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+29_SalaryBillInstituteWorkflow.sql completed.
+Applied 29_SalaryBillInstituteWorkflow.sql
+◇ injected env (12) from .env // tip: ⌘ enable debugging { debug: true }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+SalaryEmployeeDetails snapshot columns ensured.
+Applied 24_SalaryEmployeeDetails_Snapshot.sql
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (12) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+30_SalaryEmployeeDetailHistory.sql completed.
+Applied 30_SalaryEmployeeDetailHistory.sql
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (12) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+◇ injected env (12) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+SalaryEmployeeDetails CLA columns ensured.
+Applied 26_SalaryEmployeeDetails_CLA.sql
+◇ injected env (12) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+SalaryEmployeeDetails DAPercentage/HRAPercentage ensured.
+Applied 27_SalaryEmployeeDetails_BasicRates.sql
+◇ injected env (12) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+Migration 33 (DA Difference + Employee Increment) complete.
+
+Applied 33_DADifferenceAndEmployeeIncrement.sql
+
+Verification:
+  OK      DADifferenceBill
+  OK      DADifferenceEmployeeDetails
+  OK      DADifferenceMonthDetails
+  OK      EmployeeIncrement
+  OK      EmployeeMaster_IncrementDate
+  OK      SalaryEmployeeDetails_CLA
+
+DA Difference + Employee Increment schema is ready.
+◇ injected env (12) from .env // tip: ⌘ suppress logs { quiet: true }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+Migration 34 (DA Difference NPS Deduction) complete.
+
+Applied 34_DADifferenceNPSDeduction.sql
+
+Verification:
+  OK      MonthDetails_NPSDeduction
+  OK      MonthDetails_NetDifferenceAmount
+  OK      MonthDetails_NPSManual
+  OK      EmployeeDetails_TotalNPSDeduction
+  OK      EmployeeDetails_TotalNet
+
+DA Difference NPS columns are ready.
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (12) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+Applied 35_RoleBasedAccess.sql
+
+Verification:
+  OK      Permission MASTER_USER_VIEW
+  OK      Permission SALARY_APPROVAL_VIEW
+  OK      Permission DA_DIFFERENCE_ENTRY_VIEW
+  OK      Account Officer grants: 25
+  OK      Auditor grants: 145
+  OK      Auditor has zero MASTER_USER permissions
+
+Role-based access permissions are ready.
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (12) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+Applied 37_SalaryBillInstituteWorkflow_BillNoDate.sql
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (12) from .env // tip: ⌘ enable debugging { debug: true }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+Applied 38_DADifferenceMonthLock.sql
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (12) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Connecting to SQL Server...
+  Server:   YUG-PC\SQLEXPRESS
+  Database: DPCELLSalaryWebDB
+SQL Server connected successfully
+Applied 39_SalaryBillCodes_IsArchived.sql
+Server running on port 5000
+Salary Bill Codes: http://localhost:5000/api/salary-bill-codes
