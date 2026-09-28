@@ -25,19 +25,24 @@ function App() {
       basePay: 72000,
     },
   ])
-  const [employee, setEmployee] = useState('')
-  const [department, setDepartment] = useState('')
-  const [basePay, setBasePay] = useState('')
+  const [entryCount, setEntryCount] = useState(1)
 
   const totalPayroll = useMemo(
     () => entries.reduce((sum, entry) => sum + entry.basePay, 0),
     [entries],
   )
 
-  function handleAddEntry(event: React.FormEvent) {
+  function handleAddEntry(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const parsedPay = Number(basePay)
-    if (!employee.trim() || !department.trim() || !Number.isFinite(parsedPay) || parsedPay <= 0) {
+    addEntryFromForm(event.currentTarget)
+  }
+
+  function addEntryFromForm(form: HTMLFormElement) {
+    const data = new FormData(form)
+    const nextEmployee = String(data.get('employee') ?? '').trim()
+    const nextDepartment = String(data.get('department') ?? '').trim()
+    const parsedPay = Number(data.get('basePay'))
+    if (!nextEmployee || !nextDepartment || !Number.isFinite(parsedPay) || parsedPay <= 0) {
       return
     }
 
@@ -45,14 +50,13 @@ function App() {
       ...current,
       {
         id: crypto.randomUUID(),
-        employee: employee.trim(),
-        department: department.trim(),
+        employee: nextEmployee,
+        department: nextDepartment,
         basePay: parsedPay,
       },
     ])
-    setEmployee('')
-    setDepartment('')
-    setBasePay('')
+    setEntryCount((count) => count + 1)
+    form.reset()
   }
 
   return (
@@ -66,7 +70,7 @@ function App() {
         <div className="summary-card">
           <span>Total payroll</span>
           <strong>{formatCurrency(totalPayroll)}</strong>
-          <small>{entries.length} active entries</small>
+          <small>{entryCount} active entries</small>
         </div>
       </header>
 
@@ -77,31 +81,41 @@ function App() {
             <label>
               Employee
               <input
-                value={employee}
-                onChange={(event) => setEmployee(event.target.value)}
+                name="employee"
+                required
                 placeholder="Jane Doe"
               />
             </label>
             <label>
               Department
               <input
-                value={department}
-                onChange={(event) => setDepartment(event.target.value)}
+                name="department"
+                required
                 placeholder="Finance"
               />
             </label>
             <label>
               Base pay (USD)
               <input
+                name="basePay"
                 type="number"
                 min="1"
                 step="1000"
-                value={basePay}
-                onChange={(event) => setBasePay(event.target.value)}
+                required
                 placeholder="65000"
               />
             </label>
-            <button type="submit">Save entry</button>
+            <button
+              type="button"
+              onClick={(event) => {
+                const form = event.currentTarget.form
+                if (form) {
+                  addEntryFromForm(form)
+                }
+              }}
+            >
+              Save entry
+            </button>
           </form>
         </section>
 
