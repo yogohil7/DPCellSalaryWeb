@@ -9,6 +9,7 @@ import {
   variationClass,
 } from "../utils/salaryVariationFields";
 import "./salaryEntryVariationReport.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /**
  * Full employee-wise Previous / Current / Variation report.
@@ -23,6 +24,8 @@ export default function SalaryEntryVariationReport({
   source = "salary-entry",
   compareMode,
 }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("salaryEntryVariationReport");
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -242,6 +245,8 @@ export default function SalaryEntryVariationReport({
 
             <div className="ser-toolbar no-print">
               <GridToolbar
+                reportName="salaryEntryVariationReport"
+                subtitle={[`Bill Code: ${report.billCode || billCode || ""}`, `Institute: ${report.instituteName || "-"}${report.instituteCode ? ` (${report.instituteCode})` : ""}`, `Previous Salary Month: ${report.previousSalaryMonth || report.previousLabel || "-"}   Current Salary Month: ${report.currentSalaryMonth || report.salaryMonth || salaryMonth || "-"}   Bill Month: ${report.billMonth || billMonth || "-"}`]}
                 title="Variation Report"
                 columns={exportColumns}
                 rows={exportRows}
@@ -390,7 +395,7 @@ export default function SalaryEntryVariationReport({
             type="button"
             className="btn btn-print"
             disabled={!report}
-            onClick={() => window.print()}
+            onClick={() => printReport("salaryEntryVariationReport")}
           >
             Print
           </button>

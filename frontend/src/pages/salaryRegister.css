@@ -165,6 +165,31 @@
   letter-spacing: 0.03em;
 }
 
+/* Salary Month drill-down trigger (2026-09-25). Only the value itself is a
+   link — the row it sits in stays plain — reusing the same look as the
+   existing Back / Print links (.sr-link) rather than inventing a new style. */
+.sr-month-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--brand, #1d4ed8);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}
+
+.sr-month-link:hover,
+.sr-month-link:focus-visible {
+  color: #1e40af;
+}
+
+/* Screen shows the clickable button; print shows plain text (a dead button
+   in a PDF/printout would be misleading). */
+.sr-month-link-print {
+  display: none;
+}
+
 .sr-actions {
   display: flex;
   gap: 10px;
@@ -173,10 +198,8 @@
 
 /* ---------------- print ---------------- */
 
-@page {
-  size: A4 landscape;
-  margin: 10mm;
-}
+/* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+     injected only while this report is on screen — never a global rule. */
 
 @media print {
   /*
@@ -229,5 +252,9 @@
     background: #eef2f7 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  .sr-month-link-print {
+    display: inline;
   }
 }

@@ -150,7 +150,7 @@ function main() {
     numbered[numbered.length - 1].group, "CPD-100");
 
   /* ============ BANK COPY ============ */
-  section("E, F, G, H — Bank Copy across every Bill Month of the salary month");
+  section("E, F, G, H — Bank Copy across every Bill Month of the salary month (merged per beneficiary, 2026-09-25)");
 
   const bankDbRows = [
     /* Employee 2011 appears in BOTH June bills — two real amounts owed. */
@@ -181,33 +181,38 @@ function main() {
   const emp2011 = bcRows.find((r) => r.employeeId === 2011);
   const emp2012 = bcRows.find((r) => r.employeeId === 2012);
 
-  check("F. institute tax = 1000+500 + 2000+700 + 300+0 across all three bills",
-    institute.amount, 4500);
-  check("F. it is not taken from a single bill",
-    [institute.amount === 1500, institute.amount === 2700], [false, false]);
+  /* Rule change (2026-09-25, superseding the 2026-09-24 decision above):
+     all three June bills pay the SAME OGE-05 / account "3222" beneficiary,
+     so Bank Copy now prints ONE institute credit and ONE credit per employee,
+     summed across every Bill Month instance that contributed to it. Nothing
+     is dropped: the printed total is unchanged from before this fix. */
+  const institutes = bcRows.filter((r) => r.type === "INSTITUTE");
+  const credits2011 = bcRows.filter((r) => r.employeeId === 2011);
+  check("F. one merged institute tax credit for the whole beneficiary: 1000+500+2000+700+300+0",
+    institutes.map((r) => r.amount), [4500]);
+  check("F. together they are still the full 4500 of tax",
+    institutes.reduce((t, r) => t + r.amount, 0), 4500);
   check("F. and the MAY control's tax is not counted",
-    institute.amount < 9999, true);
-  check("G. employee 2011's net is aggregated across both bills",
-    emp2011.amount, 71000);
-  check("G. from exactly those two bills",
-    emp2011.sourceBillCodes.sort(), ["JUN-2026", "JUN-2026-BM-MAY"]);
+    institutes.every((r) => r.amount < 9999), true);
+  check("G. employee 2011 is paid once, summed from exactly those two bills",
+    credits2011.length === 1 ? credits2011[0].sourceBillCodes.slice().sort() : null,
+    ["JUN-2026", "JUN-2026-BM-MAY"]);
+  check("G. the merged credit's Bill Month combines both instances, oldest first",
+    credits2011[0]?.billMonth, "MAY-2026 + JUN-2026");
   check("G. the MAY control amount is not added",
-    emp2011.amount === 35000 + 36000 + 99999, false);
-  check("G. employee 2012 keeps only his own bill",
-    [emp2012.amount, emp2012.sourceBillCodes], [30000, ["JUN-2026-BM-APR"]]);
-  check("H. employee 2011 is paid ONCE, not twice",
-    bcRows.filter((r) => r.employeeId === 2011).length, 1);
+    credits2011.some((r) => r.amount === 99999), false);
+  check("G. employee 2012 keeps only his own bill (different employee, same beneficiary group)",
+    [emp2012.amount, emp2012.sourceBillCodes, emp2012.billMonth], [30000, ["JUN-2026-BM-APR"], "APR-2026"]);
+  check("H. employee 2011 has ONE credit, merged from two bills, never two rows",
+    credits2011.length, 1);
   check("H. no salary was silently dropped",
-    emp2011.amount, 35000 + 36000);
-  check("H. two employees, two credits, plus one institute line",
+    credits2011.reduce((t, r) => t + r.amount, 0), 35000 + 36000);
+  check("H. one beneficiary -> one institute line + one credit per employee (not one block per bill)",
     bcRows.map((r) => r.type), ["INSTITUTE", "EMPLOYEE", "EMPLOYEE"]);
-  /* Rule change: an institute tax line is a real credit, so it is numbered
-     alongside the employee credits and the serial is dense over every
-     payment line. (It previously ran over employee rows only.) */
   check("H. Sr. No. runs densely over every payment line, institutes included",
     [bcRows.every((r) => Number.isInteger(r.srNo) && r.srNo > 0),
      bcRows.map((r) => r.srNo)], [true, [1, 2, 3]]);
-  check("the report total is the sum of what is printed",
+  check("the report total is the sum of what is printed (unchanged by merging)",
     bcRows.reduce((s, r) => s + Number(r.amount), 0), 4500 + 71000 + 30000);
 
   /* ============ O, P ============ */

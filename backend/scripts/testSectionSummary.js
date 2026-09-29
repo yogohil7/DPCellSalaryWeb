@@ -304,8 +304,8 @@ function main() {
     /border: 1px solid #000/.test(cssSrc), true);
   check("filters, toolbar and buttons are hidden when printing",
     /\.ss-filters,[\s\S]{0,120}\.ss-actions \{\s*\n\s*display: none/.test(cssSrc), true);
-  check("A4 portrait paper",
-    /size: A4 portrait/.test(cssSrc), true);
+  check("A4 portrait paper (reportPdfConfig)",
+    (new RegExp("sectionSummary: \\{[^}]*orientation: \"portrait\"").test(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "utils", "reportPdfConfig.js"), "utf8")) && require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "pages", "SectionSummary.jsx"), "utf8").includes('useReportPrintPage("sectionSummary")')), true);
   check("the typed cheque number prints as text",
     /\.ss-cheque-print \{\s*\n\s*display: inline-block/.test(cssSrc), true);
   check("the API is authenticated and permission-gated",

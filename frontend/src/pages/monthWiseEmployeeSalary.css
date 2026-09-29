@@ -1,0 +1,230 @@
+/*
+  MONTH-WISE EMPLOYEE SALARY REPORT.
+
+  Screen styling follows the other report sheets (see salaryRegister.css /
+  reportCommon.css conventions); the print block uses the project's
+  established report print architecture, not a new one.
+*/
+
+.mw-page {
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.mw-toolbar {
+  margin-bottom: 12px;
+}
+
+.mw-link {
+  background: none;
+  border: none;
+  color: var(--brand, #1d4ed8);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.mw-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.mw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.mw-field label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6b7f;
+}
+
+.mw-field select,
+.mw-field input {
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.mw-btn {
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mw-btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.mw-btn-ghost {
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.mw-message {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #eef4ff;
+  border: 1px solid #c7d7f5;
+}
+
+.mw-sheet {
+  background: #fff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.mw-head {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.mw-head-line {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+}
+
+.mw-head-line.mw-title {
+  font-size: 16px;
+}
+
+.mw-filter-summary {
+  text-align: center;
+  margin-bottom: 12px;
+  color: #334155;
+}
+
+.mw-table-wrap {
+  overflow-x: auto;
+}
+
+.mw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.mw-table th,
+.mw-table td {
+  border: 1px solid #94a3b8;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.mw-table th {
+  background: #eef2f7;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.mw-table td.mw-amt,
+.mw-table th.mw-amt {
+  text-align: right;
+}
+
+.mw-table td.mw-name {
+  white-space: normal;
+  min-width: 150px;
+}
+
+.mw-table tr.mw-institute-total td {
+  font-weight: 700;
+  background: #f1f5fb;
+}
+
+.mw-table tfoot td {
+  font-weight: 700;
+  background: #f6f8fb;
+}
+
+.mw-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ---------------- print ---------------- */
+
+/* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+   injected only while this report is on screen — never a global rule. */
+
+@media print {
+  html,
+  body,
+  .app-shell,
+  .app-main {
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .mw-page {
+    padding: 0;
+    font-size: 9px;
+  }
+
+  .mw-sheet {
+    border: none;
+    padding: 0;
+  }
+
+  .mw-table-wrap {
+    overflow: visible !important;
+  }
+
+  .mw-table thead {
+    display: table-header-group;
+  }
+
+  .mw-table tfoot {
+    display: table-footer-group;
+  }
+
+  .mw-table tr {
+    page-break-inside: avoid;
+  }
+
+  .mw-table th {
+    background: #eef2f7 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .mw-table tr.mw-institute-total td {
+    background: #f1f5fb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getPaySlipOptions, getPaySlips } from "../utils/employeePaySlipApi";
 import "./employeePaySlip.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Same amount formatting the other reports use. */
 function money(value) {
@@ -50,7 +51,6 @@ function Slip({ slip }) {
         <Row label="Bill Date" value={slip.bill.billDate} />
         <Row label="Institute Code" value={slip.institute.instituteCode} />
         <Row label="Institute Name" value={slip.institute.instituteName} />
-        <Row label="NPS Schedule No." value={slip.bill.npsScheduleNo} />
       </div>
 
       <div className="eps-section-title">EMPLOYEE INFORMATION</div>
@@ -123,7 +123,7 @@ function Slip({ slip }) {
           <div>{slip.institute.instituteName}</div>
         </div>
         <div className="eps-sign">
-          <div>Authorized Officer</div>
+          <div>Account Officer</div>
           <div>Directorate of Social Defence</div>
         </div>
       </div>
@@ -134,6 +134,8 @@ function Slip({ slip }) {
 }
 
 export default function EmployeePaySlip({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("employeePaySlip");
   const now = new Date();
   const [month, setMonth] = useState(String(now.getMonth() + 1));
   const [year, setYear] = useState(String(now.getFullYear()));
@@ -203,7 +205,7 @@ export default function EmployeePaySlip({ user, onBack }) {
   }
 
   function handlePrint() {
-    window.print();
+    printReport("employeePaySlip");
   }
 
   return (

@@ -5,6 +5,13 @@
 const express = require("express");
 const { sql } = require("../db");
 const {
+  instanceEmployeeRowsSql,
+  queryReport,
+  instanceBillMonthPartsOf,
+  loadInstanceHeaders,
+  resolveInstanceHeader,
+} = require("../utils/reportBillInstance");
+const {
   normalizeYearMonth,
   resolveChequeSalaryType,
   billTypeMatchesFilter,
@@ -13,6 +20,7 @@ const {
   formatMonthLabel,
 } = require("../utils/salaryMonthKey");
 const { calculateChequeAmount } = require("../utils/salaryBasicCalc");
+const { getSalaryEntryBillHeader } = require("../utils/salaryEntryBillHeader");
 
 const router = express.Router();
 
@@ -83,11 +91,31 @@ async function loadSections() {
  * Institute-level aggregates from approved SalaryEmployeeDetails.
  */
 async function loadSalaryAggregates() {
-  const result = await sql.query`
+  /*
+     ONE ROW PER APPROVED BILL MONTH INSTANCE (migration 51).
+
+     dbo.SalaryBillInstituteWorkflow is keyed by (SalaryBillCodeId,
+     InstituteCode, BillMonth): the AUG-2026 salary bill (BillCodeId 1018)
+     can have an AUG-2026 instance AND a JUL-2026 instance for the same
+     institute. Each is a separate Cheque Register row, identified by the
+     workflow row's own BillMonth (w.BillMonth) - never by the shared
+     SalaryBillCodes.BillMonth, which is the same for both.
+
+     The amounts come from the instance's own employee rows:
+       - canonical instance (w.BillMonth = the bill's own Salary Month, the
+         label migration 51 wrote) and every pre-existing "-BM-" variant
+         bill -> dbo.SalaryEmployeeDetails, exactly as before;
+       - earlier Bill Month instance -> dbo.SalaryEntryBillEmployeeDetails
+         for that exact Bill Month (migration 50). Joining the canonical
+         table here would report the AUG-2026 bill's amounts under the
+         JUL-2026 row.
+  */
+  const canonical = await sql.query`
     SELECT
       b.BillCodeId,
       b.BillCode,
       b.BillMonth,
+      w.BillMonth AS WorkflowBillMonth,
       b.SalaryMonth,
       b.SalaryMonthNumber,
       b.SalaryYear,
@@ -140,14 +168,93 @@ async function loadSalaryAggregates() {
       AND UPPER(ISNULL(b.BillCategory, N'Salary')) <> N'DIFFERENCE'
       AND UPPER(ISNULL(b.BillType, N'')) <> N'DA DIFFERENCE'
       AND ISNULL(b.IsArchived, 0) = 0
+      AND (
+            w.BillMonth = UPPER(LEFT(LTRIM(RTRIM(b.SalaryMonth)), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))
+         OR b.BillCode LIKE N'%-BM-%'
+      )
     GROUP BY
       b.BillCodeId, b.BillCode, b.BillMonth, b.SalaryMonth, b.SalaryMonthNumber,
       b.SalaryYear, b.BillCategory, b.BillType, b.CreatedDate,
-      w.WorkflowId, w.InstituteCode, w.Status, w.ApprovedDate, w.ApprovedBy, w.LockedDate,
+      w.WorkflowId, w.InstituteCode, w.BillMonth, w.Status, w.ApprovedDate, w.ApprovedBy, w.LockedDate,
       w.BillNo, w.BillDate,
       i.InstituteId, i.InstituteName, i.InstituteDistrict, i.District, i.SectionId, s.SectionName
     `;
-  return result.recordset;
+
+  let instances = { recordset: [] };
+  try {
+    instances = await sql.query`
+    SELECT
+      b.BillCodeId,
+      b.BillCode,
+      b.BillMonth,
+      w.BillMonth AS WorkflowBillMonth,
+      b.SalaryMonth,
+      b.SalaryMonthNumber,
+      b.SalaryYear,
+      b.BillCategory,
+      b.BillType,
+      b.CreatedDate AS BillCreatedDate,
+      w.WorkflowId,
+      w.InstituteCode,
+      w.Status AS WorkflowStatus,
+      w.ApprovedDate,
+      w.ApprovedBy,
+      w.LockedDate,
+      w.BillNo,
+      w.BillDate,
+      i.InstituteId,
+      i.InstituteName,
+      ISNULL(i.InstituteDistrict, ISNULL(i.District, N'')) AS Place,
+      i.SectionId,
+      s.SectionName,
+      COUNT_BIG(d.Id) AS EmpCount,
+      ISNULL(SUM(d.BasicPay), 0) AS BasicPay,
+      ISNULL(SUM(d.GradePay), 0) AS GradePay,
+      ISNULL(SUM(d.TotalBasic), 0) AS TotalBasic,
+      ISNULL(SUM(d.DA), 0) AS DA,
+      ISNULL(SUM(d.HRA), 0) AS HRA,
+      ISNULL(SUM(ISNULL(d.CLA, 0)), 0) AS CLA,
+      ISNULL(SUM(d.MA), 0) AS MA,
+      ISNULL(SUM(d.TA), 0) AS TA,
+      ISNULL(SUM(d.SpecialAllowance), 0) AS SpecialAllowance,
+      ISNULL(SUM(d.GrossSalary), 0) AS GrossSalary,
+      ISNULL(SUM(d.NPS), 0) AS NPS,
+      ISNULL(SUM(d.GPFSubscription), 0) AS GPFSubscription,
+      ISNULL(SUM(d.IncomeTax), 0) AS IncomeTax,
+      ISNULL(SUM(d.ProfessionalTax), 0) AS ProfessionalTax,
+      ISNULL(SUM(d.OtherDeduction), 0) AS OtherDeduction,
+      ISNULL(SUM(d.NetSalary), 0) AS NetSalary,
+      ISNULL(SUM(
+        ISNULL(d.NetSalary, 0) +
+        ISNULL(d.IncomeTax, 0) +
+        ISNULL(d.ProfessionalTax, 0)
+      ), 0) AS ChequeAmount
+    FROM dbo.SalaryBillInstituteWorkflow w
+    INNER JOIN dbo.SalaryBillCodes b ON b.BillCodeId = w.SalaryBillCodeId
+    INNER JOIN dbo.SalaryEntryBillEmployeeDetails d
+      ON d.SalaryBillCodeId = w.SalaryBillCodeId
+     AND d.InstituteCode = w.InstituteCode
+     AND d.BillMonth = w.BillMonth
+    LEFT JOIN dbo.Institutes i ON i.InstituteCode = w.InstituteCode
+    LEFT JOIN dbo.Sections s ON s.SectionId = i.SectionId
+    WHERE UPPER(LTRIM(RTRIM(w.Status))) IN (N'APPROVED', N'LOCKED')
+      AND UPPER(ISNULL(b.BillCategory, N'Salary')) <> N'DIFFERENCE'
+      AND UPPER(ISNULL(b.BillType, N'')) <> N'DA DIFFERENCE'
+      AND ISNULL(b.IsArchived, 0) = 0
+      AND w.BillMonth <> UPPER(LEFT(LTRIM(RTRIM(b.SalaryMonth)), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))
+      AND b.BillCode NOT LIKE N'%-BM-%'
+    GROUP BY
+      b.BillCodeId, b.BillCode, b.BillMonth, b.SalaryMonth, b.SalaryMonthNumber,
+      b.SalaryYear, b.BillCategory, b.BillType, b.CreatedDate,
+      w.WorkflowId, w.InstituteCode, w.BillMonth, w.Status, w.ApprovedDate, w.ApprovedBy, w.LockedDate,
+      w.BillNo, w.BillDate,
+      i.InstituteId, i.InstituteName, i.InstituteDistrict, i.District, i.SectionId, s.SectionName
+    `;
+  } catch (err) {
+    /* dbo.SalaryEntryBillEmployeeDetails absent before migration 50. */
+    if (!/invalid object name/i.test(String(err.message))) throw err;
+  }
+  return [...canonical.recordset, ...instances.recordset];
 }
 
 /**
@@ -159,6 +266,7 @@ async function loadDaAggregates() {
       b.BillCodeId,
       b.BillCode,
       b.BillMonth,
+      w.BillMonth AS WorkflowBillMonth,
       b.SalaryMonth,
       b.SalaryMonthNumber,
       b.SalaryYear,
@@ -213,7 +321,7 @@ async function loadDaAggregates() {
     GROUP BY
       b.BillCodeId, b.BillCode, b.BillMonth, b.SalaryMonth, b.SalaryMonthNumber,
       b.SalaryYear, b.BillCategory, b.BillType, b.CreatedDate,
-      w.WorkflowId, w.InstituteCode, w.Status, w.ApprovedDate, w.ApprovedBy, w.LockedDate,
+      w.WorkflowId, w.InstituteCode, w.BillMonth, w.Status, w.ApprovedDate, w.ApprovedBy, w.LockedDate,
       w.BillNo, w.BillDate,
       i.InstituteId, i.InstituteName, i.InstituteDistrict, i.District, i.SectionId, s.SectionName
   `;
@@ -252,29 +360,47 @@ function salaryMonthPartsOf(salaryMonth, salaryYear, salaryMonthNumber) {
   return normalizeYearMonth(salaryMonth, salaryYear, salaryMonthNumber);
 }
 
+/**
+ * The Bill Month of the approved instance a Cheque Register row reports.
+ *
+ *   - Normal bill (e.g. AUG-2026): the workflow row's own BillMonth
+ *     (w.BillMonth) - JUL-2026 for the JUL instance, AUG-2026 for the AUG
+ *     instance of the same BillCodeId. SalaryBillCodes.BillMonth is shared
+ *     by both instances and is never used for them.
+ *   - Pre-existing "-BM-" variant bill (e.g. AUG-2026-BM-JUL): that bill
+ *     IS the earlier-month bill; its Bill Month is part of its own
+ *     identity (SalaryBillCodes.BillMonth), while migration 51 labelled its
+ *     workflow row with its Salary Month. Its own BillMonth is kept, so it
+ *     still reports as OLD, exactly as before.
+ *   - Only a row with neither (pre-migration data) falls back to its
+ *     Salary Month.
+ */
+/* Shared with every report: utils/reportBillInstance.js. */
+
+const MONTH_NAMES = [
+  "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+  "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+];
+
 function mapAggregateRow(row, srNo) {
   const billCategory = row.BillCategory || "";
   const billType = row.BillType || "";
   const daDiff = isDaDifference(billCategory, billType);
-  const salaryType = resolveChequeSalaryType({
-    salaryMonth: row.SalaryMonth,
-    billMonth: row.BillMonth,
-    salaryYear: row.SalaryYear,
-    billYear: row.SalaryYear,
-    salaryMonthNumber: row.SalaryMonthNumber,
-  });
-
-  const billYm = billMonthPartsOf(
-    row.BillMonth,
-    row.SalaryMonth,
-    row.SalaryYear,
-    row.SalaryMonthNumber
-  );
+  const billYm = instanceBillMonthPartsOf(row);
   const salaryYm = normalizeYearMonth(
     row.SalaryMonth,
     row.SalaryYear,
     row.SalaryMonthNumber
   );
+  /* REGULAR when the instance's Bill Month equals the Salary Month, else
+     OLD - from the instance Bill Month, never SalaryBillCodes.BillMonth. */
+  const salaryType = resolveChequeSalaryType({
+    salaryMonth: row.SalaryMonth,
+    billMonth: formatMonthLabel(billYm),
+    salaryYear: row.SalaryYear,
+    billYear: billYm ? billYm.year : row.SalaryYear,
+    salaryMonthNumber: row.SalaryMonthNumber,
+  });
 
   const emp = toNum(row.EmpCount);
   const basic = moneyRound(row.BasicPay);
@@ -309,13 +435,25 @@ function mapAggregateRow(row, srNo) {
     instituteCode: row.InstituteCode || "",
     instituteName: row.InstituteName || row.InstituteCode || "",
     place: row.Place || "",
+    /* billNo/date/billDate here are the legacy single-instance values
+       (dbo.SalaryBillInstituteWorkflow.BillNo/BillDate) and npsScheduleNo
+       starts blank. ALL THREE are overwritten below in
+       buildChequeRegisterReport with the Bill-Month-specific values from
+       dbo.SalaryEntryBillHeader, keyed by the exact Bill Month being
+       reported for this row — never left as this fallback. */
     billNo: billNoRaw || "",
     billCode: row.BillCode || "",
     date: billDate,
     billDate,
+    npsScheduleNo: "",
     approvedDate: row.ApprovedDate || null,
     salaryMonth: row.SalaryMonth || "",
-    billMonth: row.BillMonth || "",
+    /* Salary Month column: the month name, e.g. AUGUST. */
+    salaryMonthName: salaryYm ? MONTH_NAMES[salaryYm.month - 1] : String(row.SalaryMonth || "").toUpperCase(),
+    salaryMonthLabel: formatMonthLabel(salaryYm) || "",
+    /* Bill Month column: the approved INSTANCE's Bill Month (MON-YYYY). */
+    billMonth: formatMonthLabel(billYm) || "",
+    workflowBillMonth: row.WorkflowBillMonth || "",
     /*
       The Bill Month of THIS bill, normalised to a MON-YYYY label.
 
@@ -390,6 +528,9 @@ function filterRows(rows, query) {
   const month = query.month != null && query.month !== "" ? Number(query.month) : null;
   const year = query.year != null && query.year !== "" ? Number(query.year) : null;
   const salaryTime = String(query.salaryTime || "ALL").trim().toUpperCase();
+  const explicitBillMonthKey = yearMonthKey(
+    normalizeYearMonth(parseExplicitBillMonth(query.billMonth, year), year, null)
+  );
 
   return rows.filter((row) => {
     if (!APPROVED_WORKFLOW_STATUSES.has(row.workflowStatus)) return false;
@@ -416,6 +557,11 @@ function filterRows(rows, query) {
       );
       if (!matchesFilterMonthYear(salaryParts, month, year)) return false;
     }
+
+    /* A selected Bill Month keeps only the instances of that Bill Month
+       (JUL-2026 -> the JUL-2026 instances only). Auto keeps every approved
+       instance of the Salary Month, each shown with its own Bill Month. */
+    if (explicitBillMonthKey && row.billMonthKey !== explicitBillMonthKey) return false;
 
     const isDa = Boolean(row.isDaDifference);
     if (table === "DA" || table === "DA_DIFFERENCE" || table === "DA DIFFERENCE") {
@@ -563,6 +709,37 @@ function sortAndNumberRows(rows) {
   The screen endpoint and the Excel export both call this, so the rows,
   the totals and the title can never drift apart between them.
 */
+/*
+   Which Bill Month's dbo.SalaryEntryBillHeader row to read for a given
+   Cheque Register row. Pure/exported so this can be regression-tested
+   offline without a live database.
+*/
+function parseExplicitBillMonth(rawBillMonth, year) {
+  const raw = String(rawBillMonth || "").trim();
+  if (!raw) return "";
+  const parts = normalizeYearMonth(raw, year, null);
+  return parts ? formatMonthLabel(parts) : raw;
+}
+
+/*
+   The Bill Month a row reports and whose dbo.SalaryEntryBillHeader
+   (Bill No. / Date) it reads: ALWAYS the row's own approved instance.
+   A selected Bill Month only filters rows (filterRows); it is never
+   stamped onto a row of a different Bill Month - which is what made the
+   JUL-2026 instance show as AUG-2026 (Auto) or the AUG-2026 instance show
+   as JUL-2026 (JUL selected). The first argument is kept for existing
+   callers and is intentionally ignored.
+*/
+function resolveEffectiveBillMonth(_explicitBillMonth, row) {
+  return (
+    row.billMonth ||
+    formatMonthLabel(
+      normalizeYearMonth(row.salaryMonth, row.salaryYear, row.salaryMonthNumber)
+    ) ||
+    row.salaryMonth
+  );
+}
+
 async function buildChequeRegisterReport(query) {
   const month = query.month;
   const year = query.year;
@@ -588,6 +765,49 @@ async function buildChequeRegisterReport(query) {
     );
     /* Sorted by Group first; Sr. No. is assigned only after that. */
     const filtered = sortAndNumberRows(filterRows(mapped, query));
+
+    /*
+       Bill-Month-aware header lookup (dbo.SalaryEntryBillHeader).
+
+       Bill No. / Bill Date / NPS Schedule No. are per-Bill-Month-instance:
+       the SAME approved AUG-2026 salary bill can have a JUL-2026 bill
+       instance and an AUG-2026 bill instance, each with its own header.
+       Cheque Register must show ONE explicit, identified instance per row
+       — never silently pick "whichever was saved last".
+
+       query.billMonth, when supplied, is applied to EVERY row (e.g. "show
+       me each institute's JUL-2026 bill"). When omitted, each row falls
+       back to its OWN canonical Salary Month — the "regular", same-month
+       bill instance — which is a fixed, explicit rule, not a guess at
+       "latest saved". Either way, row.billMonthQueried below always says
+       exactly which Bill Month's header the row is showing.
+    */
+    const explicitBillMonth = parseExplicitBillMonth(query.billMonth, year);
+
+    const headers = await loadInstanceHeaders();
+    for (const row of filtered) {
+      const effectiveBillMonth = resolveEffectiveBillMonth(explicitBillMonth, row);
+      row.billMonthQueried = effectiveBillMonth;
+      /* Bill No. / Date of exactly this instance: its Bill-Month header,
+         else the legacy columns on its OWN workflow row (row.billNo/date as
+         mapped from w). Never another instance's values. */
+      const header = resolveInstanceHeader(
+        headers,
+        {
+          BillCodeId: row.billCodeId,
+          InstituteCode: row.instituteCode,
+          BillNo: row.billNo,
+          BillDate: row.billDate,
+          NPSScheduleNo: row.npsScheduleNo,
+        },
+        effectiveBillMonth
+      );
+      row.billNo = header.billNo;
+      row.date = header.billDate;
+      row.billDate = header.billDate;
+      row.npsScheduleNo = header.npsScheduleNo;
+      row.headerSource = header.headerSource;
+    }
 
     const totals = filtered.reduce(
       (acc, row) =>
@@ -640,6 +860,13 @@ async function buildChequeRegisterReport(query) {
         year: Number(year),
         format: String(query.format || "SCREEN").toUpperCase(),
         salaryTime: String(query.salaryTime || "ALL").toUpperCase(),
+        /* Explicit and truthful about which Bill Month instance the header
+           columns (Bill No./Bill Date/NPS Schedule No.) came from — see
+           each row's own billMonthQueried for the per-row value, since a
+           mixed set of salary months without an explicit billMonth can
+           have a different "regular" Bill Month per row. */
+        billMonth: explicitBillMonth || null,
+        billMonthMode: explicitBillMonth ? "SELECTED" : "AUTO_SAME_AS_SALARY_MONTH",
       },
       title: `CHEQUE REGISTER - ${monthNames[monthNum] || month}-${year}`,
       rows: filtered,
@@ -682,7 +909,7 @@ const XLSX_COLUMNS = [
   { key: "place", label: "Place" },
   { key: "billNo", label: "Bill No." },
   { key: "date", label: "Date", type: "date" },
-  { key: "billMonthLabel", label: "Salary Month" },
+  { key: "billMonthQueried", label: "Bill Month" },
   { key: "type", label: "TYPE" },
   { key: "group", label: "Group" },
   { key: "emp", label: "EMP", type: "number" },
@@ -797,3 +1024,5 @@ module.exports.salaryMonthPartsOf = salaryMonthPartsOf;
 module.exports.mapAggregateRow = mapAggregateRow;
 module.exports.filterRows = filterRows;
 module.exports.sortAndNumberRows = sortAndNumberRows;
+module.exports.parseExplicitBillMonth = parseExplicitBillMonth;
+module.exports.resolveEffectiveBillMonth = resolveEffectiveBillMonth;

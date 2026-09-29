@@ -53,6 +53,28 @@ async function findBillBySalaryAndBillMonth({
   billType,
   billMonthParts,
 }) {
+  /*
+     MONTH COLUMN FORMAT TRAP (see utils/salaryMonthKey.js header comment):
+     SalaryMonth stores either a month NAME ("August", from a canonical bill
+     created without an explicit Bill Month) or a short label ("AUG-2026",
+     from this file's own INSERT below). Filtering candidates in SQL by a
+     literal/uppercase SalaryMonth string match against the caller's
+     canonicalSalaryMonth (always the short-label form) therefore missed
+     every canonical bill stored as a name and NEVER found it as "existing".
+
+     The caller (resolveSalaryEntryBill) then fell through to createIfMissing,
+     hit the BillCode uniqueness conflict on the Bill-Month variant another
+     institute had already created for the same period, and minted a second,
+     differently-coded duplicate ("...-BM-JUL-<timestamp>") for the SAME
+     salary period instead of reusing the existing row — splitting one
+     period's data across two Bill Codes.
+
+     Fix: pull every non-archived candidate for the year/category/type (a
+     handful of rows) and compare BOTH SalaryMonth and BillMonth in JS via
+     normalizeYearMonth/yearMonthKey, exactly like BillMonth already was.
+     This is what lets a second institute reuse the SAME Bill-Month variant
+     bill code a first institute already created for that period.
+  */
   const result = await sql.query`
     SELECT *
     FROM dbo.SalaryBillCodes
@@ -60,15 +82,19 @@ async function findBillBySalaryAndBillMonth({
       AND SalaryYear = ${String(salaryYear)}
       AND BillCategory = ${billCategory}
       AND BillType = ${billType}
-      AND (
-        SalaryMonth = ${salaryMonth}
-        OR UPPER(LTRIM(RTRIM(SalaryMonth))) = ${String(salaryMonth).toUpperCase()}
-      )
   `;
-  const targetKey = yearMonthKey(billMonthParts);
+  const targetSalaryKey = yearMonthKey(
+    normalizeYearMonth(salaryMonth, salaryYear, null)
+  );
+  const targetBillKey = yearMonthKey(billMonthParts);
   for (const row of result.recordset) {
-    const rowParts = normalizeYearMonth(row.BillMonth, row.SalaryYear, null);
-    if (yearMonthKey(rowParts) === targetKey) {
+    const rowSalaryKey = yearMonthKey(
+      normalizeYearMonth(row.SalaryMonth, row.SalaryYear, row.SalaryMonthNumber)
+    );
+    const rowBillKey = yearMonthKey(
+      normalizeYearMonth(row.BillMonth, row.SalaryYear, null)
+    );
+    if (rowSalaryKey === targetSalaryKey && rowBillKey === targetBillKey) {
       return row;
     }
   }
@@ -147,6 +173,31 @@ async function resolveSalaryEntryBill({
     formatMonthLabel(salaryParts) || source.SalaryMonth;
 
   /*
+    BUSINESS RULE (2026-09-24, explicit user instruction): Bill Month must
+    never be LATER than Salary Month. Salary Month alone continues to
+    determine the SalaryBillCodes master row / employee data; this only
+    rejects an invalid Bill Month selection for the general (non "-BM-")
+    flow, before anything is read or written. A caller that omits billMonth
+    entirely defaults to the same month as Salary Month (billMonthParts
+    above falls back to salaryParts), which is always valid, so this only
+    fires when the caller actually requested a later month.
+  */
+  if (!requestedBmRow) {
+    const billOrdinal = billParts.year * 12 + billParts.month;
+    const salaryOrdinal = salaryParts.year * 12 + salaryParts.month;
+    if (billOrdinal > salaryOrdinal) {
+      const err = new Error(
+        `Bill Month cannot be later than Salary Month. Bill Month ${canonicalBillMonth} is after Salary Month ${canonicalSalaryMonth}.`
+      );
+      err.status = 400;
+      err.code = "BILL_MONTH_AFTER_SALARY_MONTH";
+      err.canonicalBillMonth = canonicalBillMonth;
+      err.canonicalSalaryMonth = canonicalSalaryMonth;
+      throw err;
+    }
+  }
+
+  /*
     Exact Bill-Month variant codes (e.g. JUN-2026-BM-MAY) are a primary key.
     Never collapse them to the same-month master (JUN-2026) even if a caller
     omits or mis-sends billMonth — that broke Returning Bills reopen.
@@ -174,98 +225,41 @@ async function resolveSalaryEntryBill({
     };
   }
 
-  const sameMonth =
-    yearMonthKey(billParts) &&
-    yearMonthKey(salaryParts) &&
-    yearMonthKey(billParts) === yearMonthKey(salaryParts);
+  /*
+     DECISION (2026-09-23, explicit user instruction): Salary Entry no
+     longer searches for or creates a Bill-Month variant (e.g.
+     AUG-2026-BM-JUL) for the general flow. When the caller passes the
+     PLAIN Salary Month bill code (no -BM- suffix — the normal case, e.g.
+     "AUG-2026"), it always resolves directly to that master row,
+     regardless of whether billMonth differs from salaryMonth. Bill Month
+     is informational only in this flow: it is returned for display via
+     canonicalBillMonth, but nothing is persisted for it and no new
+     SalaryBillCodes row is ever created here.
 
-  if (sameMonth) {
-    const sourceBillParts = normalizeYearMonth(
-      source.BillMonth,
-      source.SalaryYear,
-      null
-    );
-    if (
-      yearMonthKey(sourceBillParts) === yearMonthKey(salaryParts) ||
-      !/-BM-[A-Z]{3}$/i.test(String(source.BillCode))
-    ) {
-      return {
-        bill: source,
-        sourceBill: source,
-        created: false,
-        billMonthMatched: true,
-        canonicalBillMonth,
-        canonicalSalaryMonth,
-      };
-    }
-  }
+     Bill-Month variants created BEFORE this change (e.g. the existing
+     AUG-2026-BM-JUL / BillCodeId 1019) are left exactly as they are in
+     the database — nothing here deletes or alters them — and remain
+     reachable exactly as before by requesting that -BM- code directly
+     (see the requestedBmRow branch above, e.g. Returned Bills reopen).
+     They are simply no longer found or created by the general
+     Salary-Month-code + billMonth lookup below.
 
-  const existing = await findBillBySalaryAndBillMonth({
-    salaryMonth: canonicalSalaryMonth,
-    salaryYear: String(salaryParts.year || source.SalaryYear),
-    billCategory: source.BillCategory || "Salary",
-    billType: source.BillType || "Regular Salary",
-    billMonthParts: billParts,
-  });
+     createIfMissing is accepted for backward compatibility with existing
+     callers but no longer triggers an INSERT from this function; Salary
+     Bill Code Master (routes/salaryBillCodes.js) remains the only place
+     a new Bill Code can be created.
 
-  if (existing) {
-    return {
-      bill: existing,
-      sourceBill: source,
-      created: false,
-      billMonthMatched: true,
-      canonicalBillMonth,
-      canonicalSalaryMonth,
-    };
-  }
-
-  if (!createIfMissing) {
-    const err = new Error(
-      `No Salary Bill Code exists for Bill Month ${canonicalBillMonth} / Salary Month ${canonicalSalaryMonth}.`
-    );
-    err.status = 404;
-    throw err;
-  }
-
-  const newBillCode = sameMonth
-    ? String(source.BillCode).replace(/-BM-[A-Z]{3}$/i, "")
-    : buildOldBillCode(source.BillCode, billParts);
-
-  const conflict = await sql.query`
-    SELECT TOP 1 BillCodeId FROM dbo.SalaryBillCodes WHERE BillCode = ${newBillCode}
-  `;
-  let finalCode = newBillCode;
-  if (conflict.recordset[0]) {
-    finalCode = `${newBillCode}-${Date.now().toString().slice(-4)}`;
-  }
-
-  const who = actor.fullName || actor.userName || "SYSTEM";
-  const inserted = await sql.query`
-    INSERT INTO dbo.SalaryBillCodes
-      (
-        BillCode, BillMonth, SalaryMonth, SalaryMonthNumber, SalaryYear,
-        BillCategory, BillType, Description, Status, CreatedBy
-      )
-    OUTPUT INSERTED.*
-    VALUES
-      (
-        ${finalCode},
-        ${canonicalBillMonth},
-        ${canonicalSalaryMonth},
-        ${source.SalaryMonthNumber || String(salaryParts.month).padStart(2, "0")},
-        ${String(salaryParts.year || source.SalaryYear)},
-        ${source.BillCategory || "Salary"},
-        ${source.BillType || "Regular Salary"},
-        ${`Auto-created for Bill Month ${canonicalBillMonth} / Salary Month ${canonicalSalaryMonth}`},
-        N'OPEN',
-        ${who}
-      )
-  `;
-
+     UPDATE (2026-09-24): canonicalBillMonth returned below is no longer
+     purely informational. The caller (routes/salaryEntry.js) now persists
+     it on the institute-specific dbo.SalaryBillInstituteWorkflow row
+     (BillMonth column, migration 48) — never on this shared master
+     `source` row, and never by creating a "-BM-" variant. This function
+     itself still writes nothing; it only resolves and validates.
+  */
   return {
-    bill: inserted.recordset[0],
+    bill: source,
     sourceBill: source,
-    created: true,
+    created: false,
     billMonthMatched: true,
     canonicalBillMonth,
     canonicalSalaryMonth,

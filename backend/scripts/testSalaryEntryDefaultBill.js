@@ -198,16 +198,18 @@ function main() {
   check("no hard-coded year either",
     /\b20\d{2}\b/.test(orderByClause), false);
 
-  check("J. NPS Schedule No. read from the resolved bill's workflow row",
-    /workflow\.NPSScheduleNo/.test(entrySrc), true);
-  check("J. and written scoped to that exact bill + institute",
-    /NPSScheduleNo = \$\{npsScheduleNo \|\| null\}[\s\S]{0,300}WHERE SalaryBillCodeId = \$\{Number\(bill\.BillCodeId\)\}[\s\S]{0,120}AND InstituteCode/.test(entrySrc),
+  const headerSrc = read("utils/salaryEntryBillHeader.js");
+  check("J. NPS Schedule No. read from the resolved bill's own header (bill-month-specific)",
+    /getSalaryEntryBillHeader\(/.test(entrySrc), true);
+  check("J. and written scoped to that exact bill + institute + Bill Month",
+    /NPSScheduleNo = \$\{npsScheduleNo \|\| null\}/.test(headerSrc) &&
+      /SalaryBillCodeId = \$\{Number\(billCodeId\)\}[\s\S]{0,120}AND InstituteCode[\s\S]{0,120}AND BillMonth/.test(headerSrc),
     true);
 
   check("Bill Month still gated on the exact resolved bill",
     /assertBillEditable\(statusGateBill\(resolved\)\)/.test(entrySrc), true);
-  check("returned-bill listing takes BillMonth from the joined bill row",
-    /billMonth: row\.BillMonth/.test(approvalSrc), true);
+  check("returned-bill listing takes BillMonth from the workflow row itself (migration 51), never the bill master's BillMonth column",
+    /const instanceBillMonth = row\.WorkflowBillMonth \|\| "";/.test(approvalSrc), true);
 
   /* DA no longer needs a canonical-vs-variant preference at all: it matches
      each month on the bill's real BillMonth in JS (pickSnapshotForBillMonth),

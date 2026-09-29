@@ -28,8 +28,16 @@
 const express = require("express");
 const { sql } = require("../db");
 const {
+  instanceEmployeeRowsSql,
+  queryReport,
+  instanceBillMonthPartsOf,
+  loadInstanceHeaders,
+  resolveInstanceHeader,
+} = require("../utils/reportBillInstance");
+const {
   matchesFilterMonthYear,
   billTypeMatchesFilter,
+  formatMonthLabel,
 } = require("../utils/salaryMonthKey");
 const {
   APPROVED_WORKFLOW_STATUSES,
@@ -94,7 +102,7 @@ function dateOnly(value) {
  * same way the Cheque Register and Bank Copy do it.
  */
 async function loadSalaryBillAggregates() {
-  const result = await sql.query`
+  const result = await queryReport(`
     SELECT
       b.BillCodeId,
       b.BillCode,
@@ -102,6 +110,8 @@ async function loadSalaryBillAggregates() {
       b.SalaryMonth,
       b.SalaryMonthNumber,
       b.SalaryYear,
+      w.WorkflowId,
+      w.BillMonth           AS WorkflowBillMonth,
       w.InstituteCode,
       w.Status              AS WorkflowStatus,
       w.BillNo,
@@ -120,9 +130,8 @@ async function loadSalaryBillAggregates() {
     FROM dbo.SalaryBillInstituteWorkflow w
     INNER JOIN dbo.SalaryBillCodes b
       ON b.BillCodeId = w.SalaryBillCodeId
-    INNER JOIN dbo.SalaryEmployeeDetails d
-      ON d.SalaryBillCodeId = w.SalaryBillCodeId
-     AND d.InstituteCode = w.InstituteCode
+    INNER JOIN ${instanceEmployeeRowsSql()} d
+      ON d.InstanceWorkflowId = w.WorkflowId
     LEFT JOIN dbo.Institutes i
       ON i.InstituteCode = w.InstituteCode
     LEFT JOIN dbo.Sections sec
@@ -134,10 +143,11 @@ async function loadSalaryBillAggregates() {
     GROUP BY
       b.BillCodeId, b.BillCode, b.BillMonth, b.SalaryMonth,
       b.SalaryMonthNumber, b.SalaryYear,
+      w.WorkflowId, w.BillMonth,
       w.InstituteCode, w.Status, w.BillNo, w.BillDate,
       w.ApprovedBy, w.ApprovedDate,
       i.InstituteName, i.SectionId, sec.SrNo, sec.SectionName
-  `;
+  `);
   return result.recordset;
 }
 
@@ -149,7 +159,9 @@ async function loadSalaryBillAggregates() {
  * and two bills of one salary month with different Bill Months stay two rows
  * because the row identity is (BillCodeId, InstituteCode).
  */
-function mapSalaryBillRow(row) {
+function mapSalaryBillRow(row, headers) {
+  /* .map(mapSalaryBillRow) passes an index here - only a Map is a header set. */
+  const headerMap = headers instanceof Map ? headers : new Map();
   const salaryYm = salaryMonthPartsOf(
     row.SalaryMonth,
     row.SalaryYear,
@@ -160,12 +172,11 @@ function mapSalaryBillRow(row) {
      explicit month number + year, so passing SalaryMonthNumber alongside
      BillMonth would silently return the SALARY month for JUN-2026-BM-MAY.
   */
-  const billYm = billMonthPartsOf(
-    row.BillMonth,
-    row.SalaryMonth,
-    row.SalaryYear,
-    row.SalaryMonthNumber
-  );
+  /* The Bill Month of THIS approved instance (its workflow row), never the
+     master SalaryBillCodes.BillMonth shared by every instance of the bill. */
+  const billYm = instanceBillMonthPartsOf(row);
+  /* Headers are keyed by the canonical MON-YYYY label (e.g. JUL-2026). */
+  const header = resolveInstanceHeader(headerMap, row, formatMonthLabel(billYm));
 
   return {
     billCodeId: Number(row.BillCodeId),
@@ -182,13 +193,16 @@ function mapSalaryBillRow(row) {
     salaryMonthParts: salaryYm,
     billMonthParts: billYm,
 
-    billNo: row.BillNo == null ? "" : String(row.BillNo),
-    billDate: dateOnly(row.BillDate),
+    workflowId: row.WorkflowId == null ? null : Number(row.WorkflowId),
+    /* Bill No. / Bill Date of exactly this instance (its Bill-Month header,
+       else its own workflow row) - never another instance's. */
+    billNo: header.billNo,
+    billDate: dateOnly(header.billDate),
     salaryType: resolveChequeSalaryType({
       salaryMonth: row.SalaryMonth,
-      billMonth: row.BillMonth,
+      billMonth: monthLabel(billYm),
       salaryYear: row.SalaryYear,
-      billYear: row.SalaryYear,
+      billYear: billYm ? billYm.year : row.SalaryYear,
       salaryMonthNumber: row.SalaryMonthNumber,
     }),
 
@@ -352,11 +366,17 @@ function compareRegisterRows(a, b) {
   if (rank !== 0) return rank < 0 ? -1 : 1;
   const inst = compareGroupCodes(a.instituteCode, b.instituteCode);
   if (inst !== 0) return inst;
-  return String(a.billCode).localeCompare(String(b.billCode));
+  const code = String(a.billCode).localeCompare(String(b.billCode));
+  if (code !== 0) return code;
+  /* Same bill + institute, different Bill Month instances: stable order. */
+  return String(a.billMonth || "").localeCompare(String(b.billMonth || ""));
 }
 
 async function buildSalaryRegisterReport(query = {}) {
-  const salaryRows = (await loadSalaryBillAggregates()).map(mapSalaryBillRow);
+  const headers = await loadInstanceHeaders();
+  const salaryRows = (await loadSalaryBillAggregates()).map((row) =>
+    mapSalaryBillRow(row, headers)
+  );
   const daRows = aggregateDaRows(await loadDaDifferenceRows());
 
   /* Concatenated, never joined: a DA bill is its own row. */
@@ -407,6 +427,252 @@ async function buildSalaryRegisterReport(query = {}) {
       instituteCode: String(query.instituteCode || "").trim() || null,
       salaryType: parseSalaryType(query),
     },
+  };
+}
+
+function toIntOrNull(value) {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.trunc(n) : null;
+}
+
+/**
+ * SALARY REGISTER DRILL-DOWN — employee-wise detail of exactly ONE Salary
+ * Register row (2026-09-25).
+ *
+ * A register row's identity is its WorkflowId (see mapSalaryBillRow / the
+ * reportBillInstance.js module doc): one dbo.SalaryBillInstituteWorkflow row,
+ * i.e. one institute, one bill, one Bill Month INSTANCE. Filtering this
+ * query on that single WorkflowId is therefore already the exact
+ * restriction the drill-down needs — never "all employees of this Salary
+ * Month", never "all employees of this institute". A JUL-2026 instance and
+ * an AUG-2026 instance of the same institute/bill have different WorkflowIds
+ * and can never be confused by this query.
+ *
+ * Employee rows come from the SAME instanceEmployeeRowsSql() derived table
+ * every other report reuses (dbo.SalaryEmployeeDetails for the canonical /
+ * "-BM-" instance, dbo.SalaryEntryBillEmployeeDetails for an earlier Bill
+ * Month instance) — the exact SAVED values Salary Entry wrote and Salary
+ * Bill Approval displayed. Nothing is recalculated: this is a plain SELECT,
+ * parameterised on WorkflowId, and it never writes.
+ *
+ * Only columns that actually exist are selected:
+ *   dbo.SalaryEmployeeDetails / SalaryEntryBillEmployeeDetails (via the
+ *     shared INSTANCE_EMPLOYEE_COLUMNS list) for every salary figure and the
+ *     bill-time PayLevel snapshot;
+ *   dbo.EmployeeMaster (EmployeeCode) and dbo.Designations (a designation
+ *     name fallback) for the two identifying columns the component tables do
+ *     not themselves carry.
+ * There is no PAN column anywhere in this schema (see grep across
+ * backend/sql/schema — confirmed absent), so none is invented; EmployeeCode
+ * is used as the employee's existing external identifier instead.
+ */
+async function loadSalaryRegisterDetailRows(workflowId) {
+  const request = new sql.Request();
+  request.input("workflowId", sql.Int, workflowId);
+  const result = await request.query(`
+    SELECT
+      w.WorkflowId,
+      w.InstituteCode,
+      w.Status                AS WorkflowStatus,
+      d.Id                     AS DetailId,
+      d.EmployeeId,
+      d.EmployeeName,
+      d.Designation,
+      d.DisplayOrder,
+      d.PensionType,
+      d.BasicPay,
+      d.GradePay,
+      d.TotalBasic,
+      d.PayLevel,
+      d.DA,
+      d.HRA,
+      d.MA,
+      d.TA,
+      ISNULL(d.CLA, 0)         AS CLA,
+      d.SpecialAllowance,
+      d.WashingAllowance,
+      d.OtherEarnings,
+      d.NPPA,
+      d.GrossSalary,
+      d.GPFSubscription,
+      d.GPFAdvance,
+      d.NPS,
+      d.IncomeTax,
+      d.ProfessionalTax,
+      d.OtherDeduction,
+      d.TotalDeduction,
+      d.NetSalary,
+      d.ChequeAmount,
+      em.EmployeeCode,
+      des.DesignationName      AS MasterDesignationName
+    FROM dbo.SalaryBillInstituteWorkflow w
+    INNER JOIN ${instanceEmployeeRowsSql()} d
+      ON d.InstanceWorkflowId = w.WorkflowId
+    LEFT JOIN dbo.EmployeeMaster em
+      ON em.EmployeeId = d.EmployeeId
+    LEFT JOIN dbo.Designations des
+      ON des.DesignationId = em.DesignationId
+    WHERE w.WorkflowId = @workflowId
+      AND UPPER(LTRIM(RTRIM(w.Status))) IN (N'APPROVED', N'LOCKED')
+    ORDER BY d.DisplayOrder, d.Id
+  `);
+  return result.recordset;
+}
+
+const DETAIL_TOTAL_KEYS = [
+  "basicPay", "gradePay", "totalBasic", "da", "hra", "ta", "ma", "cla",
+  "otherAllowances", "grossSalary", "gpfSubscription", "gpfAdvance", "nps",
+  "incomeTax", "professionalTax", "otherDeduction", "totalDeduction",
+  "netSalary", "chequeAmount",
+];
+
+function emptyDetailTotals() {
+  const totals = {};
+  DETAIL_TOTAL_KEYS.forEach((key) => { totals[key] = 0; });
+  return totals;
+}
+
+function addDetailTotals(totals, row) {
+  DETAIL_TOTAL_KEYS.forEach((key) => {
+    totals[key] = round2(totals[key] + toNum(row[key]));
+  });
+  return totals;
+}
+
+/**
+ * One SAVED dbo.SalaryEmployeeDetails / SalaryEntryBillEmployeeDetails row ->
+ * one detail-screen row. "Other Allowances" combines the four additive
+ * earnings columns beyond DA/HRA/MA/TA/CLA that this schema actually has
+ * (SpecialAllowance, WashingAllowance, OtherEarnings, NPPA) into one figure,
+ * rather than listing four rarely-used columns; Gross Salary itself is still
+ * the STORED d.GrossSalary, never a sum of the columns shown here, so it
+ * reconciles with Salary Register exactly as saved.
+ */
+function mapDetailEmployeeRow(row) {
+  return {
+    detailId: row.DetailId != null ? Number(row.DetailId) : null,
+    employeeId: Number(row.EmployeeId),
+    employeeName: row.EmployeeName || "",
+    employeeCode:
+      row.EmployeeCode != null && String(row.EmployeeCode).trim() !== ""
+        ? String(row.EmployeeCode)
+        : String(row.EmployeeId),
+    designation: row.MasterDesignationName || row.Designation || "",
+    displayOrder: toNum(row.DisplayOrder),
+    payLevel:
+      row.PayLevel != null && String(row.PayLevel).trim() !== ""
+        ? String(row.PayLevel).trim()
+        : "",
+    basicPay: round2(row.BasicPay),
+    gradePay: round2(row.GradePay),
+    totalBasic: round2(row.TotalBasic),
+    da: round2(row.DA),
+    hra: round2(row.HRA),
+    ta: round2(row.TA),
+    ma: round2(row.MA),
+    cla: round2(row.CLA),
+    otherAllowances: round2(
+      toNum(row.SpecialAllowance) +
+        toNum(row.WashingAllowance) +
+        toNum(row.OtherEarnings) +
+        toNum(row.NPPA)
+    ),
+    grossSalary: round2(row.GrossSalary),
+    gpfSubscription: round2(row.GPFSubscription),
+    nps: round2(row.NPS),
+    gpfAdvance: round2(row.GPFAdvance),
+    incomeTax: round2(row.IncomeTax),
+    professionalTax: round2(row.ProfessionalTax),
+    otherDeduction: round2(row.OtherDeduction),
+    totalDeduction: round2(row.TotalDeduction),
+    netSalary: round2(row.NetSalary),
+    chequeAmount: round2(row.ChequeAmount),
+  };
+}
+
+/**
+ * Builds the drill-down report for exactly one Salary Register row.
+ *
+ * query.workflowId is required and is the ONLY thing that decides which
+ * employees come back (see loadSalaryRegisterDetailRows). query.instituteCode
+ * and query.billCodeId are optional and, when the caller (the clicked Salary
+ * Register row) supplies them, must agree with what that WorkflowId actually
+ * resolves to — a defence against a stale or hand-edited link silently
+ * showing a different bill's employees under the wrong header.
+ */
+async function buildSalaryRegisterDetailReport(query = {}) {
+  const workflowId = toIntOrNull(query.workflowId);
+  if (workflowId == null) {
+    const err = new Error("workflowId is required to open the Salary Register detail.");
+    err.status = 400;
+    throw err;
+  }
+
+  const headers = await loadInstanceHeaders();
+  const registerRows = (await loadSalaryBillAggregates()).map((row) =>
+    mapSalaryBillRow(row, headers)
+  );
+  const registerRow = registerRows.find((r) => r.workflowId === workflowId);
+  if (!registerRow) {
+    const err = new Error(
+      "That Salary Register bill instance was not found (it may no longer be approved or locked)."
+    );
+    err.status = 404;
+    throw err;
+  }
+
+  const expectInstitute = String(query.instituteCode || "").trim();
+  if (expectInstitute && expectInstitute !== registerRow.instituteCode) {
+    const err = new Error("Institute does not match the requested bill instance.");
+    err.status = 409;
+    throw err;
+  }
+  const expectBillCodeId = toIntOrNull(query.billCodeId);
+  if (expectBillCodeId != null && expectBillCodeId !== registerRow.billCodeId) {
+    const err = new Error("Bill does not match the requested bill instance.");
+    err.status = 409;
+    throw err;
+  }
+
+  const rawRows = await loadSalaryRegisterDetailRows(workflowId);
+  const employees = rawRows
+    .map(mapDetailEmployeeRow)
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((row, index) => ({ srNo: index + 1, ...row }));
+
+  const totals = employees.reduce(
+    (acc, row) => addDetailTotals(acc, row),
+    emptyDetailTotals()
+  );
+
+  return {
+    title: "SALARY DETAILS",
+    heading: HEADING,
+    bill: {
+      workflowId,
+      billCodeId: registerRow.billCodeId,
+      instituteCode: registerRow.instituteCode,
+      instituteName: registerRow.instituteName,
+      billCode: registerRow.billCode,
+      billMonth: registerRow.billMonth,
+      salaryMonth: registerRow.salaryMonth,
+      billNo: registerRow.billNo,
+      billDate: registerRow.billDate,
+      salaryType: registerRow.salaryType,
+    },
+    /* The Salary Register row's own stored totals — what the detail totals
+       below must reconcile with. */
+    registerTotals: {
+      employees: registerRow.employees,
+      grossAmount: registerRow.grossAmount,
+      totalDeduction: registerRow.totalDeduction,
+      netSalary: registerRow.netSalary,
+      chequeAmount: registerRow.chequeAmount,
+    },
+    employees,
+    totals,
+    employeeCount: employees.length,
   };
 }
 
@@ -504,6 +770,118 @@ router.get("/", async (req, res) => {
   }
 });
 
+/* The detail screen's columns, in order. Sourced only from columns confirmed
+   to exist (see loadSalaryRegisterDetailRows' doc comment); no PAN column
+   exists anywhere in this schema, so Employee Code stands in as the
+   employee's existing external identifier. */
+const DETAIL_XLSX_COLUMNS = [
+  { key: "srNo", label: "Sr. No.", type: "number" },
+  { key: "employeeId", label: "Employee ID", type: "number" },
+  { key: "employeeName", label: "Employee Name" },
+  { key: "designation", label: "Designation" },
+  { key: "employeeCode", label: "Employee Code" },
+  { key: "basicPay", label: "Basic Pay", type: "number" },
+  { key: "payLevel", label: "Pay Level" },
+  { key: "gradePay", label: "Grade Pay", type: "number" },
+  { key: "da", label: "D.A.", type: "number" },
+  { key: "hra", label: "H.R.A.", type: "number" },
+  { key: "ta", label: "T.A.", type: "number" },
+  { key: "ma", label: "M.A.", type: "number" },
+  { key: "cla", label: "C.L.A.", type: "number" },
+  { key: "otherAllowances", label: "Other Allowances", type: "number" },
+  { key: "grossSalary", label: "Gross Salary", type: "number" },
+  { key: "gpfSubscription", label: "GPF Subscription", type: "number" },
+  { key: "nps", label: "NPS", type: "number" },
+  { key: "gpfAdvance", label: "GPF Advance", type: "number" },
+  { key: "incomeTax", label: "Income Tax", type: "number" },
+  { key: "professionalTax", label: "Professional Tax", type: "number" },
+  { key: "otherDeduction", label: "Other Deduction", type: "number" },
+  { key: "totalDeduction", label: "Total Deduction", type: "number" },
+  { key: "netSalary", label: "Net Salary", type: "number" },
+  { key: "chequeAmount", label: "Cheque Amount", type: "number" },
+];
+
+/* GET /api/salary-register/detail?workflowId=&instituteCode=&billCodeId= */
+router.get("/detail", async (req, res) => {
+  try {
+    res.json({
+      message: "OK",
+      data: await buildSalaryRegisterDetailReport(req.query || {}),
+    });
+  } catch (error) {
+    const status = error.status || 500;
+    if (status === 500) console.error("GET /api/salary-register/detail error:", error);
+    res
+      .status(status)
+      .json({ message: error.message || "Salary Register detail failed." });
+  }
+});
+
+/* GET /api/salary-register/detail/export.xlsx — same builder as the screen. */
+router.get("/detail/export.xlsx", async (req, res) => {
+  try {
+    const XLSX = require("xlsx");
+    const data = await buildSalaryRegisterDetailReport(req.query || {});
+
+    const heading = [
+      ...data.heading.map((line) => [line]),
+      [data.title],
+      [`Institute: ${data.bill.instituteCode} — ${data.bill.instituteName}`],
+      [`Bill Code: ${data.bill.billCode}    Bill Month: ${data.bill.billMonth}    Salary Month: ${data.bill.salaryMonth}`],
+      [`Bill No.: ${data.bill.billNo || "—"}    Bill Date: ${data.bill.billDate || "—"}`],
+      [],
+    ];
+    const header = DETAIL_XLSX_COLUMNS.map((c) => c.label);
+    const body = data.employees.map((row) =>
+      DETAIL_XLSX_COLUMNS.map((column) => {
+        const value = row[column.key];
+        if (column.type === "number") return Number(value || 0);
+        return value == null ? "" : String(value);
+      })
+    );
+
+    const totalsRow = [];
+    if (data.employees.length > 0) {
+      DETAIL_XLSX_COLUMNS.forEach((column) => {
+        if (column.key === "employeeName") totalsRow.push("TOTAL");
+        else if (column.type === "number" && data.totals[column.key] !== undefined) {
+          totalsRow.push(Number(data.totals[column.key]));
+        } else totalsRow.push("");
+      });
+    }
+
+    const sheet = XLSX.utils.aoa_to_sheet([
+      ...heading,
+      header,
+      ...body,
+      ...(totalsRow.length ? [totalsRow] : []),
+    ]);
+    sheet["!cols"] = DETAIL_XLSX_COLUMNS.map((c) =>
+      c.key === "employeeName" || c.key === "designation" ? { wch: 26 } : { wch: 13 }
+    );
+
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, sheet, "Salary Details");
+    const buffer = XLSX.write(book, { type: "buffer", bookType: "xlsx" });
+    const fileName = `Salary_Details_${String(data.bill.instituteCode || "").replace(/[^A-Za-z0-9-]+/g, "_")}_${String(data.bill.billCode || "").replace(/[^A-Za-z0-9-]+/g, "_")}.xlsx`;
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.send(buffer);
+  } catch (error) {
+    const status = error.status || 500;
+    if (status === 500) {
+      console.error("GET /api/salary-register/detail/export.xlsx error:", error);
+    }
+    res
+      .status(status)
+      .json({ message: error.message || "Salary Register detail export failed." });
+  }
+});
+
 /* GET /api/salary-register/export.xlsx — same builder, so it cannot drift. */
 router.get("/export.xlsx", async (req, res) => {
   try {
@@ -584,3 +962,7 @@ module.exports.parseSalaryType = parseSalaryType;
 module.exports.compareRegisterRows = compareRegisterRows;
 module.exports.XLSX_COLUMNS = XLSX_COLUMNS;
 module.exports.HEADING = HEADING;
+module.exports.loadSalaryRegisterDetailRows = loadSalaryRegisterDetailRows;
+module.exports.mapDetailEmployeeRow = mapDetailEmployeeRow;
+module.exports.buildSalaryRegisterDetailReport = buildSalaryRegisterDetailReport;
+module.exports.DETAIL_XLSX_COLUMNS = DETAIL_XLSX_COLUMNS;

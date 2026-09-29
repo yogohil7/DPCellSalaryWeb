@@ -12,6 +12,7 @@ import {
 import SalaryEntryVariationReport from "./SalaryEntryVariationReport";
 import { calculateChequeAmount } from "../utils/salaryBasicCalc";
 import "./accountOfficerBills.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 function money(value) {
   return Number(value || 0).toLocaleString("en-IN", {
@@ -29,6 +30,43 @@ function formatDate(value) {
     month: "short",
     year: "numeric",
   });
+}
+
+/* TEMPORARY approval trace (2026-09-24): which Bill Month instance the
+   Accounts Officer clicked, opened and is acting on. Browser console only. */
+function traceApproval(event, bill, extra = {}) {
+  try {
+    console.info("[salary-approval-trace]", event, {
+      billCodeId: bill?.billCodeId ?? null,
+      billCode: bill?.billCode ?? null,
+      instituteCode: bill?.instituteCode ?? null,
+      billMonth: bill?.billMonth ?? null,
+      workflowId: bill?.workflowId ?? null,
+      status: bill?.status ?? null,
+      ...extra,
+    });
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+/*
+ * Success message for an approval action. Bill Code is the Salary Month
+ * (e.g. AUG-2026); Bill Month is the instance acted on (e.g. JUL-2026) -
+ * several can exist for one Bill Code + Institute. Both come from the
+ * action's RESPONSE (the workflow row the backend actually changed); the
+ * Bill Month that was requested is only a fallback, and a mismatch is
+ * reported rather than hidden.
+ */
+function approvalActionMessage(result, requested, verb) {
+  const billCode = result?.billCode || requested?.billCode || "";
+  const instituteCode = result?.instituteCode || requested?.instituteCode || "";
+  const billMonth = result?.billMonth || requested?.billMonth || "";
+  const message = `Salary Month ${billCode} / Institute ${instituteCode} / Bill Month ${billMonth} ${verb}.`;
+  if (result?.billMonth && requested?.billMonth && result.billMonth !== requested.billMonth) {
+    return `${message}\n\nWARNING: Bill Month ${requested.billMonth} was selected, but the server acted on Bill Month ${result.billMonth}.`;
+  }
+  return message;
 }
 
 function mapApiBill(bill) {
@@ -110,6 +148,8 @@ function isAuditorRole(roleName) {
 }
 
 export default function AccountOfficerBills({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("accountOfficerBills");
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -189,11 +229,22 @@ export default function AccountOfficerBills({ user, onBack }) {
   const openBill = async (bill) => {
     try {
       setActionBusy(true);
+      traceApproval("click View / Approve", bill);
       const result = await getApprovalBill(
         bill.billCodeId || bill.billCode,
-        bill.instituteCode
+        bill.instituteCode,
+        bill.billMonth
       );
       const mapped = mapApiBill(result?.data || bill);
+      traceApproval("detail response", mapped, { requestedBillMonth: bill.billMonth });
+      /* The detail MUST be the Bill Month instance that was clicked. A
+         different one (e.g. the AUG-2026 instance when JUL-2026 was
+         clicked) is refused, never shown or acted on silently. */
+      if (bill.billMonth && mapped?.billMonth && mapped.billMonth !== bill.billMonth) {
+        throw new Error(
+          `Opened Bill Month ${mapped.billMonth} does not match the selected Bill Month ${bill.billMonth}. Please refresh and try again.`
+        );
+      }
       setSelectedBill(mapped);
     } catch (error) {
       alert(error.message || "Unable to open salary bill.");
@@ -249,12 +300,13 @@ export default function AccountOfficerBills({ user, onBack }) {
       const result = await verifyApprovalBill(
         selectedBill.billCodeId || selectedBill.billCode,
         selectedBill.instituteCode,
-        user
+        user,
+        selectedBill.billMonth
       );
       const mapped = mapApiBill(result?.data || {});
       setSelectedBill(mapped);
       setShowVerifyModal(false);
-      alert(`${mapped.billCode} / ${mapped.instituteCode} verified.`);
+      alert(approvalActionMessage(mapped, selectedBill, "verified"));
       await refreshBills();
     } catch (error) {
       alert(error.message || "Unable to verify salary bill.");
@@ -282,12 +334,13 @@ export default function AccountOfficerBills({ user, onBack }) {
       const result = await approveApprovalBill(
         selectedBill.billCodeId || selectedBill.billCode,
         selectedBill.instituteCode,
-        user
+        user,
+        selectedBill.billMonth
       );
       const mapped = mapApiBill(result?.data || {});
       setSelectedBill(mapped);
       setShowApproveModal(false);
-      alert(`${mapped.billCode} / ${mapped.instituteCode} approved.`);
+      alert(approvalActionMessage(mapped, selectedBill, "approved"));
       await refreshBills();
     } catch (error) {
       alert(error.message || "Unable to approve salary bill.");
@@ -300,8 +353,9 @@ export default function AccountOfficerBills({ user, onBack }) {
     if (!selectedBill) return;
     try {
       setActionBusy(true);
-      const result = await lockApprovalInstitute(selectedBill.billCodeId || selectedBill.billCode, selectedBill.instituteCode, user);
+      const result = await lockApprovalInstitute(selectedBill.billCodeId || selectedBill.billCode, selectedBill.instituteCode, user, selectedBill.billMonth);
       setSelectedBill((current) => ({ ...current, status: "LOCKED", monthLocked: Boolean(result.monthLocked) }));
+      alert(approvalActionMessage(result, selectedBill, "locked"));
       await refreshBills();
     } catch (error) {
       setLoadError(error.message || "Unable to lock institute salary bill.");
@@ -337,6 +391,7 @@ export default function AccountOfficerBills({ user, onBack }) {
           instituteCode: selectedBill.instituteCode,
           returnedToAuditorId: Number(selectedAuditorId),
           returnedRemarks: returnReason.trim(),
+          billMonth: selectedBill.billMonth,
         },
         user
       );
@@ -346,7 +401,7 @@ export default function AccountOfficerBills({ user, onBack }) {
       setReturnReason("");
       setSelectedAuditorId("");
       setReturnError("");
-      alert(`${mapped.billCode} / ${mapped.instituteCode} returned to auditor.`);
+      alert(approvalActionMessage(mapped, selectedBill, "returned to auditor"));
       await refreshBills();
     } catch (error) {
       alert(error.message || "Unable to return salary bill.");
@@ -356,7 +411,7 @@ export default function AccountOfficerBills({ user, onBack }) {
   };
 
   const printBill = () => {
-    window.print();
+    printReport("accountOfficerBills");
   };
 
   const calculateBill = (bill) => {
@@ -438,6 +493,12 @@ export default function AccountOfficerBills({ user, onBack }) {
 
   if (selectedBill) {
     const isLocked = selectedBill.status === "LOCKED";
+    traceApproval("approve-button decision", selectedBill, {
+      approveReturnVisible:
+        (!isLocked && (selectedBill.status === "SUBMITTED" || selectedBill.status === "RESUBMITTED")) ||
+        selectedBill.status === "AO_VERIFIED",
+      lockVisible: selectedBill.status === "APPROVED",
+    });
     const isDaDifference = Boolean(selectedBill.isDaDifference);
 
     return (
@@ -617,6 +678,7 @@ export default function AccountOfficerBills({ user, onBack }) {
           ) : (
             <>
           <GridToolbar
+            reportName="accountOfficerBills"
             title="Employee Salary Details"
             /* Same columns, same order and same rows as the table above, so
                CSV / Excel / PDF / Print can never disagree with the screen. */
@@ -646,6 +708,29 @@ export default function AccountOfficerBills({ user, onBack }) {
               { key: "chequeAmount", label: "Cheque Amount" },
             ]}
             rows={selectedBill.salaryLines || []}
+            subtitle={[
+              `Salary Month: ${selectedBill.billCode || "-"}`,
+              `Institute: ${selectedBill.instituteName || "-"} (${selectedBill.instituteCode || "-"})`,
+              `Bill Month: ${selectedBill.billMonth || "-"}   Status: ${selectedBill.status || "-"}`,
+            ]}
+            /* The same bill totals the summary cards above show. */
+            footerRows={
+              (selectedBill.salaryLines || []).length
+                ? [{
+                    employeeName: "TOTAL",
+                    grossSalary: selectedBill.grossAmount,
+                    totalDeduction: selectedBill.totalDeduction,
+                    netSalary: selectedBill.netSalary,
+                    chequeAmount: selectedBill.chequeAmount,
+                  }]
+                : []
+            }
+            moneyKeys={[
+              "basicPay", "gradePay", "totalBasic", "da", "hra", "ma", "ta", "cla",
+              "specialAllowance", "washingAllowance", "grossSalary", "gpfSubscription",
+              "gpfAdv", "nps", "incomeTax", "professionalTax", "otherDeduction",
+              "totalDeduction", "netSalary", "chequeAmount",
+            ]}
             visibleKeys={{}}
             search=""
             showSearch={false}
@@ -906,7 +991,7 @@ export default function AccountOfficerBills({ user, onBack }) {
           <button
             type="button"
             className="ao-btn preview"
-            onClick={() => window.print()}
+            onClick={() => printReport("accountOfficerBills")}
           >
             Preview
           </button>
@@ -986,6 +1071,13 @@ export default function AccountOfficerBills({ user, onBack }) {
             <p>
               Are you sure you want to verify this salary bill?
             </p>
+            <div className="ao-return-info">
+              <strong>Bill Code:</strong> {selectedBill.billCode}
+              <br />
+              <strong>Bill Month:</strong> {selectedBill.billMonth || "-"}
+              <br />
+              <strong>Institute:</strong> {selectedBill.instituteCode}
+            </div>
 
             <div className="ao-modal-buttons">
               <button
@@ -1030,6 +1122,10 @@ export default function AccountOfficerBills({ user, onBack }) {
                 value={selectedBill.billCode}
               />
               <Info
+                label="Bill Month"
+                value={selectedBill.billMonth || "-"}
+              />
+              <Info
                 label="Institute"
                 value={selectedBill.instituteName}
               />
@@ -1071,8 +1167,11 @@ export default function AccountOfficerBills({ user, onBack }) {
             <div className="ao-return-info">
               <strong>Bill Code:</strong> {selectedBill.billCode}
               <br />
-              <strong>Institute:</strong>{" "}
-              {selectedBill.instituteCode} — {selectedBill.instituteName}
+              <strong>Bill Month:</strong> {selectedBill.billMonth || "-"}
+              <br />
+              <strong>Institute:</strong> {selectedBill.instituteCode}
+              <br />
+              <strong>Institute Name:</strong> {selectedBill.instituteName}
             </div>
 
             <label className="ao-field-label">

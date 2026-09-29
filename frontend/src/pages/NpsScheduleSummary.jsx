@@ -7,6 +7,7 @@ import { getEmployeeWiseSalaryMeta } from "../utils/employeeWiseSalaryApi";
 import { listInstitutes } from "../utils/instituteApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./npsScheduleSummary.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 function money(value) {
   const n = Number(value || 0);
@@ -64,6 +65,8 @@ const MONTHS = [
 ];
 
 export default function NpsScheduleSummary({ onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("npsScheduleSummary");
   const [sections, setSections] = useState([]);
   const [institutes, setInstitutes] = useState([]);
   const [years, setYears] = useState([]);
@@ -173,7 +176,7 @@ export default function NpsScheduleSummary({ onBack }) {
       await document.fonts.ready;
     }
     requestAnimationFrame(() => {
-      window.print();
+      printReport("npsScheduleSummary");
     });
   }
 
@@ -395,6 +398,7 @@ export default function NpsScheduleSummary({ onBack }) {
 
           <div className="nsch-actions no-print">
             <GridToolbar
+              reportName="npsScheduleSummary"
               title="NPS Schedule Summary"
               columns={COLUMNS}
               rows={exportRows}

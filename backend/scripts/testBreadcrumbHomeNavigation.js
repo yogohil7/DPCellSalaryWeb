@@ -171,13 +171,14 @@ const JOURNEYS = [
       AC.defaultHomePage(ADMIN), "home");
     check("Auditor's home is the dashboard",
       AC.defaultHomePage(AUDITOR), "home");
-    check("Account Officer's home is Salary Approval",
-      AC.defaultHomePage(ACCOUNT_OFFICER), "salary-approval");
+    /* Changed deliberately: an Account Officer now lands on the Dashboard. */
+    check("Account Officer's home is the dashboard",
+      AC.defaultHomePage(ACCOUNT_OFFICER), "home");
 
-    /* The defect this fixes: "home" is NOT accessible to an Account Officer,
-       so navigating to the literal id raised a false access-denied notice. */
-    check("canAccessPage denies the literal \"home\" to an Account Officer",
-      AC.canAccessPage(ACCOUNT_OFFICER, "home"), false);
+    /* The Dashboard is now open to an Account Officer, whose *landing* page
+       (defaultHomePage) is still Salary Approval. */
+    check("canAccessPage allows the literal \"home\" to an Account Officer",
+      AC.canAccessPage(ACCOUNT_OFFICER, "home"), true);
     check("but every role CAN reach its own resolved home",
       [ADMIN, AUDITOR, ACCOUNT_OFFICER].map((u) =>
         AC.canAccessPage(u, AC.defaultHomePage(u))), [true, true, true]);
@@ -204,10 +205,10 @@ const JOURNEYS = [
     check("Admin: the canonical home hash is written", hashState.value, "#/");
     hashState.value = "#/section-master";
     AC.writeHashPage(AC.defaultHomePage(ACCOUNT_OFFICER));
-    check("Account Officer: lands on Salary Approval",
-      hashState.value, "#/salary-approval");
+    check("Account Officer: the canonical home hash is written",
+      hashState.value, "#/");
     check("the hash round-trips back to the same page id",
-      AC.readHashPage(), "salary-approval");
+      AC.readHashPage(), "home");
   }
 
   section("5. The seven required journeys");
@@ -241,8 +242,8 @@ const JOURNEYS = [
       /canAccessPage\(/.test(shellSrc), true);
     check("no authentication is bypassed",
       /clearAuthSession|setAuthSession|token/i.test(crumbCode), false);
-    check("accessControl.js itself was not modified for this fix",
-      /export function defaultHomePage\(user\) \{\s*\n\s*if \(isAccountOfficer\(user\)\) return "salary-approval";\s*\n\s*return "home";/
+    check("defaultHomePage no longer special-cases an Account Officer",
+      /export function defaultHomePage\(\) \{\s*\n\s*return "home";\s*\n\}/
         .test(accessSrc), true);
   }
 

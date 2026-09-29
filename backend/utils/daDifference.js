@@ -179,6 +179,12 @@ async function getHistoricalSnapshot({
     LEFT JOIN dbo.SalaryBillInstituteWorkflow w
       ON w.SalaryBillCodeId = d.SalaryBillCodeId
      AND w.InstituteCode = d.InstituteCode
+     /* The saved snapshot belongs to the canonical instance: join only its
+        workflow row (migration 51 labelled it with the bill's own Salary
+        Month - "-BM-" variant bills included), so an earlier Bill Month
+        instance of the same bill can neither duplicate the snapshot nor
+        lend it its status. */
+     AND w.BillMonth = UPPER(LEFT(LTRIM(RTRIM(b.SalaryMonth)), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))
     WHERE d.EmployeeId = ${Number(employeeId)}
       AND d.InstituteCode = ${String(instituteCode)}
       AND UPPER(ISNULL(b.BillCategory, N'Salary')) = N'SALARY'

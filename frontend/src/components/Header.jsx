@@ -1,26 +1,43 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import UserMenu from "./UserMenu";
 import { getNavMenus } from "../utils/accessControl";
+import { NavigationIcon, SidebarIcon, ICON_MAP } from "./SidebarIcons";
+
+/* Top-level nav item id -> icon name (SidebarIcons.ICON_DEFS). Reuses the
+   same icon set as the sidebar; see SidebarIcons.jsx for the mapping used
+   there for individual pages. */
+const TOP_NAV_ICONS = {
+  home: "dashboard",
+  masters: "layers",
+  salary: "wallet",
+  daDifference: "percent",
+  reports: "fileText",
+};
 
 const HOVER_CLOSE_MS = 180;
 
 function DropNav({
   label,
+  navIcon,
   items,
   onNavigate,
   active,
   activePage,
   onOpenChange,
+  openLabel,
   forceCloseToken,
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const btnRef = useRef(null);
+  const panelRef = useRef(null);
+  const focusOnOpen = useRef(false);
   const closeTimer = useRef(null);
   const menuId = useId();
 
   const setOpenSafe = (next) => {
     setOpen(next);
-    onOpenChange?.(next ? label : null);
+    onOpenChange?.(label, next);
   };
 
   const clearCloseTimer = () => {
@@ -49,7 +66,45 @@ function DropNav({
     setOpen(false);
   }, [forceCloseToken]);
 
+  /* Only one dropdown open at a time: when another menu becomes the open
+     one, close this one (no callback, so it cannot clobber the new state). */
+  useEffect(() => {
+    if (openLabel !== label) setOpen(false);
+  }, [openLabel, label]);
+
   useEffect(() => () => clearCloseTimer(), []);
+
+  /* Keyboard open (ArrowDown) moves focus into the first item, like a
+     desktop menu bar. Mouse open leaves focus alone. */
+  useEffect(() => {
+    if (open && focusOnOpen.current) {
+      focusOnOpen.current = false;
+      panelRef.current?.querySelector('[role="menuitem"]')?.focus();
+    }
+  }, [open]);
+
+  const onPanelKeyDown = (event) => {
+    const els = Array.from(
+      panelRef.current?.querySelectorAll('[role="menuitem"]') || []
+    );
+    if (!els.length) return;
+    const idx = els.indexOf(document.activeElement);
+    let next = null;
+    if (event.key === "ArrowDown") next = els[(idx + 1) % els.length];
+    else if (event.key === "ArrowUp")
+      next = els[(idx - 1 + els.length) % els.length];
+    else if (event.key === "Home") next = els[0];
+    else if (event.key === "End") next = els[els.length - 1];
+    else if (event.key === "Escape" || event.key === "Tab") {
+      setOpenSafe(false);
+      if (event.key === "Escape") btnRef.current?.focus();
+      return;
+    }
+    if (next) {
+      event.preventDefault();
+      next.focus();
+    }
+  };
 
   if (!items || items.length === 0) return null;
 
@@ -71,6 +126,7 @@ function DropNav({
     >
       <button
         type="button"
+        ref={btnRef}
         className={`nav-item ${active || open ? "is-active" : ""}`}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -80,11 +136,18 @@ function DropNav({
           if (event.key === "Escape") setOpenSafe(false);
           if (event.key === "ArrowDown") {
             event.preventDefault();
-            setOpenSafe(true);
+            focusOnOpen.current = true;
+            if (open) {
+              focusOnOpen.current = false;
+              panelRef.current?.querySelector('[role="menuitem"]')?.focus();
+            } else setOpenSafe(true);
           }
         }}
       >
-        <span>{label}</span>
+        <span className="nav-item-label">
+          <NavigationIcon name={navIcon} className="nav-icon" />
+          <span>{label}</span>
+        </span>
         <span className="nav-caret" aria-hidden="true">
           ▾
         </span>
@@ -95,13 +158,18 @@ function DropNav({
           id={menuId}
           role="menu"
           aria-label={label}
+          ref={panelRef}
           onMouseEnter={clearCloseTimer}
+          onKeyDown={onPanelKeyDown}
         >
-          {items.map((item) => {
+          {items.map((item, index) => {
             const isItemActive = activePage === item.id;
             return (
+              <Fragment key={item.id}>
+                {item.separatorBefore && index > 0 ? (
+                  <div className="dropdown-separator" aria-hidden="true" />
+                ) : null}
               <button
-                key={item.id}
                 type="button"
                 role="menuitem"
                 className={isItemActive ? "is-active" : ""}
@@ -110,8 +178,19 @@ function DropNav({
                   onNavigate(item.id);
                 }}
               >
-                {item.label}
+                <SidebarIcon
+                  name={ICON_MAP[item.id]}
+                  className="menu-item-icon"
+                  size={16}
+                />
+                <span className="menu-item-text">{item.label}</span>
+                {isItemActive ? (
+                  <span className="menu-item-check" aria-hidden="true">
+                    ✓
+                  </span>
+                ) : null}
               </button>
+              </Fragment>
             );
           })}
         </div>
@@ -127,10 +206,14 @@ export default function Header({
   onLogout,
   showSidebarToggle,
   onToggleSidebar,
+  onOpenPalette,
 }) {
   const menus = getNavMenus(user);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [forceCloseToken, setForceCloseToken] = useState(0);
+  const [openLabel, setOpenLabel] = useState(null);
+  const handleOpenChange = (label, next) =>
+    setOpenLabel((prev) => (next ? label : prev === label ? null : prev));
 
   const masterIds = menus.masters.map((i) => i.id);
   const salaryIds = menus.salary.map((i) => i.id);
@@ -151,18 +234,24 @@ export default function Header({
           className={`nav-item ${page === "home" ? "is-active" : ""}`}
           onClick={() => navigateAndClose("home")}
         >
-          Home
+          <span className="nav-item-label">
+            <NavigationIcon name={TOP_NAV_ICONS.home} className="nav-icon" />
+            Home
+          </span>
         </button>
       ) : null}
 
       {menus.showMasters ? (
         <DropNav
           label="Masters"
+          navIcon={TOP_NAV_ICONS.masters}
           items={menus.masters}
           onNavigate={navigateAndClose}
           active={masterIds.includes(page)}
           activePage={page}
           forceCloseToken={forceCloseToken}
+          openLabel={openLabel}
+          onOpenChange={handleOpenChange}
         />
       ) : null}
 
@@ -172,40 +261,52 @@ export default function Header({
           className={`nav-item ${page === "salary-approval" ? "is-active" : ""}`}
           onClick={() => navigateAndClose("salary-approval")}
         >
-          Salary Approval
+          <span className="nav-item-label">
+            <NavigationIcon name={TOP_NAV_ICONS.salary} className="nav-icon" />
+            Salary Approval
+          </span>
         </button>
       ) : null}
 
       {menus.showSalary ? (
         <DropNav
           label="Salary"
+          navIcon={TOP_NAV_ICONS.salary}
           items={menus.salary}
           onNavigate={navigateAndClose}
           active={salaryIds.includes(page)}
           activePage={page}
           forceCloseToken={forceCloseToken}
+          openLabel={openLabel}
+          onOpenChange={handleOpenChange}
         />
       ) : null}
 
       {menus.showDaDifference ? (
         <DropNav
           label="DA Difference"
+          navIcon={TOP_NAV_ICONS.daDifference}
           items={menus.daDifference}
           onNavigate={navigateAndClose}
           active={daIds.includes(page)}
           activePage={page}
           forceCloseToken={forceCloseToken}
+          openLabel={openLabel}
+          onOpenChange={handleOpenChange}
         />
       ) : null}
 
       {menus.showReports ? (
         <DropNav
           label="Reports"
+          navIcon={TOP_NAV_ICONS.reports}
           items={menus.reports}
           onNavigate={navigateAndClose}
           active={reportIds.includes(page)}
           activePage={page}
           forceCloseToken={forceCloseToken}
+          openLabel={openLabel}
+          onOpenChange={handleOpenChange}
         />
       ) : null}
     </>
@@ -244,6 +345,20 @@ export default function Header({
       <nav className="header-nav desktop-nav" aria-label="Main">
         {navContent}
       </nav>
+
+      {onOpenPalette ? (
+        <button
+          type="button"
+          className="palette-trigger"
+          onClick={onOpenPalette}
+          aria-label="Search menus (Ctrl+K)"
+          title="Search menus (Ctrl+K)"
+        >
+          <NavigationIcon name="search" className="nav-icon" />
+          <span className="palette-trigger-text">Search</span>
+          <kbd className="palette-trigger-kbd">Ctrl K</kbd>
+        </button>
+      ) : null}
 
       <UserMenu user={user} onNavigate={navigateAndClose} onLogout={onLogout} />
 

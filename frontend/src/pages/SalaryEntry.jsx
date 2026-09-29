@@ -16,7 +16,9 @@ import SalaryEntryVariationReport from "./SalaryEntryVariationReport";
 import { listInstitutes } from "../utils/instituteApi";
 import { listActiveSections } from "../utils/sectionApi";
 import { calculateSalaryAmounts, calculateNps, calculateChequeAmount } from "../utils/salaryBasicCalc";
+import { isGpfNpsStoppedForRetirement } from "../utils/retirementRules";
 import "./salaryEntry.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Bill Month remains available for existing UX; Salary Month comes from Bill Code. */
 const BILL_MONTH_OPTIONS = [
@@ -59,6 +61,41 @@ const salaryMonthToBillMonth = (salaryMonthLabel) => {
     if (mon && yr) return `${mon}-${yr}`;
   }
   return "";
+};
+
+/* MMM-YY ordinal (year*12 + monthIndex) for chronological comparison of
+   BILL_MONTH_OPTIONS-style values — never hard-code specific months. */
+const MONTH_ORDER = [
+  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+];
+const billMonthOptionOrdinal = (opt) => {
+  /* Accepts both the dropdown's own MMM-YY form (JUL-26) and the 4-digit
+     MMM-YYYY form the backend echoes back after Get Data / reopen
+     (JUL-2026), so a value round-tripped through the API still compares
+     correctly instead of silently skipping the client-side check. */
+  const m = String(opt || "").trim().toUpperCase().match(/^([A-Z]{3})-(\d{2}|\d{4})$/);
+  if (!m) return null;
+  const monthIndex = MONTH_ORDER.indexOf(m[1]);
+  if (monthIndex < 0) return null;
+  const yearDigits = m[2].length === 2 ? 2000 + Number(m[2]) : Number(m[2]);
+  return yearDigits * 12 + monthIndex;
+};
+
+/* Display-only, DD-MM-YYYY (same convention as Cheque Register / other
+   grids); "-" when the employee has no retirement date on file. Never
+   calculated - the value comes straight from Employee Master. */
+const formatRetirementDate = (value) => {
+  if (!value) return "-";
+  const raw = String(value);
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[3]}-${iso[2]}-${iso[1]}`;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const yyyy = date.getUTCFullYear();
+  return `${dd}-${mm}-${yyyy}`;
 };
 
 const normalizePension = (employee) => {
@@ -116,6 +153,27 @@ const calculateTotalDeduction = (employee) => {
 const resolveFixBasic = (employee) =>
   toNumber(employee.fixBasic ?? employee.gradePay);
 
+/*
+   2026-09-25 live-bug fix: the retirement GPF/NPS stop rule never applied
+   on screen because `salaryMonth` state was being set to the BARE month
+   name the Get Data / Save Draft / Submit responses return in
+   result.bill.salaryMonth (e.g. "August" — no year), never combined with
+   result.bill.salaryYear. isGpfNpsStoppedForRetirement's frontend mirror
+   (utils/retirementRules.js -> parseSalaryMonthLabel) requires a year to
+   compute an ordinal and correctly returns "not stopped" for anything it
+   cannot parse — so a bare month name silently disabled the whole rule on
+   the grid, even though the backend evaluated it correctly. This mirrors
+   the "AUG-2026" label already built the same way when a bill code is
+   first selected (see the salaryMonthLabel construction above).
+*/
+const toSalaryMonthLabel = (monthText, year) => {
+  const raw = String(monthText || "").trim();
+  if (!raw) return "";
+  const y = String(year || "").trim();
+  if (!y) return raw;
+  return `${raw.split("-")[0].toUpperCase()}-${y}`;
+};
+
 const resolvePercentRate = (storedRate, amount, base) => {
   const rate = Number(storedRate);
   if (Number.isFinite(rate) && rate >= 0) return rate;
@@ -127,7 +185,7 @@ const resolvePercentRate = (storedRate, amount, base) => {
   return null;
 };
 
-const calculateEmployee = (employee) => {
+const calculateEmployee = (employee, salaryMonth) => {
   const basicPay =
     String(employee.employeeType || "").toUpperCase() === "FIX"
       ? 0
@@ -136,6 +194,15 @@ const calculateEmployee = (employee) => {
   const totalBasic = basicPay + fixBasic;
   const pension = normalizePension(employee);
   const npsManual = Boolean(employee.npsManual);
+  /* Retirement-based GPF/NPS deduction stop (2026-09-25): live UI mirror
+     of the backend rule (see utils/retirementRules.js) — compared against
+     Salary Month, never Bill Month. The backend recomputes this fresh
+     from EmployeeMaster.DateOfRetirement at Save Draft / Submit time; this
+     client-side copy is only for immediate grid feedback while editing. */
+  const gpfNpsRetirementStop = isGpfNpsStoppedForRetirement({
+    dateOfRetirement: employee.dateOfRetirement,
+    salaryMonth,
+  });
   const daManual = Boolean(employee.daManual);
   const hraManual = Boolean(employee.hraManual);
   const forceEarningsFromBasic =
@@ -224,12 +291,27 @@ const calculateEmployee = (employee) => {
     /* GPF Advance is an entered deduction; it is kept, not zeroed. */
     gpfAdv: toNumber(employee.gpfAdvance ?? employee.gpfAdv),
     gpfAdvance: toNumber(employee.gpfAdvance ?? employee.gpfAdv),
+    gpfNpsRetirementStop,
   };
   if (pension === "NPS") {
     /* An NPS member has no GPF at all — neither subscription nor advance. */
     next.gpfSubscription = 0;
     next.gpfAdv = 0;
     next.gpfAdvance = 0;
+  }
+
+  /*
+     Retirement-based GPF/NPS deduction stop — wins over everything above,
+     including a manually-entered value already sitting on the row. Only
+     the deduction that actually applies to this employee's pension type
+     is zeroed; GPF Advance, Income Tax, Professional Tax and Other
+     Deduction are untouched. This is a live-display mirror only — the
+     backend independently enforces the same rule (freshly, from
+     EmployeeMaster) at Save Draft / Submit time.
+  */
+  if (gpfNpsRetirementStop) {
+    if (pension === "GPF") next.gpfSubscription = 0;
+    if (pension === "NPS") next.nps = 0;
   }
 
   const totalDeduction = calculateTotalDeduction(next);
@@ -260,6 +342,8 @@ export default function SalaryEntry({
   initialInstituteCode = "",
   returnedMode = false,
 }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("salaryEntry");
   const [employees, setEmployees] =
     useState([]);
   const [showVariationReport, setShowVariationReport] = useState(false);
@@ -435,13 +519,28 @@ export default function SalaryEntry({
     }
   };
 
+  /*
+     Bill Month cannot be later than Salary Month (business rule, 2026-09-24).
+     The dropdown only offers months up to and including the selected Salary
+     Month; the backend re-validates this independently on Get Data / Save /
+     Submit regardless of what the dropdown allowed.
+  */
   const billMonthOptions = useMemo(() => {
-    const opts = [...BILL_MONTH_OPTIONS];
+    const salaryOrdinal = billMonthOptionOrdinal(
+      salaryMonthToBillMonth(salaryMonth)
+    );
+    const opts =
+      salaryOrdinal == null
+        ? [...BILL_MONTH_OPTIONS]
+        : BILL_MONTH_OPTIONS.filter((opt) => {
+            const ord = billMonthOptionOrdinal(opt);
+            return ord == null || ord <= salaryOrdinal;
+          });
     if (billMonth && !opts.includes(billMonth)) {
       opts.unshift(billMonth);
     }
     return opts;
-  }, [billMonth]);
+  }, [billMonth, salaryMonth]);
 
   /*
      Salary Entry dropdown shows ONLY bill codes whose SQL Server Status is OPEN.
@@ -808,6 +907,22 @@ export default function SalaryEntry({
       return;
     }
 
+    {
+      /* Client-side mirror of the mandatory backend rule (Bill Month cannot
+         be later than Salary Month) — a fast local check only; the backend
+         re-validates independently and is authoritative. */
+      const billOrdinal = billMonthOptionOrdinal(billMonth);
+      const salaryOrdinal = billMonthOptionOrdinal(
+        salaryMonthToBillMonth(salaryMonth)
+      );
+      if (billOrdinal != null && salaryOrdinal != null && billOrdinal > salaryOrdinal) {
+        setGetDataMessage(
+          `Bill Month cannot be later than Salary Month. Bill Month ${billMonth} is after Salary Month ${salaryMonth}.`
+        );
+        return;
+      }
+    }
+
     try {
       setGetDataMessage("Loading employees and calculating salary...");
       const result = await getSalaryEntryEmployees({
@@ -819,7 +934,16 @@ export default function SalaryEntry({
       });
       const rows = Array.isArray(result?.data) ? result.data : [];
       const calcErrors = Array.isArray(result?.errors) ? result.errors : [];
+      /*
+         2026-09-24: non-blocking calculation/rule warnings (e.g. "CLA rule not
+         configured for PayLevelGroup ...") are NOT shown to the Salary Entry
+         user. The API still returns them; they go to the browser console only.
+         Calculation errors, API/validation/save errors are still displayed.
+      */
       const calcWarnings = Array.isArray(result?.warnings) ? result.warnings : [];
+      if (calcWarnings.length) {
+        console.debug("[SalaryEntry] calculation warnings (hidden from UI):", calcWarnings);
+      }
       const ordered = withDisplayOrder(
         [...rows].sort(
           (a, b) =>
@@ -834,7 +958,7 @@ export default function SalaryEntry({
         setBillMonth(String(result.bill.billMonth));
       }
       if (result?.bill?.salaryMonth) {
-        setSalaryMonth(String(result.bill.salaryMonth));
+        setSalaryMonth(toSalaryMonthLabel(result.bill.salaryMonth, result.bill.salaryYear));
       }
       if (result?.bill?.billCode) {
         const exactCode = String(result.bill.billCode).trim();
@@ -871,21 +995,23 @@ export default function SalaryEntry({
           }));
         }
       }
-      if (result?.bill?.billNo != null) {
-        setBillNo(String(result.bill.billNo || ""));
-      }
-      if (result?.bill?.billDate) {
-        const raw = String(result.bill.billDate);
-        setBillDate(raw.slice(0, 10));
-      }
       /*
-         Restore the saved NPS Schedule No. for THIS exact bill + institute.
-         Checked against null rather than truthiness so a deliberately
-         cleared value stays cleared instead of keeping a stale one.
+         Bill No. / Bill Date / NPS Schedule No. are now per-Bill-Month
+         instance (a JUL-2026 bill and an AUG-2026 bill for the same
+         AUG-2026 salary data each have their own — see the backend's
+         dbo.SalaryEntryBillHeader). All three are ALWAYS set from the
+         response (never left as a stale value from whatever Bill Month
+         was previously loaded): switching Bill Month and clicking Get
+         Data must clear these fields when the new Bill Month has no saved
+         header yet, not keep showing the old Bill Month's values.
       */
-      if (result?.bill?.npsScheduleNo != null) {
-        setNpsScheduleNo(String(result.bill.npsScheduleNo || ""));
-      }
+      setBillNo(result?.bill?.billNo != null ? String(result.bill.billNo) : "");
+      setBillDate(
+        result?.bill?.billDate ? String(result.bill.billDate).slice(0, 10) : ""
+      );
+      setNpsScheduleNo(
+        result?.bill?.npsScheduleNo != null ? String(result.bill.npsScheduleNo) : ""
+      );
       if (result?.bill?.status) {
         setStatus(String(result.bill.status).toUpperCase());
       } else {
@@ -908,8 +1034,9 @@ export default function SalaryEntry({
       /*
          No success line. A completed load is evident from the table itself,
          so nothing is reported when everything went well; the message area
-         is reserved for things the user has to act on. Calculation errors,
-         warnings and the read-only notices below are still reported, and an
+         is reserved for things the user has to act on. Calculation errors
+         and the read-only notices below are still reported (rule warnings are
+         not — see above), and an
          empty list leaves getDataMessage as "", which the render already
          treats as "show nothing" rather than an empty box.
       */
@@ -919,13 +1046,6 @@ export default function SalaryEntry({
           `${calcErrors.length} calculation error(s): ${calcErrors
             .slice(0, 3)
             .map((e) => e.message)
-            .join(" | ")}`
-        );
-      }
-      if (calcWarnings.length) {
-        parts.push(
-          `${calcWarnings.length} warning(s): ${calcWarnings
-            .slice(0, 3)
             .join(" | ")}`
         );
       }
@@ -949,8 +1069,8 @@ export default function SalaryEntry({
      ========================================================= */
 
   const calculatedEmployees = useMemo(() => {
-    return employees.map(calculateEmployee);
-  }, [employees]);
+    return employees.map((employee) => calculateEmployee(employee, salaryMonth));
+  }, [employees, salaryMonth]);
 
   /*
      Does this bill deduct NPS from anyone?
@@ -964,7 +1084,7 @@ export default function SalaryEntry({
     employees.some((row) => Number(row?.nps) > 0);
 
   const normalizeEmployeeSaveRow = (row, index) => {
-    const calculated = calculateEmployee(row);
+    const calculated = calculateEmployee(row, salaryMonth);
     const professionTax = toNumber(
       calculated.professionTax ?? calculated.professionalTax
     );
@@ -1092,6 +1212,14 @@ export default function SalaryEntry({
     );
   }, [calculatedEmployees]);
 
+  /* Bill summary Cheque Amount = Net Salary + Income Tax + Professional Tax,
+     from the same totals the summary boxes and table foot show. */
+  const summaryChequeAmount = calculateChequeAmount({
+    netSalary: totals.netSalary,
+    incomeTax: totals.incomeTax,
+    professionalTax: totals.professionTax,
+  });
+
   const visibleEmployees = useMemo(() => {
     const query = salarySearch.trim().toLowerCase();
     if (!query) return calculatedEmployees;
@@ -1145,6 +1273,24 @@ export default function SalaryEntry({
           return employee;
         }
         if (field === "hra" && employee.hraForcedZero) {
+          return employee;
+        }
+        /*
+           Retirement-based GPF/NPS deduction stop (2026-09-25): the
+           operator cannot type a non-zero GPF Subscription / NPS value
+           while the rule applies — the disabled input already prevents
+           this in the browser, but the same check is enforced here too
+           (defense in depth; also covers any programmatic call). GPF
+           Advance is deliberately excluded (requirement: the stop is for
+           GPF/NPS subscription only).
+        */
+        if (
+          (field === "gpfSubscription" || field === "nps") &&
+          isGpfNpsStoppedForRetirement({
+            dateOfRetirement: employee.dateOfRetirement,
+            salaryMonth,
+          })
+        ) {
           return employee;
         }
 
@@ -1567,7 +1713,9 @@ export default function SalaryEntry({
       setEmployees(withDisplayOrder(saved));
       setStatus(result?.bill?.status || "DRAFT");
       if (result?.bill?.billMonth) setBillMonth(String(result.bill.billMonth));
-      if (result?.bill?.salaryMonth) setSalaryMonth(String(result.bill.salaryMonth));
+      if (result?.bill?.salaryMonth) {
+        setSalaryMonth(toSalaryMonthLabel(result.bill.salaryMonth, result.bill.salaryYear));
+      }
       if (result?.bill?.billCode) {
         const exactCode = String(result.bill.billCode).trim();
         if (
@@ -1669,7 +1817,9 @@ export default function SalaryEntry({
       setEmployees(withDisplayOrder(saved));
       setStatus(result?.bill?.status || "SUBMITTED");
       if (result?.bill?.billMonth) setBillMonth(String(result.bill.billMonth));
-      if (result?.bill?.salaryMonth) setSalaryMonth(String(result.bill.salaryMonth));
+      if (result?.bill?.salaryMonth) {
+        setSalaryMonth(toSalaryMonthLabel(result.bill.salaryMonth, result.bill.salaryYear));
+      }
       if (result?.bill?.billCode) {
         const exactCode = String(result.bill.billCode).trim();
         if (
@@ -1708,7 +1858,7 @@ export default function SalaryEntry({
      ========================================================= */
 
   const handlePrint = () => {
-    window.print();
+    printReport("salaryEntry");
   };
 
   const selectedInstitute =
@@ -2250,12 +2400,18 @@ export default function SalaryEntry({
         </div>
 
         <GridToolbar
+          reportName="salaryEntry"
           title="Employee Salary Details"
           columns={[
             { key: "employeeId", label: "Employee ID" },
             { key: "employeeName", label: "Employee Name" },
             { key: "designation", label: "Designation" },
             { key: "employeeType", label: "Employee Type" },
+            {
+              key: "dateOfRetirement",
+              label: "Retirement Date",
+              getValue: (row) => formatRetirementDate(row?.dateOfRetirement),
+            },
             { key: "pension", label: "Pension" },
             { key: "basicPay", label: "Basic" },
             { key: "fixBasic", label: "FIX Basic" },
@@ -2279,6 +2435,23 @@ export default function SalaryEntry({
             { key: "chequeAmount", label: "Cheque Amount" },
           ]}
           rows={calculatedEmployees}
+          subtitle={[
+            `Salary Month: ${billCode || "-"}`,
+            `Institute: ${instituteCode || "-"}`,
+            `Bill Month: ${billMonth || "-"}`,
+          ]}
+          /* Same TOTAL row as the table foot (the `totals` memo). */
+          footerRows={
+            calculatedEmployees.length
+              ? [{ ...totals, employeeId: "TOTAL", fixBasic: totals.fixBasic || totals.gradePay }]
+              : []
+          }
+          moneyKeys={[
+            "basicPay", "fixBasic", "totalBasic", "da", "hra", "ma", "ta", "cla",
+            "specialAllowance", "washingAllowance", "grossAmount", "gpfSubscription",
+            "gpfAdvance", "nps", "incomeTax", "professionTax", "otherDeduction",
+            "totalDeduction", "netSalary", "chequeAmount",
+          ]}
           visibleKeys={{}}
           search={salarySearch}
           onSearchChange={setSalarySearch}
@@ -2328,6 +2501,13 @@ export default function SalaryEntry({
                   className="sticky-col type-col"
                 >
                   Type
+                </th>
+
+                <th
+                  rowSpan="2"
+                  className="sticky-col retirement-col"
+                >
+                  Retirement Date
                 </th>
 
                 <th
@@ -2575,6 +2755,12 @@ export default function SalaryEntry({
 
                       </td>
 
+                      {/* RETIREMENT DATE (display-only; from Employee Master) */}
+
+                      <td className="sticky-col retirement-col">
+                        {formatRetirementDate(employee.dateOfRetirement)}
+                      </td>
+
                       <td className="sticky-col pension-col">
                         {normalizePension(employee) || "-"}
                       </td>
@@ -2804,9 +2990,13 @@ export default function SalaryEntry({
                           min="0"
                           readOnly={
                             salaryReadOnly ||
-                            normalizePension(employee) === "NPS"
+                            normalizePension(employee) === "NPS" ||
+                            employee.gpfNpsRetirementStop
                           }
-                          disabled={normalizePension(employee) === "NPS"}
+                          disabled={
+                            normalizePension(employee) === "NPS" ||
+                            employee.gpfNpsRetirementStop
+                          }
                           value={
                             employee.gpfSubscription
                           }
@@ -2854,9 +3044,13 @@ export default function SalaryEntry({
                           min="0"
                           readOnly={
                             salaryReadOnly ||
-                            normalizePension(employee) === "GPF"
+                            normalizePension(employee) === "GPF" ||
+                            employee.gpfNpsRetirementStop
                           }
-                          disabled={normalizePension(employee) === "GPF"}
+                          disabled={
+                            normalizePension(employee) === "GPF" ||
+                            employee.gpfNpsRetirementStop
+                          }
                           value={
                             employee.nps ?? ""
                           }
@@ -2980,6 +3174,7 @@ export default function SalaryEntry({
                 <td className="sticky-col name-col"></td>
                 <td className="sticky-col designation-col"></td>
                 <td className="sticky-col type-col"></td>
+                <td className="sticky-col retirement-col"></td>
                 <td className="sticky-col pension-col"></td>
 
                 <td>
@@ -3201,9 +3396,11 @@ export default function SalaryEntry({
             Cheque Amount
           </span>
 
+          {/* Cheque Amount = Net Salary + Income Tax + Professional Tax
+              (was: Net Salary only). */}
           <strong>
             ₹ {money(
-              totals.netSalary
+              summaryChequeAmount
             )}
           </strong>
 

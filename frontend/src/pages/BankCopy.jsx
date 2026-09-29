@@ -3,6 +3,7 @@ import { getBankCopy, downloadBankCopyExcel } from "../utils/bankCopyApi";
 import { getChequeRegisterMeta } from "../utils/chequeRegisterApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./bankCopy.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Same amount formatting the other reports use. */
 function money(value) {
@@ -33,6 +34,8 @@ const MONTHS = [
 ];
 
 export default function BankCopy({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("bankCopy");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [years, setYears] = useState([]);
@@ -132,7 +135,7 @@ export default function BankCopy({ user, onBack }) {
   }
 
   function handlePrint() {
-    window.print();
+    printReport("bankCopy");
   }
 
   return (
@@ -242,7 +245,7 @@ export default function BankCopy({ user, onBack }) {
               <tbody>
                 {rows.map((row) => (
                   <tr
-                    key={`${row.type}-${row.code}-${row.srNo}`}
+                    key={`${row.type}-${row.code}-${row.billMonth || ""}-${row.srNo}`}
                     className={row.type === "INSTITUTE" ? "bc-institute" : ""}
                   >
                     <td className="bc-c-sr">{row.srNo}</td>
@@ -273,6 +276,8 @@ export default function BankCopy({ user, onBack }) {
 
           <div className="bc-actions no-print">
             <GridToolbar
+              reportName="bankCopy"
+              subtitle={[...(report.heading || []), report.monthLine, report.schemeLine]}
               title={
                 report.paymentType === "DA_DIFFERENCE"
                   ? "DA Difference Bank Copy"

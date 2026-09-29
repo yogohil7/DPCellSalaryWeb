@@ -260,10 +260,8 @@
 
 /* ---------- print ---------- */
 
-@page {
-  size: A4 landscape;
-  margin: 10mm;
-}
+/* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+     injected only while this report is on screen — never a global rule. */
 
 @media print {
   /*
@@ -310,7 +308,7 @@
     background: #ffffff !important;
     border: none;
     color: #000000;
-    font-family: Inter, sans-serif;
+    font-family: var(--font-family-base);
     font-size: 13px;
     font-weight: 500;
     padding: 0;
@@ -336,7 +334,7 @@
 
   .ews-table {
     border-collapse: collapse;
-    font-family: Inter, sans-serif;
+    font-family: var(--font-family-base);
     font-size: 10px;
     font-weight: 500;
     width: 100% !important;

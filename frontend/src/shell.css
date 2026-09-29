@@ -158,6 +158,25 @@
   transition: background-color 0.12s ease, color 0.12s ease;
 }
 
+/* Groups the icon with its label as one flex item inside .nav-item, so
+   .mobile-nav-panel .nav-item's justify-content: space-between (which
+   pushes the label to the left edge and the caret to the right edge in
+   the mobile drawer) still only splits the row in two -- [icon+label]
+   and [caret] -- instead of spreading icon / label / caret apart. */
+.nav-item-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  flex-shrink: 0;
+  color: inherit;
+}
+
 .nav-item:hover,
 .nav-item:focus-visible {
   background: var(--menu-hover);
@@ -242,6 +261,63 @@
   left: 0;
   right: auto;
   min-width: 240px;
+}
+
+/* Desktop-only VS Code-style dark dropdown for the top navigation's
+   Masters / Salary / DA Difference / Reports panels. Scoped to
+   .desktop-nav so it never reaches the mobile drawer's copy of this
+   same markup (.mobile-nav-panel gives that its own static/light
+   styling below, unaffected) or the user-menu's .menu-panel (still the
+   original light theme). Base .menu-panel / .menu-panel button rules
+   above are left as-is for those other consumers. */
+.desktop-nav .nav-dd .menu-panel {
+  width: max-content;
+  min-width: 180px;
+  max-width: 280px;
+  max-height: min(70vh, 420px);
+  background: #252526;
+  border: 1px solid #3F4145;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  scrollbar-width: thin;
+  scrollbar-color: #555555 #252526;
+}
+
+.desktop-nav .nav-dd .menu-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+.desktop-nav .nav-dd .menu-panel::-webkit-scrollbar-track {
+  background: #252526;
+}
+
+.desktop-nav .nav-dd .menu-panel::-webkit-scrollbar-thumb {
+  background: #555555;
+  border-radius: 5px;
+}
+
+.desktop-nav .nav-dd .menu-panel::-webkit-scrollbar-thumb:hover {
+  background: #6A6A6A;
+}
+
+.desktop-nav .nav-dd .menu-panel button {
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #F3F3F3;
+  font-family: var(--font-family-base);
+}
+
+.desktop-nav .nav-dd .menu-panel button:hover,
+.desktop-nav .nav-dd .menu-panel button:focus-visible {
+  background: #3A3D41;
+  color: #FFFFFF;
+}
+
+.desktop-nav .nav-dd .menu-panel button.is-active {
+  background: #3A3D41;
+  color: var(--menu-active-text);
 }
 
 /* Bridge so mouse can move into the panel without closing. */
@@ -335,7 +411,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   border: 0;
   background: transparent;
   color: var(--text);
@@ -343,9 +419,16 @@
   padding: 8px 12px;
   border-radius: var(--radius);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
+  /* Matches .nav-item (top navigation: Home / Masters / Salary /
+     DA Difference / Reports) so the sidebar reads as the same
+     typography system rather than a separately forced font. */
   font-family: var(--font-family-base);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-transform: none;
+  font-style: normal;
 }
 
 .side-link:hover,
@@ -475,9 +558,12 @@
   }
 }
 
-.side-dot {
-  width: 18px; height: 18px; border-radius: 5px; background: #eef1f3;
+.side-icon {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
   flex-shrink: 0;
+  color: inherit;
 }
 
 .app-main {
@@ -954,4 +1040,279 @@
     opacity: 1 !important;
     transform: none !important;
   }
+}
+
+/* ---------- Cursor-style menus ---------- */
+@keyframes menu-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.menu-panel button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-item-icon {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.menu-item-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-item-check {
+  font-size: 12px;
+  opacity: 0.9;
+  margin-left: 8px;
+}
+
+.desktop-nav .nav-dd .menu-panel {
+  top: calc(100% + 6px);
+  min-width: 220px;
+  max-width: 320px;
+  padding: 5px;
+  background: #1f1f23;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  transform-origin: top left;
+  animation: menu-pop 0.12s ease-out;
+  scrollbar-color: #4a4a50 transparent;
+}
+
+.desktop-nav .nav-dd .menu-panel::-webkit-scrollbar-track { background: transparent; }
+.desktop-nav .nav-dd .menu-panel::-webkit-scrollbar-thumb { background: #4a4a50; }
+
+.desktop-nav .nav-dd .menu-panel button {
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: #e6e6e8;
+  font-weight: 400;
+}
+
+.desktop-nav .nav-dd .menu-panel button:hover,
+.desktop-nav .nav-dd .menu-panel button:focus-visible {
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+  outline: none;
+}
+
+.desktop-nav .nav-dd .menu-panel button:hover .menu-item-icon,
+.desktop-nav .nav-dd .menu-panel button:focus-visible .menu-item-icon {
+  opacity: 1;
+}
+
+.desktop-nav .nav-dd .menu-panel button.is-active {
+  background: rgba(96, 165, 250, 0.16);
+  color: #93c5fd;
+  font-weight: 500;
+}
+
+.nav-caret {
+  transition: transform 0.15s ease;
+}
+.nav-dd.is-open > .nav-item .nav-caret {
+  transform: rotate(180deg);
+}
+
+.mobile-nav-panel .menu-item-check { display: none; }
+
+/* Sidebar: collapsible sections (Cursor explorer style) */
+.side-title-btn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-family-base);
+  border-radius: var(--radius);
+  padding: 8px 8px 6px;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.side-title-btn:hover,
+.side-title-btn:focus-visible {
+  background: var(--menu-hover);
+  color: var(--nav-text-strong);
+  outline: none;
+}
+
+.side-chevron {
+  display: inline-block;
+  width: 10px;
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+.side-chevron.is-open { transform: rotate(90deg); }
+
+.side-link-nested {
+  margin-left: 6px;
+  width: calc(100% - 6px);
+  animation: menu-pop 0.12s ease-out;
+}
+
+/* ---------- Chrome/Cursor app-menu look, shared by all dropdowns ---------- */
+.desktop-nav .nav-dd .menu-panel,
+.user-menu-panel {
+  background: #1e1e20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+  animation: menu-pop 0.12s ease-out;
+}
+
+.desktop-nav .nav-dd .menu-panel button,
+.user-menu-panel button {
+  border-radius: 8px;
+}
+
+.user-menu-panel {
+  top: calc(100% + 6px);
+  right: 0;
+  left: auto;
+  min-width: 240px;
+  transform-origin: top right;
+}
+
+.user-menu-panel button {
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #e6e6e8;
+  background: transparent;
+}
+
+.user-menu-panel button:hover,
+.user-menu-panel button:focus-visible {
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+  outline: none;
+}
+
+.user-menu-panel button.danger { color: #ff8a80; }
+.user-menu-panel button.danger:hover,
+.user-menu-panel button.danger:focus-visible {
+  background: rgba(255, 138, 128, 0.14);
+  color: #ffb4ab;
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #e6e6e8;
+  font-family: var(--font-family-base);
+}
+.menu-header-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-header-meta { font-size: 12px; color: #9a9aa0; white-space: nowrap; }
+
+.desktop-nav .menu-separator,
+.user-menu-panel .menu-separator {
+  background: rgba(255, 255, 255, 0.09);
+  margin: 6px 2px;
+}
+
+/* ---------- Top-nav dropdown: compact Cursor-style tuning (final) ---------- */
+.desktop-nav .nav-dd .menu-panel {
+  min-width: 190px;
+  max-width: 320px;
+  padding: 5px;
+  border-radius: 10px;
+  max-height: min(500px, calc(100vh - var(--nav-height) - 24px));
+  overflow-y: auto;
+  z-index: 80;
+}
+
+.desktop-nav .nav-dd .menu-panel button {
+  min-height: 32px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.2;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.desktop-nav .nav-dd .menu-panel button.is-active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-weight: 400;
+}
+
+.desktop-nav .nav-dd .menu-panel button:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.35);
+  outline-offset: -1px;
+}
+
+.desktop-nav .nav-dd .menu-item-check { margin-left: auto; padding-left: 12px; }
+
+.desktop-nav .nav-dd .menu-panel button:focus-visible { box-shadow: none; }
+
+/* Group divider inside top-nav dropdowns (item.separatorBefore). Light
+   by default so the mobile drawer's light panel is unaffected; the
+   desktop dark panel overrides the colour. Not focusable, no hover. */
+.dropdown-separator {
+  height: 1px;
+  margin: 5px 4px;
+  border: 0;
+  background: var(--border-color);
+  pointer-events: none;
+}
+
+.desktop-nav .nav-dd .dropdown-separator {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* Sidebar branding is a button (click -> Home). Reset the native button
+   chrome so it looks exactly like the previous static header block. */
+button.sidebar-brand {
+  width: 100%;
+  box-sizing: border-box;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+button.sidebar-brand:hover {
+  background: rgba(15, 23, 42, 0.035);
+}
+
+button.sidebar-brand:focus-visible {
+  outline: 2px solid var(--menu-active-text, #1d4ed8);
+  outline-offset: -2px;
+}
+
+/* Sidebar labels stay on one line; truncate with an ellipsis only when the
+   label cannot fit (full text is in the button's title tooltip). The icon
+   (.side-icon) is flex-shrink:0, so it is never squeezed. */
+.side-link {
+  min-width: 0;
+}
+
+.side-link > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

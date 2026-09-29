@@ -300,10 +300,8 @@
 }
 
 @media print {
-  @page {
-    size: A4 landscape;
-    margin: 8mm;
-  }
+  /* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+     injected only while this report is on screen — never a global rule. */
 
   .no-print {
     display: none !important;

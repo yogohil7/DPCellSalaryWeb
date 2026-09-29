@@ -6,6 +6,7 @@ import {
 } from "../utils/salaryRegisterApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./salaryRegister.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Same amount formatting the other reports use. A null amount is a field the
    record genuinely does not have — an em dash, never a fabricated 0.00. */
@@ -48,17 +49,29 @@ const AMOUNT_KEYS = new Set([
   "grossAmount", "totalDeduction", "netSalary", "chequeAmount",
 ]);
 
-export default function SalaryRegister({ user, onBack }) {
+/*
+ * pageParams restores the filters a Salary Month drill-down was opened from
+ * (see onOpenDetail below and SalaryRegisterDetail's Back), so returning from
+ * the detail view lands back on the SAME filtered list rather than the
+ * defaults. A plain navigation from the sidebar passes no params, so the
+ * screen still opens with today's month/year and no auto Show, exactly as
+ * before this feature existed.
+ */
+export default function SalaryRegister({ user, onBack, pageParams, onOpenDetail }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("salaryRegister");
   const now = new Date();
+  const restored = pageParams && typeof pageParams === "object" ? pageParams : {};
+  const hasRestoredFilters = Object.keys(restored).length > 0;
   const [meta, setMeta] = useState({
     years: [], sections: [], institutes: [], salaryTypes: [],
   });
-  const [month, setMonth] = useState(String(now.getMonth() + 1));
-  const [year, setYear] = useState(String(now.getFullYear()));
-  const [billMonth, setBillMonth] = useState("");
-  const [sectionId, setSectionId] = useState("");
-  const [instituteCode, setInstituteCode] = useState("");
-  const [salaryType, setSalaryType] = useState("ALL");
+  const [month, setMonth] = useState(restored.month || String(now.getMonth() + 1));
+  const [year, setYear] = useState(restored.year || String(now.getFullYear()));
+  const [billMonth, setBillMonth] = useState(restored.billMonth || "");
+  const [sectionId, setSectionId] = useState(restored.sectionId || "");
+  const [instituteCode, setInstituteCode] = useState(restored.instituteCode || "");
+  const [salaryType, setSalaryType] = useState(restored.salaryType || "ALL");
 
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -82,6 +95,17 @@ export default function SalaryRegister({ user, onBack }) {
     return () => {
       active = false;
     };
+  }, []);
+
+  /* Returning from the Salary Month drill-down: the filters above were
+     already restored from pageParams, so re-run the same query rather than
+     showing an empty sheet the user has to click "Show" on again. Runs once,
+     only when this mount actually carried restored filters. */
+  useEffect(() => {
+    if (hasRestoredFilters) {
+      handleShow();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filters = {
@@ -158,7 +182,7 @@ export default function SalaryRegister({ user, onBack }) {
   }
 
   function handlePrint() {
-    window.print();
+    printReport("salaryRegister");
   }
 
   const summary = report
@@ -344,6 +368,40 @@ export default function SalaryRegister({ user, onBack }) {
                           </td>
                         );
                       }
+                      if (column.key === "salaryMonth") {
+                        /*
+                           Drill-down trigger. Only the value itself is
+                           clickable — the row is not — and only when this row
+                           has a WorkflowId (a DA Difference row does not: its
+                           schema has no per-employee component breakdown the
+                           same way, so it is shown as plain text instead).
+                           The exact bill/workflow identity travels with the
+                           click, never just "this Salary Month".
+                        */
+                        return row.workflowId != null ? (
+                          <td key={column.key}>
+                            <button
+                              type="button"
+                              className="sr-month-link no-print"
+                              onClick={() =>
+                                onOpenDetail &&
+                                onOpenDetail({
+                                  workflowId: row.workflowId,
+                                  billCodeId: row.billCodeId,
+                                  instituteCode: row.instituteCode,
+                                  month, year, billMonth, sectionId, salaryType,
+                                })
+                              }
+                              title={`Open employee-wise detail for ${row.instituteCode} / ${row.billCode}`}
+                            >
+                              {row.salaryMonth}
+                            </button>
+                            <span className="sr-month-link-print">{row.salaryMonth}</span>
+                          </td>
+                        ) : (
+                          <td key={column.key}>{row.salaryMonth}</td>
+                        );
+                      }
                       return <td key={column.key}>{row[column.key]}</td>;
                     })}
                   </tr>
@@ -376,6 +434,8 @@ export default function SalaryRegister({ user, onBack }) {
 
           <div className="sr-actions no-print">
             <GridToolbar
+              reportName="salaryRegister"
+              subtitle={[summary]}
               title="Salary Register"
               columns={COLUMNS}
               rows={exportRows}

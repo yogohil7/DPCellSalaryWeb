@@ -277,10 +277,8 @@
     font-family: var(--font-family-base);
   }
 
-  @page {
-    size: A4 landscape;
-    margin: 10mm;
-  }
+  /* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+     injected only while this report is on screen — never a global rule. */
 
   .no-print,
   .app-sidebar,

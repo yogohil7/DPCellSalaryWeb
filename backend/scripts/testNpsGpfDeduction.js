@@ -303,7 +303,8 @@ function main() {
     /overflow:\s*visible\s*!important/.test(cssSrc) && /display:\s*block\s*!important/.test(cssSrc), true);
   check("print does not use a global body * visibility hack",
     /body \*/.test(cssSrc), false);
-  check("A4 landscape for the wide column set", /size:\s*A4 landscape/.test(cssSrc), true);
+  /* 2026-09-24: every report except Cheque Register prints A4 PORTRAIT. */
+  check("A4 portrait (reportPdfConfig; only Cheque Register is landscape)", (new RegExp("npsGpfDeduction: \\{[^}]*orientation: \"portrait\"").test(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "utils", "reportPdfConfig.js"), "utf8")) && require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "pages", "NpsGpfDeduction.jsx"), "utf8").includes('useReportPrintPage("npsGpfDeduction")')), true);
   check("the table header repeats across pages",
     /display:\s*table-header-group/.test(cssSrc), true);
   check("Print and PDF both use the dedicated print flow",

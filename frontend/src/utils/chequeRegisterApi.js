@@ -44,6 +44,11 @@ function buildFilterParams(filters = {}) {
   }
   if (filters.format) params.set("format", filters.format);
   if (filters.salaryTime) params.set("salaryTime", filters.salaryTime);
+  /* Which Bill Month instance's Bill No./Bill Date/NPS Schedule No. to show
+     (dbo.SalaryEntryBillHeader). Omitted = each row falls back to its own
+     Salary Month (the "regular" bill) — an explicit, fixed backend rule,
+     never "whichever was saved last". */
+  if (filters.billMonth) params.set("billMonth", filters.billMonth);
   return params;
 }
 

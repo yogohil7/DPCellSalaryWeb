@@ -125,9 +125,9 @@
 
 /* Column alignment, per the printed form. */
 .bc-c-sr { text-align: center; width: 8%; }
-.bc-c-code { text-align: center; width: 13%; }
-.bc-c-name { text-align: left; width: 47%; }
-.bc-c-bank { text-align: center; width: 18%; }
+.bc-c-code { text-align: center; width: 11%; }
+.bc-c-name { text-align: left; width: 41%; }
+.bc-c-bank { text-align: center; width: 16%; }
 .bc-c-amt { text-align: right; width: 14%; }
 
 /* An institute's own tax credit line. */
@@ -183,10 +183,8 @@
     overflow: visible !important;
   }
 
-  @page {
-    size: A4 portrait;
-    margin: 10mm;
-  }
+  /* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+     injected only while this report is on screen — never a global rule. */
 
   .no-print,
   .app-sidebar,

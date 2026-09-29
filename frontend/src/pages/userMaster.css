@@ -9,8 +9,7 @@
   flex-direction: column;
   gap: 14px;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 
   color: #212529;
 }
@@ -146,8 +145,7 @@
   font-size: 12px;
   font-weight: 400;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 
   color: #212529;
 
@@ -194,8 +192,7 @@
 
   font-size: 12px;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 
   cursor: pointer;
 }
@@ -276,8 +273,7 @@
 
   font-size: 12px;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 }
 
 /* TABLE HEADER */

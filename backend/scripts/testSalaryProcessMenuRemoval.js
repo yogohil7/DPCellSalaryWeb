@@ -228,8 +228,18 @@ check("so the removed entry rendered nothing — no functionality was lost",
 /* ------------------------------------------------------------------ */
 section("6. Role-based visibility is unchanged");
 
-check("the permission mapping for salary-process is retained",
-  AC.PAGE_PERMISSION_PREFIX["salary-process"], "SALARY_PROCESS");
+/* 2026-09-24: the module is now removed completely (user request), including
+   its page-permission mapping. */
+check("the salary-process page-permission mapping is removed",
+  Object.prototype.hasOwnProperty.call(AC.PAGE_PERMISSION_PREFIX, "salary-process"), false);
+check("salary-process is not a known page", AC.isKnownPage("salary-process"), false);
+check("Admin cannot open #/salary-process (redirects home)",
+  AC.canAccessPage(ADMIN, "salary-process"), false);
+check("Auditor cannot open #/salary-process (redirects home)",
+  AC.canAccessPage(AUDITOR_FULL, "salary-process"), false);
+check("unknown hashes are never pages", AC.canAccessPage(ADMIN, "no-such-page"), false);
+check("every registered page is still a known page",
+  Object.keys(AC.PAGE_PERMISSION_PREFIX).every((id) => AC.isKnownPage(id)), true);
 check("Account Officer still sees no Salary group",
   AC.getNavMenus(ACCOUNT_OFFICER).showSalary, false);
 check("Account Officer still reaches Salary Approval directly",
@@ -255,41 +265,35 @@ section("7. defaultHomePage behaviour is unchanged");
 
 check("Admin home is still the dashboard", AC.defaultHomePage(ADMIN), "home");
 check("Auditor home is still the dashboard", AC.defaultHomePage(AUDITOR_FULL), "home");
-check("Account Officer home is still Salary Approval",
-  AC.defaultHomePage(ACCOUNT_OFFICER), "salary-approval");
+check("Account Officer home is now the dashboard",
+  AC.defaultHomePage(ACCOUNT_OFFICER), "home");
 check("defaultHomePage never returns the removed id",
   [ADMIN, AUDITOR_FULL, ACCOUNT_OFFICER]
     .map((u) => AC.defaultHomePage(u))
     .includes("salary-process"), false);
 
 /* ------------------------------------------------------------------ */
-section("8. No backend, API, schema or salary logic changed");
+section("8. Page fully removed; no backend, API, schema or salary logic changed");
 
-const gitStatus = (() => {
-  try {
-    return require("child_process")
-      .execSync("git status --porcelain", { cwd: ROOT, encoding: "utf8" });
-  } catch { return null; }
-})();
-const changedFiles = gitStatus === null
-  ? null
-  : gitStatus.split("\n").map((l) => l.slice(3).trim()).filter(Boolean);
-
-if (changedFiles === null) {
-  check("git is unavailable — file-scope assertions skipped", true, true);
-} else {
-  const touched = (pred) => changedFiles.filter(pred);
-  check("no backend route file was modified",
-    touched((f) => f.startsWith("backend/routes/")), []);
-  check("no backend salary utility was modified",
-    touched((f) => f.startsWith("backend/utils/")), []);
-  check("no SQL schema file was modified",
-    touched((f) => f.startsWith("backend/sql/")), []);
-  check("no frontend page component was modified",
-    touched((f) => f.startsWith("frontend/src/pages/")), []);
-  check("the only frontend change is modules.js",
-    touched((f) => f.startsWith("frontend/src/") && !f.endsWith("modules.js")), []);
-}
+const dashSrc = read(FRONT, "components", "Dashboard.jsx");
+const schemaSrc = read(BACK, "sql", "schema", "35_RoleBasedAccess.sql");
+check("placeholder page (GenericModule) removed",
+  pageFiles.some((f) => /^GenericModule\.jsx$/.test(f)), false);
+check("AppShell no longer renders a placeholder fallback",
+  /GenericModule/.test(shellSrc), false);
+check("AppShell redirects unknown pages quietly (isKnownPage)",
+  /isKnownPage\(target\)/.test(shellSrc), true);
+check("Dashboard cards no longer link to salary-process",
+  /salary-process/.test(dashSrc), false);
+check("Dashboard Verification tile opens Salary Approval",
+  /id: "salary-approval", label: "Verification"/.test(dashSrc), true);
+check("Dashboard Salary Bills card opens Salary Entry",
+  /id: "salary-entry",\s*title: "Salary Bills"/.test(dashSrc), true);
+check("no frontend source names salary-process",
+  ["modules.js", "utils/accessControl.js", "components/AppShell.jsx", "components/Dashboard.jsx",
+   "components/Header.jsx", "components/Sidebar.jsx"].some((f) => /salary-process|SalaryProcess/.test(read(FRONT, f))), false);
+check("no database/schema change: SQL schema file untouched (SALARY_PROCESS seed row still present)",
+  /N'SALARY_PROCESS'/.test(schemaSrc), true);
 check("the salary permission codes themselves are untouched",
   ["salary-entry", "salary-approval", "returning-bills", "final-salary-bill"]
     .map((id) => AC.PAGE_PERMISSION_PREFIX[id]),

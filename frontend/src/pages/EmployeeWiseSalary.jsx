@@ -8,6 +8,7 @@ import { listActiveSections } from "../utils/sectionApi";
 import { listEmployees } from "../utils/employeeApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./employeeWiseSalary.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /*
   Money: stored values, en-IN with paise. An exact zero prints as "0"
@@ -74,6 +75,8 @@ function thisYear() {
 }
 
 export default function EmployeeWiseSalary({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("employeeWiseSalary");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [allEmployees, setAllEmployees] = useState([]);
@@ -218,7 +221,7 @@ export default function EmployeeWiseSalary({ user, onBack }) {
       await document.fonts.ready;
     }
     requestAnimationFrame(() => {
-      window.print();
+      printReport("employeeWiseSalary");
     });
   }
 
@@ -543,6 +546,7 @@ export default function EmployeeWiseSalary({ user, onBack }) {
 
           <div className="ews-actions no-print">
             <GridToolbar
+              reportName="employeeWiseSalary"
               title="Employee Wise Salary"
               columns={COLUMNS}
               rows={exportRows}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import CommandPalette from "./CommandPalette";
 import Dashboard from "./Dashboard";
 import PageErrorBoundary from "./PageErrorBoundary";
 
@@ -43,31 +44,49 @@ import NpsScheduleSummary from "../pages/NpsScheduleSummary";
 import EmployeeWiseSalary from "../pages/EmployeeWiseSalary";
 import EmployeePaySlip from "../pages/EmployeePaySlip";
 import SalaryRegister from "../pages/SalaryRegister";
+import SalaryRegisterDetail from "../pages/SalaryRegisterDetail";
 import IncomeTaxProfessionalTax from "../pages/IncomeTaxProfessionalTax";
 import EmployeeReport from "../pages/EmployeeReport";
 import InstituteWiseSalary from "../pages/InstituteWiseSalary";
+import MonthWiseEmployeeSalary from "../pages/MonthWiseEmployeeSalary";
 
-import GenericModule from "../pages/GenericModule";
 
 import { TITLES } from "../modules";
 import {
   canAccessPage,
   defaultHomePage,
+  isKnownPage,
   readHashPage,
+  readHashParams,
   writeHashPage,
 } from "../utils/accessControl";
 
 export default function AppShell({ user, onLogout }) {
   const [page, setPage] = useState(() => {
     const fromHash = readHashPage();
-    const preferred =
-      fromHash && fromHash !== "home" ? fromHash : defaultHomePage(user);
+    /* "home" is honoured for every role that may open it, so a refresh or a
+       direct Dashboard URL stays on the Dashboard (an Account Officer's
+       *landing* page is still Salary Approval, set at login by App.jsx). */
+    const preferred = fromHash || defaultHomePage(user);
     return canAccessPage(user, preferred)
       ? preferred
       : defaultHomePage(user);
   });
-  const [pageParams, setPageParams] = useState({});
+  /* Restored from the hash's own query string ONLY when the page we are
+     actually mounting with is the one the hash named (fromHash) — a denied
+     or stale hash falls back to defaultHomePage above and must not inherit
+     that unrelated page's params. This is what makes a drill-down (e.g.
+     Salary Register -> its detail view) survive a browser refresh: the
+     bill/workflow identity travels in the URL, not only in memory. */
+  const [pageParams, setPageParams] = useState(() => {
+    const fromHash = readHashPage();
+    if (fromHash && fromHash !== "home" && canAccessPage(user, fromHash)) {
+      return readHashParams();
+    }
+    return {};
+  });
   const [collapsed, setCollapsed] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accessNotice, setAccessNotice] = useState("");
 
@@ -78,7 +97,9 @@ export default function AppShell({ user, onLogout }) {
     const target = String(id || defaultHomePage(user));
     if (!canAccessPage(user, target)) {
       const fallback = defaultHomePage(user);
-      if (!silent) {
+      /* An unregistered id (e.g. a removed module's old link) is not an
+         access problem: redirect quietly. */
+      if (!silent && isKnownPage(target)) {
         setAccessNotice(
           `Access denied to "${TITLES[target] || target}". Redirected to an allowed page.`
         );
@@ -91,8 +112,9 @@ export default function AppShell({ user, onLogout }) {
     }
     setAccessNotice("");
     setPage(target);
-    setPageParams(params && typeof params === "object" ? params : {});
-    writeHashPage(target);
+    const safeParams = params && typeof params === "object" ? params : {};
+    setPageParams(safeParams);
+    writeHashPage(target, safeParams);
     setMobileOpen(false);
   };
 
@@ -103,8 +125,8 @@ export default function AppShell({ user, onLogout }) {
   const navigate = (id, params = {}) => safeNavigate(id, params);
 
   useEffect(() => {
-    writeHashPage(page);
-  }, [page]);
+    writeHashPage(page, pageParams);
+  }, [page, pageParams]);
 
   /*
      Re-validate the current page whenever the signed-in user changes.
@@ -112,9 +134,7 @@ export default function AppShell({ user, onLogout }) {
      `page` is initialised once from the URL hash. If the user prop later
      changes (session restored, re-login as a different role, permissions
      refreshed), a page id that is no longer allowed would otherwise stay in
-     state — and because renderAuthorized() returned null for it while the
-     GenericModule fallback excludes every registered id, the whole <main>
-     rendered nothing and the screen went blank.
+     state and the whole <main> would render nothing.
   */
   useEffect(() => {
     if (!canAccessPage(user, page)) {
@@ -124,13 +144,26 @@ export default function AppShell({ user, onLogout }) {
   }, [user, page]);
 
   useEffect(() => {
+    /* readHashParams() carries a drill-down's params through Back/Forward. */
     const onHashChange = () => {
       const hashPage = readHashPage();
-      safeNavigate(hashPage || defaultHomePage(user), {}, { silent: false });
+      safeNavigate(hashPage || defaultHomePage(user), readHashParams(), { silent: false });
     };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, [user]);
+
+  /* Ctrl/Cmd + K opens the navigation command palette. */
+  useEffect(() => {
+    const onKey = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const toggleSidebar = () => {
     if (window.innerWidth <= 860) {
@@ -144,8 +177,7 @@ export default function AppShell({ user, onLogout }) {
      Renders a page only when it is the active page AND the user may see it.
 
      A denied page returns an explicit notice rather than null: returning
-     null produced a completely blank screen, because the GenericModule
-     fallback below excludes every registered page id.
+     null produced a completely blank screen.
   */
   const renderAuthorized = (pageId, node) => {
     if (page !== pageId) return null;
@@ -207,6 +239,14 @@ export default function AppShell({ user, onLogout }) {
         onLogout={onLogout}
         showSidebarToggle={showSidebar}
         onToggleSidebar={toggleSidebar}
+        onOpenPalette={() => setPaletteOpen(true)}
+      />
+
+      <CommandPalette
+        user={user}
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onNavigate={navigate}
       />
 
       {showSidebar && (
@@ -399,7 +439,20 @@ export default function AppShell({ user, onLogout }) {
         )}
         {renderAuthorized(
           "salary-register",
-          <SalaryRegister user={user} onBack={goHome} />
+          <SalaryRegister
+            user={user}
+            onBack={goHome}
+            pageParams={pageParams}
+            onOpenDetail={(params) => navigate("salary-register-detail", params || {})}
+          />
+        )}
+        {renderAuthorized(
+          "salary-register-detail",
+          <SalaryRegisterDetail
+            user={user}
+            pageParams={pageParams}
+            onBack={(filters) => navigate("salary-register", filters || {})}
+          />
         )}
         {renderAuthorized(
           "income-tax-professional-tax",
@@ -413,54 +466,11 @@ export default function AppShell({ user, onLogout }) {
           "institute-wise-salary",
           <InstituteWiseSalary user={user} onBack={goHome} />
         )}
+        {renderAuthorized(
+          "month-wise-employee-salary",
+          <MonthWiseEmployeeSalary user={user} onBack={goHome} />
+        )}
 
-        {!isHome &&
-          canAccessPage(user, page) &&
-          page !== "change-password" &&
-          page !== "employee-master" &&
-          page !== "payroll-configuration" &&
-          page !== "section-master" &&
-          page !== "institute-master" &&
-          page !== "designation-master" &&
-          page !== "pay-revision-master" &&
-          page !== "da-master" &&
-          page !== "hra-master" &&
-          page !== "transport-allowance-master" &&
-          page !== "cla-master" &&
-          page !== "medical-allowance" &&
-          page !== "pay-matrix" &&
-          page !== "salary-component-master" &&
-          page !== "user-master" &&
-          page !== "role-permission-master" &&
-          page !== "salary-bill-code-master" &&
-          page !== "da-difference-master" &&
-          page !== "increment-master" &&
-          page !== "da-difference-entry" &&
-          page !== "salary-entry" &&
-          page !== "variation-report" &&
-          page !== "final-salary-bill" &&
-          page !== "salary-approval" &&
-          page !== "returning-bills" &&
-          page !== "cheque-register" &&
-          page !== "bank-copy" &&
-          page !== "section-summary" &&
-          page !== "gpf-summary" &&
-          page !== "institute-wise-gpf" &&
-          page !== "nps-summary" &&
-          page !== "nps-institute-wise" &&
-          page !== "nps-deduction" &&
-          page !== "nps-schedule" &&
-          page !== "employee-wise-salary" &&
-          page !== "employee-pay-slip" &&
-          page !== "salary-register" &&
-          page !== "income-tax-professional-tax" &&
-          page !== "institute-wise-salary" && (
-            <GenericModule
-              title={TITLES[page] || page}
-              pageId={page}
-              onBack={goHome}
-            />
-          )}
         </div>
       </main>
     </div>

@@ -31,6 +31,12 @@
 const express = require("express");
 const { sql } = require("../db");
 const {
+  instanceEmployeeRowsSql,
+  instanceBillMonthSelectSql,
+  applyInstanceHeaders,
+  queryReport,
+} = require("../utils/reportBillInstance");
+const {
   normalizeYearMonth,
   yearMonthKey,
   formatMonthLabel,
@@ -98,11 +104,11 @@ function formatDate(value) {
  * One row per (bill, employee) — the grain Salary Entry stored.
  */
 async function loadEmployeeSalaryRows() {
-  const result = await sql.query`
+  const result = await queryReport(`
     SELECT
       b.BillCodeId,
       b.BillCode,
-      b.BillMonth,
+      ${instanceBillMonthSelectSql()},
       b.SalaryMonth,
       b.SalaryMonthNumber,
       b.SalaryYear,
@@ -168,9 +174,8 @@ async function loadEmployeeSalaryRows() {
     FROM dbo.SalaryBillInstituteWorkflow w
     INNER JOIN dbo.SalaryBillCodes b
       ON b.BillCodeId = w.SalaryBillCodeId
-    INNER JOIN dbo.SalaryEmployeeDetails d
-      ON d.SalaryBillCodeId = w.SalaryBillCodeId
-     AND d.InstituteCode = w.InstituteCode
+    INNER JOIN ${instanceEmployeeRowsSql()} d
+      ON d.InstanceWorkflowId = w.WorkflowId
     LEFT JOIN dbo.Institutes i
       ON i.InstituteCode = w.InstituteCode
     LEFT JOIN dbo.Sections sec
@@ -186,8 +191,9 @@ async function loadEmployeeSalaryRows() {
       AND UPPER(ISNULL(b.BillType, N'')) <> N'DA DIFFERENCE'
       AND ISNULL(b.IsArchived, 0) = 0
     ORDER BY d.EmployeeName, d.EmployeeId, b.SalaryYear, b.SalaryMonthNumber
-  `;
-  return result.recordset;
+  `);
+  /* Bill No. / Date / NPS Schedule No. of each row's own Bill Month instance. */
+  return applyInstanceHeaders(result.recordset);
 }
 
 async function loadSections() {

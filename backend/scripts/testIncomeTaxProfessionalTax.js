@@ -321,8 +321,9 @@ const P = { month: 6, year: 2026 };
     (pageSrc.match(/\{ key: "/g) || []).length, XLSX_COLUMNS.length);
 
   section("39-40. print");
-  check("39. A4 landscape is declared",
-    /@page[\s\S]{0,80}A4 landscape/.test(cssSrc), true);
+  /* 2026-09-24: every report except Cheque Register prints A4 PORTRAIT. */
+  check("39. A4 portrait is declared (reportPdfConfig)",
+    (new RegExp("incomeTaxProfessionalTax: \\{[^}]*orientation: \"portrait\"").test(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "utils", "reportPdfConfig.js"), "utf8")) && require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "pages", "IncomeTaxProfessionalTax.jsx"), "utf8").includes('useReportPrintPage("incomeTaxProfessionalTax")')), true);
   check("39. the table header repeats on every page",
     /thead\s*\{\s*display:\s*table-header-group/.test(cssSrc), true);
   check("39. the scoped shell reset is present",

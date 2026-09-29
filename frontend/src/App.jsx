@@ -74,9 +74,8 @@ function App() {
          Writing the home hash BEFORE setUser() means the AppShell mounts with
          the home hash already in place and never sees the old one. The target
          comes from defaultHomePage(), the project's canonical role-aware home
-         (Salary Approval for an Account Officer, the Dashboard otherwise), so
-         nothing is hard-coded to "home" and no role gets an access-denied
-         notice on the way in.
+         (the Dashboard for every role), so nothing is hard-coded to "home"
+         here and no role gets an access-denied notice on the way in.
 
          This affects the FIRST page after authentication only. Navigation
          during the session is untouched — the AppShell still routes every

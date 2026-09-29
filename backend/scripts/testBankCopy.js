@@ -159,10 +159,14 @@ function main() {
   /* ---------------- A ---------------- */
   section("A — exactly five columns, with the exact headings");
 
+  /* 2026-09-24: BILL MONTH column removed again (user: "bill month not
+     required"). Payment blocks stay separate per Bill Month instance. */
   check("A. five export columns", XLSX_COLUMNS.length, 5);
   check("A. in the required order",
     XLSX_COLUMNS.map((c) => c.label),
     ["Sr. No.", "CODE", "EMPLOYEE NAME", "BANK ACCOUNT NUMBER", "AMOUNT"]);
+  check("A. no BILL MONTH column on screen or in exports",
+    /BILL MONTH/.test(pageSrc) || XLSX_COLUMNS.some((c) => c.key === "billMonth"), false);
   check("A. the screen prints the same five",
     (pageSrc.match(/<th className="bc-c-(sr|code|name|bank|amt)">/g) || []).length, 5);
   check("A. heading text is exact", HEADING,
@@ -248,8 +252,8 @@ function main() {
   check("F. employees are NOT sorted by name",
     rows.filter((r) => r.code === "CPD-06" && r.type === "EMPLOYEE").map((r) => r.name),
     ["Alpha", "Bravo"]);
-  check("F. they keep the salary bill's own DisplayOrder",
-    /ORDER BY w\.InstituteCode, d\.DisplayOrder, d\.Id/.test(routeSrc), true);
+  check("F. they keep the salary bill's own DisplayOrder (within each Bill Month instance)",
+    /ORDER BY w\.InstituteCode, w\.BillMonth, d\.DisplayOrder, d\.Id/.test(routeSrc), true);
   check("F. no institute-code prefix logic anywhere",
     /startsWith\(\s*["'](CPD|OGE|BD|DD|MR)/.test(routeSrc), false);
 
@@ -765,8 +769,8 @@ function main() {
   }
 
   /* 12. columns */
-  check("12. still exactly five columns", XLSX_COLUMNS.length, 5);
-  check("12. with the unchanged labels",
+  check("12. exactly five columns", XLSX_COLUMNS.length, 5);
+  check("12. with the expected labels",
     XLSX_COLUMNS.map((c) => c.label),
     ["Sr. No.", "CODE", "EMPLOYEE NAME", "BANK ACCOUNT NUMBER", "AMOUNT"]);
   check("12. a DA row exposes exactly those five keys",

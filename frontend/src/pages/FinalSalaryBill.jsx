@@ -3,6 +3,7 @@ import { listSalaryBillCodes } from "../utils/salaryBillCodeApi";
 import { listInstitutes } from "../utils/instituteApi";
 import { getFinalSalaryBill, listFinalBillInstitutes } from "../utils/finalSalaryBillApi";
 import "./finalSalaryBill.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /*
  * Canonical "main salary bill" rule — mirrors backend isMainSalaryBill()
@@ -201,6 +202,8 @@ function downloadBlob(filename, content, mime) {
 }
 
 export default function FinalSalaryBill({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("finalSalaryBill");
   const [billCodes, setBillCodes] = useState([]);
   const [institutes, setInstitutes] = useState([]);
   const [billCode, setBillCode] = useState("");
@@ -350,7 +353,7 @@ export default function FinalSalaryBill({ user, onBack }) {
       return;
     }
     setShowPreview(true);
-    setTimeout(() => window.print(), 200);
+    setTimeout(() => printReport("finalSalaryBill"), 200);
   };
 
   const handleExportPdf = () => {
@@ -363,7 +366,7 @@ export default function FinalSalaryBill({ user, onBack }) {
     }
     setShowPreview(true);
     setTimeout(() => {
-      window.print();
+      printReport("finalSalaryBill");
     }, 250);
   };
 

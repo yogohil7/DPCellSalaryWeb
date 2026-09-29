@@ -167,7 +167,6 @@ function buildPaySlip(row) {
       salaryType,
       billNo: row.BillNo == null ? "" : String(row.BillNo),
       billDate: dateOnly(row.BillDate),
-      npsScheduleNo: row.NPSScheduleNo == null ? "" : String(row.NPSScheduleNo),
       workflowStatus: String(row.WorkflowStatus || "").trim().toUpperCase(),
     },
 

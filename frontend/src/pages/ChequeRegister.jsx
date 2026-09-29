@@ -6,6 +6,7 @@ import {
   downloadChequeRegisterExcel,
 } from "../utils/chequeRegisterApi";
 import "./chequeRegister.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 function money(value) {
   return Number(value || 0).toLocaleString("en-IN", {
@@ -55,7 +56,7 @@ const COLUMNS = [
   { key: "place", label: "Place" },
   { key: "billNo", label: "Bill No." },
   { key: "date", label: "Date" },
-  { key: "salaryMonth", label: "Salary Month" },
+  { key: "billMonth", label: "Bill Month" },
   { key: "type", label: "TYPE" },
   { key: "group", label: "Group" },
   { key: "emp", label: "EMP" },
@@ -79,6 +80,8 @@ const COLUMNS = [
 ];
 
 export default function ChequeRegister({ user, onBack }) {
+  /* LEGAL LANDSCAPE for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("chequeRegister");
   const now = new Date();
   const [meta, setMeta] = useState(null);
   const [table, setTable] = useState("ALL");
@@ -87,6 +90,10 @@ export default function ChequeRegister({ user, onBack }) {
   const [year, setYear] = useState(String(now.getFullYear()));
   const [format, setFormat] = useState("SCREEN");
   const [salaryTime, setSalaryTime] = useState("ALL");
+  /* Bill Month filter: "" (Auto) = every approved Bill Month instance of the
+     selected Salary Month; a selected month = only that Bill Month's
+     instances. Each row always shows its own instance Bill Month. */
+  const [billMonth, setBillMonth] = useState("");
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [message, setMessage] = useState("");
@@ -137,6 +144,24 @@ export default function ChequeRegister({ user, onBack }) {
     { value: 12, label: "December" },
   ];
 
+  /* Never a hard-coded fixed list of years — always the currently selected
+     Year plus the year before it, covering a Bill Month that falls just
+     before a January Salary Month. */
+  const MONTH_LABELS = [
+    "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+  ];
+  const billMonthOptions = useMemo(() => {
+    const y = Number(year) || now.getFullYear();
+    const opts = [];
+    for (const yy of [y, y - 1]) {
+      for (let m = 11; m >= 0; m -= 1) {
+        opts.push(`${MONTH_LABELS[m]}-${yy}`);
+      }
+    }
+    return opts;
+  }, [year, now]);
+
   const tables = meta?.tables || [
     { value: "ALL", label: "All" },
     { value: "REGULAR", label: "Regular Salary (incl. Old)" },
@@ -156,16 +181,15 @@ export default function ChequeRegister({ user, onBack }) {
   ];
 
   /*
-     The "Salary Month" column shows the BILL MONTH of each individual bill,
-     so two bills of the same institute (JUN-2026 and JUN-2026-BM-MAY) show
-     JUN-2026 and MAY-2026 respectively.
-
-     billMonthLabel is the backend's normalised MON-YYYY label for that bill.
-     SalaryMonth itself is unchanged and still drives the Month/Year filter
-     and the REGULAR/OLD type.
+     Bill Month = the approved INSTANCE's own Bill Month, from the backend
+     (the workflow row's BillMonth): AUG-2026 and JUL-2026 instances of the
+     same AUG-2026 bill show AUG-2026 and JUL-2026. TYPE is REGULAR when it
+     equals the Salary Month, else OLD (computed by the backend).
+     There is no separate Salary Month column (removed 2026-09-24, user
+     decision): the report's Month/Year filter and title already give it.
   */
   const billMonthOf = (row) =>
-    row.billMonthLabel || row.billMonth || row.salaryMonth || "-";
+    row.billMonthQueried || row.billMonth || "-";
 
   /* Screen, CSV, PDF, Copy and Print all read from these same rows. */
   const exportRows = useMemo(() => {
@@ -173,7 +197,7 @@ export default function ChequeRegister({ user, onBack }) {
       ...row,
       date: formatDate(row.date || row.billDate),
       billNo: row.billNo || "",
-      salaryMonth: billMonthOf(row),
+      billMonth: billMonthOf(row),
       ...Object.fromEntries(MONEY_KEYS.map((key) => [key, money(row[key])])),
     }));
 
@@ -193,7 +217,7 @@ export default function ChequeRegister({ user, onBack }) {
         place: "",
         billNo: "",
         date: "",
-        salaryMonth: "",
+        billMonth: "",
         type: "",
         group: "",
         emp: totals.emp,
@@ -214,6 +238,7 @@ export default function ChequeRegister({ user, onBack }) {
         year,
         format,
         salaryTime,
+        billMonth: billMonth || undefined,
       });
       const data = res.data || res;
       setRows(Array.isArray(data.rows) ? data.rows : []);
@@ -236,7 +261,7 @@ export default function ChequeRegister({ user, onBack }) {
   }
 
   function handlePrint() {
-    window.print();
+    printReport("chequeRegister");
   }
 
   /* Real .xlsx, built by the backend from the same filters as the screen. */
@@ -256,6 +281,7 @@ export default function ChequeRegister({ user, onBack }) {
         year,
         salaryTime,
         format,
+        billMonth: billMonth || undefined,
       });
     } catch (err) {
       setMessage(err.message || "Unable to export the Cheque Register.");
@@ -363,6 +389,22 @@ export default function ChequeRegister({ user, onBack }) {
           </select>
         </label>
 
+        <label>
+          Bill Month
+          <select
+            value={billMonth}
+            onChange={(e) => setBillMonth(e.target.value)}
+            title="Auto lists every approved Bill Month of the selected Salary Month, each row showing its own Bill Month and TYPE. Selecting a Bill Month lists only that Bill Month's approved bills."
+          >
+            <option value="">Auto (all Bill Months of this Salary Month)</option>
+            {billMonthOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <div className="cr-filter-actions">
           <button type="submit" className="cr-btn cr-btn-primary" disabled={loading}>
             {loading ? "Loading..." : "SHOW"}
@@ -458,6 +500,8 @@ export default function ChequeRegister({ user, onBack }) {
           */}
           <div className="cr-report-actions no-print">
             <GridToolbar
+              reportName="chequeRegister"
+              subtitle={[sectionHeading, title]}
               title="Cheque Register"
               columns={COLUMNS}
               rows={exportRows}

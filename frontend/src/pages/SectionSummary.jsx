@@ -6,6 +6,7 @@ import {
 import { getChequeRegisterMeta } from "../utils/chequeRegisterApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./sectionSummary.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Same amount formatting the other reports use. */
 function money(value) {
@@ -46,6 +47,8 @@ function formatReportDate(iso) {
 }
 
 export default function SectionSummary({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("sectionSummary");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [years, setYears] = useState([]);
@@ -143,7 +146,7 @@ export default function SectionSummary({ user, onBack }) {
   }
 
   function handlePrint() {
-    window.print();
+    printReport("sectionSummary");
   }
 
   return (
@@ -295,6 +298,8 @@ export default function SectionSummary({ user, onBack }) {
 
           <div className="ss-actions no-print">
             <GridToolbar
+              reportName="sectionSummary"
+              subtitle={[report.heading, report.monthLine, report.subHeading]}
               title="Section Summary"
               columns={COLUMNS}
               rows={exportRows}

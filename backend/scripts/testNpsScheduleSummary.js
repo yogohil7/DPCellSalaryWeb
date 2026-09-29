@@ -387,7 +387,7 @@ function main() {
     /display:\s*block\s*!important/.test(cssSrc), true);
   check("print does not use the global body-star visibility hack",
     /body \*/.test(cssSrc), false);
-  check("A4 portrait for six columns", /size:\s*A4 portrait/.test(cssSrc), true);
+  check("A4 portrait for six columns (reportPdfConfig)", (new RegExp("npsScheduleSummary: \\{[^}]*orientation: \"portrait\"").test(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "utils", "reportPdfConfig.js"), "utf8")) && require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "pages", "NpsScheduleSummary.jsx"), "utf8").includes('useReportPrintPage("npsScheduleSummary")')), true);
   check("the table header repeats across pages",
     /display:\s*table-header-group/.test(cssSrc), true);
   check("filters, saved list and buttons are hidden when printing",
@@ -573,8 +573,8 @@ function main() {
   check("30. the letter print block keeps the scoped shell reset",
     /\.nsch-letter-wrap[\s\S]{0,400}page-break-before/.test(cssSrc) &&
       /\.app-shell[\s\S]{0,200}overflow: visible/.test(cssSrc), true);
-  check("30. only one @page rule exists, so orientations cannot conflict",
-    (cssSrc.match(/@page\s*\{/g) || []).length, 1);
+  check("30. no global @page rule in the stylesheet, so orientations cannot conflict",
+    (cssSrc.match(/@page\s*\{/g) || []).length, 0);
   check("30. letter controls are excluded from print",
     /nsch-letter-inputs no-print/.test(pageCode), true);
   check("the report still has no save endpoint",

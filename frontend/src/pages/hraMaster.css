@@ -49,8 +49,7 @@
   font-size: 13px;
   font-weight: 600;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 }
 
 
@@ -105,8 +104,7 @@
   font-size: 12px;
   font-weight: 400;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 
   color: var(--hr-label);
   text-align: left;
@@ -160,8 +158,7 @@ display: block;
   font-size: 12px;
   font-weight: 400;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 
   color: #212529;
 
@@ -240,8 +237,7 @@ display: block;
 
   font-size: 12px;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 }
 
 
@@ -259,8 +255,7 @@ display: block;
 
   font-size: 12px;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 
   cursor: pointer;
 
@@ -399,8 +394,7 @@ display: block;
 
   font-size: 12px;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 }
 
 
@@ -424,8 +418,7 @@ display: block;
 
   font-size: 11px;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 
   border: 1px solid #3d5166;
 
@@ -449,8 +442,7 @@ display: block;
 
   font-size: 12px;
 
-  font-family:
-    "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-family-base);
 
   color: #212529;
 }

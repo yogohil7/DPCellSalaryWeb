@@ -282,8 +282,12 @@ const emp = (over) => ({ employeeId: 1, employeeName: "Test", nps: 0, ...over })
     /return Math\.ceil\(amount \* NPS_RATE\);/.test(daSrc), true);
   check("the guard does not compute or alter any NPS value",
     /hasNpsDeduction[\s\S]{0,400}?(calculateNps|Math\.ceil|nps =)/.test(routeSrc), false);
-  check("NPSScheduleNo storage is unchanged",
-    /NPSScheduleNo = \$\{npsScheduleNo \|\| null\}/.test(routeSrc), true);
+  const headerSrcForStorage = fs.readFileSync(
+    path.join(ROOT, "utils", "salaryEntryBillHeader.js"), "utf8"
+  );
+  check("NPSScheduleNo storage moved to the bill-month-specific header table, not removed",
+    /NPSScheduleNo = \$\{npsScheduleNo \|\| null\}/.test(headerSrcForStorage) &&
+      !/NPSScheduleNo = \$\{npsScheduleNo \|\| null\}/.test(routeSrc), true);
   check("no schema statement was introduced",
     /ALTER TABLE|CREATE TABLE/.test(routeSrc), false);
 

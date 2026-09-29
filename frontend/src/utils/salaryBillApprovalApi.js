@@ -58,50 +58,51 @@ export async function listAuditors() {
   return parseResponse(response);
 }
 
-export async function getApprovalBill(idOrCode, instituteCode) {
+export async function getApprovalBill(idOrCode, instituteCode, billMonth) {
   const params = new URLSearchParams();
   if (instituteCode) params.set("instituteCode", String(instituteCode));
+  if (billMonth) params.set("billMonth", String(billMonth));
   const response = await apiFetch(
     `${API_BASE}/${encodeURIComponent(idOrCode)}?${params.toString()}`
   );
   return parseResponse(response);
 }
 
-export async function verifyApprovalBill(idOrCode, instituteCode, user) {
+export async function verifyApprovalBill(idOrCode, instituteCode, user, billMonth) {
   const response = await apiFetch(
     `${API_BASE}/${encodeURIComponent(idOrCode)}/verify`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(withActor({ instituteCode }, user)),
+      body: JSON.stringify(withActor({ instituteCode, billMonth }, user)),
     }
   );
   return parseResponse(response);
 }
 
-export async function approveApprovalBill(idOrCode, instituteCode, user) {
+export async function approveApprovalBill(idOrCode, instituteCode, user, billMonth) {
   const response = await apiFetch(
     `${API_BASE}/${encodeURIComponent(idOrCode)}/approve`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(withActor({ instituteCode }, user)),
+      body: JSON.stringify(withActor({ instituteCode, billMonth }, user)),
     }
   );
   return parseResponse(response);
 }
 
-export async function lockApprovalInstitute(idOrCode, instituteCode, user) {
+export async function lockApprovalInstitute(idOrCode, instituteCode, user, billMonth) {
   const response = await apiFetch(`${API_BASE}/${encodeURIComponent(idOrCode)}/lock`, {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(withActor({ instituteCode }, user)),
+    body: JSON.stringify(withActor({ instituteCode, billMonth }, user)),
   });
   return parseResponse(response);
 }
 
 export async function returnApprovalBill(
   idOrCode,
-  { instituteCode, returnedToAuditorId, returnedRemarks },
+  { instituteCode, returnedToAuditorId, returnedRemarks, billMonth },
   user
 ) {
   const response = await apiFetch(
@@ -116,6 +117,7 @@ export async function returnApprovalBill(
             returnedToAuditorId,
             returnedRemarks,
             returnReason: returnedRemarks,
+            billMonth,
           },
           user
         )
@@ -127,7 +129,7 @@ export async function returnApprovalBill(
 
 export async function rejectApprovalBill(
   idOrCode,
-  { instituteCode, rejectReason },
+  { instituteCode, rejectReason, billMonth },
   user
 ) {
   const response = await apiFetch(
@@ -135,7 +137,7 @@ export async function rejectApprovalBill(
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(withActor({ instituteCode, rejectReason }, user)),
+      body: JSON.stringify(withActor({ instituteCode, rejectReason, billMonth }, user)),
     }
   );
   return parseResponse(response);

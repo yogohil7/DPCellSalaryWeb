@@ -210,10 +210,12 @@ function main() {
   /* ============ ONE SOURCE OF TRUTH ============ */
   section("Screen, Excel, CSV/PDF/Copy and Print agree");
 
-  check("exportRows override salaryMonth with the bill month",
-    /salaryMonth: billMonthOf\(row\)/.test(uiSrc), true);
-  check("Excel column maps to billMonthLabel",
-    /\{ key: "billMonthLabel", label: "Salary Month" \}/.test(backendSrc), true);
+  /* 2026-09-24: Bill Month has its own column (the approved instance's
+     Bill Month); Salary Month now shows the salary month name (AUGUST). */
+  check("exportRows carry the instance Bill Month",
+    /billMonth: billMonthOf\(row\),/.test(uiSrc), true);
+  check("no Salary Month column in the Excel export",
+    /label: "Salary Month"/.test(backendSrc), false);
   check("export reuses the SAME report builder as the screen",
     (backendSrc.match(/buildChequeRegisterReport\(/g) || []).length >= 3, true);
   check("screen endpoint uses the builder too",
@@ -270,7 +272,8 @@ function main() {
     /\.app-sidebar,[\s\S]{0,120}\.app-header/.test(cssSrc), true);
   check("filters and action bar hidden when printing",
     /\.cr-filters,[\s\S]{0,80}\.cr-report-actions/.test(cssSrc), true);
-  check("landscape paper", /size: A4 landscape/.test(cssSrc), true);
+  /* 2026-09-24: orientation lives in utils/reportPdfConfig.js, not a global @page. */
+  check("landscape paper (A4 landscape via reportPdfConfig, Cheque Register only)", (new RegExp("chequeRegister: \\{[^}]*orientation: \"landscape\"").test(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "utils", "reportPdfConfig.js"), "utf8")) && require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "pages", "ChequeRegister.jsx"), "utf8").includes('useReportPrintPage("chequeRegister")')), true);
   check("table fits the page", /table-layout: fixed/.test(cssSrc), true);
   check("header repeats across pages", /display: table-header-group/.test(cssSrc), true);
   check("totals stay with the table", /display: table-footer-group/.test(cssSrc), true);
@@ -285,8 +288,8 @@ function main() {
     /exportRows[\s\S]{0,700}group:\s*row\.group/.test(uiSrc), false);
   check("export rows spread the screen row, so group travels unchanged",
     /const exportRows = useMemo\([\s\S]{0,400}\.\.\.row,/.test(uiSrc), true);
-  check("Salary Month in the export rows is the BILL month",
-    /const exportRows = useMemo\([\s\S]{0,400}salaryMonth: billMonthOf\(row\)/.test(uiSrc), true);
+  check("export rows carry the instance Bill Month, and no Salary Month column exists",
+    /const exportRows = useMemo\([\s\S]{0,400}billMonth: billMonthOf\(row\),/.test(uiSrc) && !/label: "Salary Month"/.test(uiSrc), true);
   check("the totals row travels with CSV / PDF / Copy",
     /const exportRows = useMemo\([\s\S]{0,1200}srNo: "TOTAL"/.test(uiSrc), true);
   check("totals are reused, never recomputed for the export",
@@ -303,8 +306,8 @@ function main() {
     /Totals row, in the same shape the screen prints/.test(backendSrc), true);
   check("the .xlsx Group column is the Institute Code column",
     /key: "group"/.test(backendSrc), true);
-  check("the .xlsx Salary Month column is fed by billMonthLabel",
-    /billMonthLabel[\s\S]{0,80}Salary Month|Salary Month[\s\S]{0,80}billMonthLabel/.test(backendSrc), true);
+  check("the .xlsx Bill Month column is fed by the instance Bill Month",
+    /\{ key: "billMonthQueried", label: "Bill Month" \}/.test(backendSrc), true);
 
   /* ============ BILL MONTH RESOLUTION (value-level) ============ */
   section("Bill Month is resolved from BillMonth, not the salary month number");
@@ -342,8 +345,12 @@ function main() {
      REGULAR/OLD classification only. Two different resolvers, on purpose. */
   check("the report period filter uses the SALARY month",
     /salaryParts = salaryMonthPartsOf\(/.test(backendSrc), true);
-  check("the month column still resolves the BILL month",
-    /billYm = billMonthPartsOf\(/.test(backendSrc), true);
+  {
+    const sharedSrc = require("fs").readFileSync(require("path").join(__dirname, "..", "utils", "reportBillInstance.js"), "utf8");
+    check("the month column still resolves the BILL month (of the approved instance, shared resolver)",
+      /billYm = instanceBillMonthPartsOf\(/.test(backendSrc) &&
+        /normalizeYearMonth\(source, row\.SalaryYear, null\)/.test(sharedSrc), true);
+  }
   check("no caller passes SalaryMonthNumber while normalizing a BillMonth",
     /normalizeYearMonth\(\s*row\.BillMonth,\s*row\.SalaryYear,\s*row\.SalaryMonthNumber/.test(backendSrc), false);
 

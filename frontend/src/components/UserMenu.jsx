@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { NavigationIcon } from "./SidebarIcons";
 
 export default function UserMenu({ user, onNavigate, onLogout }) {
   const [open, setOpen] = useState(false);
@@ -27,6 +28,14 @@ export default function UserMenu({ user, onNavigate, onLogout }) {
         onClick={() => setOpen((v) => !v)}
         onKeyDown={(event) => {
           if (event.key === "Escape") setOpen(false);
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setOpen(true);
+            setTimeout(
+              () => ref.current?.querySelector('[role="menuitem"]')?.focus(),
+              0
+            );
+          }
         }}
       >
         <span className="user-menu-name">{name}</span>
@@ -36,7 +45,31 @@ export default function UserMenu({ user, onNavigate, onLogout }) {
         </span>
       </button>
       {open ? (
-        <div className="menu-panel user-menu-panel" id={menuId} role="menu">
+        <div
+          className="menu-panel user-menu-panel"
+          id={menuId}
+          role="menu"
+          onKeyDown={(event) => {
+            const els = Array.from(
+              ref.current?.querySelectorAll('[role="menuitem"]') || []
+            );
+            const i = els.indexOf(document.activeElement);
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              els[(i + 1) % els.length]?.focus();
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault();
+              els[(i - 1 + els.length) % els.length]?.focus();
+            } else if (event.key === "Escape") setOpen(false);
+          }}
+        >
+          <div className="menu-header" role="presentation">
+            <span className="menu-header-name">{name}</span>
+            {roleLabel ? (
+              <span className="menu-header-meta">{roleLabel}</span>
+            ) : null}
+          </div>
+          <div className="menu-separator" role="separator" />
           <button
             type="button"
             role="menuitem"
@@ -45,7 +78,8 @@ export default function UserMenu({ user, onNavigate, onLogout }) {
               onNavigate("change-password");
             }}
           >
-            Change Password
+            <NavigationIcon name="key" className="menu-item-icon" />
+            <span className="menu-item-text">Change Password</span>
           </button>
           <div className="menu-separator" role="separator" />
           <button
@@ -57,7 +91,8 @@ export default function UserMenu({ user, onNavigate, onLogout }) {
               onLogout();
             }}
           >
-            Logout
+            <NavigationIcon name="logout" className="menu-item-icon" />
+            <span className="menu-item-text">Logout</span>
           </button>
         </div>
       ) : null}

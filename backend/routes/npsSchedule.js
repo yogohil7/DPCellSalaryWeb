@@ -285,10 +285,12 @@ async function buildNpsScheduleReport(query = {}) {
         );
         return parts ? parts.year * 12 + parts.month : null;
       })(),
+      /* The schedule number of THIS row's Bill Month instance, already
+         resolved by the shared loader (its Bill-Month header, else its own
+         workflow row). The bill+institute map below cannot tell a JUL-2026
+         instance from the AUG-2026 one, so it is used for DA bills only. */
       npsScheduleNo:
-        scheduleNumbers.get(
-          `${Number(base.billCodeId)}|${String(base.instituteCode || "").trim()}`
-        ) || "",
+        raw.NPSScheduleNo == null ? "" : String(raw.NPSScheduleNo).trim(),
       pran: raw.GPFNPSNumber == null ? "" : String(raw.GPFNPSNumber).trim(),
     };
   });

@@ -250,13 +250,11 @@
 }
 
 /* =====================================================
-   PRINT — the report only, on landscape paper
+   PRINT — the report only (Legal landscape via reportPdfConfig.js)
    ===================================================== */
 
-@page {
-  size: A4 landscape;
-  margin: 10mm;
-}
+/* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+     injected only while this report is on screen — never a global rule. */
 
 @media print {
   /* Hide every application chrome element: header, sidebar, filters,

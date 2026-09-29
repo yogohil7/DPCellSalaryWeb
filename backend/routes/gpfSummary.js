@@ -17,6 +17,11 @@
 
 const express = require("express");
 const { sql } = require("../db");
+const {
+  instanceEmployeeRowsSql,
+  instanceBillMonthSelectSql,
+  queryReport,
+} = require("../utils/reportBillInstance");
 const { matchesFilterMonthYear } = require("../utils/salaryMonthKey");
 const {
   APPROVED_WORKFLOW_STATUSES,
@@ -58,10 +63,10 @@ function round2(value) {
  * read straight from the stored columns.
  */
 async function loadGpfRows() {
-  const result = await sql.query`
+  const result = await queryReport(`
     SELECT
       b.BillCode,
-      b.BillMonth,
+      ${instanceBillMonthSelectSql()},
       b.SalaryMonth,
       b.SalaryMonthNumber,
       b.SalaryYear,
@@ -79,9 +84,8 @@ async function loadGpfRows() {
     FROM dbo.SalaryBillInstituteWorkflow w
     INNER JOIN dbo.SalaryBillCodes b
       ON b.BillCodeId = w.SalaryBillCodeId
-    INNER JOIN dbo.SalaryEmployeeDetails d
-      ON d.SalaryBillCodeId = w.SalaryBillCodeId
-     AND d.InstituteCode = w.InstituteCode
+    INNER JOIN ${instanceEmployeeRowsSql()} d
+      ON d.InstanceWorkflowId = w.WorkflowId
     LEFT JOIN dbo.Institutes i
       ON i.InstituteCode = w.InstituteCode
     LEFT JOIN dbo.Sections sec
@@ -92,7 +96,7 @@ async function loadGpfRows() {
       AND ISNULL(b.IsArchived, 0) = 0
       AND (ISNULL(d.GPFSubscription, 0) <> 0 OR ISNULL(d.GPFAdvance, 0) <> 0)
     ORDER BY sec.SrNo, i.SectionId, w.InstituteCode, d.DisplayOrder
-  `;
+  `);
   return result.recordset;
 }
 

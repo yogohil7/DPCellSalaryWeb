@@ -8,6 +8,7 @@ import { listInstitutes } from "../utils/instituteApi";
 import { listEmployees } from "../utils/employeeApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./npsGpfDeduction.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Stored values, en-IN with paise. An exact zero prints as "0". */
 function money(value) {
@@ -45,6 +46,8 @@ const MONTHS = [
 ];
 
 export default function NpsGpfDeduction({ onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("npsGpfDeduction");
   const [sections, setSections] = useState([]);
   const [institutes, setInstitutes] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -176,7 +179,7 @@ export default function NpsGpfDeduction({ onBack }) {
       await document.fonts.ready;
     }
     requestAnimationFrame(() => {
-      window.print();
+      printReport("npsGpfDeduction");
     });
   }
 
@@ -532,6 +535,7 @@ export default function NpsGpfDeduction({ onBack }) {
 
           <div className="ngd-actions no-print">
             <GridToolbar
+              reportName="npsGpfDeduction"
               title="NPS GPF Deduction Report"
               columns={COLUMNS}
               rows={exportRows}

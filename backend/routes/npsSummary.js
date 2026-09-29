@@ -19,6 +19,11 @@
 const express = require("express");
 const { sql } = require("../db");
 const {
+  instanceEmployeeRowsSql,
+  instanceBillMonthSelectSql,
+  queryReport,
+} = require("../utils/reportBillInstance");
+const {
   matchesFilterMonthYear,
   resolveChequeSalaryType,
   billTypeMatchesFilter,
@@ -60,10 +65,10 @@ function round2(value) {
  * stays consistent with the money beside it.
  */
 async function loadNpsRows() {
-  const result = await sql.query`
+  const result = await queryReport(`
     SELECT
       b.BillCode,
-      b.BillMonth,
+      ${instanceBillMonthSelectSql()},
       b.SalaryMonth,
       b.SalaryMonthNumber,
       b.SalaryYear,
@@ -80,9 +85,8 @@ async function loadNpsRows() {
     FROM dbo.SalaryBillInstituteWorkflow w
     INNER JOIN dbo.SalaryBillCodes b
       ON b.BillCodeId = w.SalaryBillCodeId
-    INNER JOIN dbo.SalaryEmployeeDetails d
-      ON d.SalaryBillCodeId = w.SalaryBillCodeId
-     AND d.InstituteCode = w.InstituteCode
+    INNER JOIN ${instanceEmployeeRowsSql()} d
+      ON d.InstanceWorkflowId = w.WorkflowId
     LEFT JOIN dbo.Institutes i
       ON i.InstituteCode = w.InstituteCode
     LEFT JOIN dbo.Sections sec
@@ -93,7 +97,7 @@ async function loadNpsRows() {
       AND ISNULL(b.IsArchived, 0) = 0
       AND ISNULL(d.NPS, 0) <> 0
     ORDER BY sec.SrNo, i.SectionId, w.InstituteCode, d.DisplayOrder
-  `;
+  `);
   return result.recordset;
 }
 

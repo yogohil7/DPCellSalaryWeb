@@ -6,6 +6,7 @@ import { NotificationProvider } from "./components/Notifications.jsx";
 
 import "./App.css";
 import "./grid.css";
+import "./modern.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

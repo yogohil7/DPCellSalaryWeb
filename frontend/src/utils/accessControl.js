@@ -48,7 +48,6 @@ export const PAGE_PERMISSION_PREFIX = {
   "user-master": "MASTER_USER",
   "role-permission-master": "MASTER_ROLE_PERMISSION",
   "salary-bill-code-master": "MASTER_SALARY_BILL_CODE",
-  "salary-process": "SALARY_PROCESS",
   "salary-entry": "SALARY_ENTRY",
   "da-difference-entry": "DA_DIFFERENCE_ENTRY",
   "salary-approval": "SALARY_APPROVAL",
@@ -68,8 +67,12 @@ export const PAGE_PERMISSION_PREFIX = {
   "nps-deduction": "REPORT_SALARY",
   "income-tax-professional-tax": "REPORT_SALARY",
   "nps-schedule": "REPORT_SALARY",
+  "month-wise-employee-salary": "REPORT_SALARY",
   "employee-report": "REPORT_SALARY",
   "variation-report": "REPORT_VARIATION",
+  /* Drill-down of Salary Register — same permission as the register itself;
+     not a separate menu entry (see modules.js REPORTS: intentionally absent). */
+  "salary-register-detail": "REPORT_SALARY",
 };
 
 function permissionList(user) {
@@ -87,10 +90,21 @@ export function hasPermissionPrefix(user, prefix) {
   );
 }
 
+/*
+ * A page id is valid only if it is registered here. Anything else (a removed
+ * module, a mistyped hash) is not a page: it is never rendered and AppShell
+ * silently redirects to the user's home page.
+ */
+export function isKnownPage(pageId) {
+  const id = String(pageId || "").trim();
+  return Object.prototype.hasOwnProperty.call(PAGE_PERMISSION_PREFIX, id);
+}
+
 export function canAccessPage(user, pageId) {
   const id = String(pageId || "").trim();
   if (!id || !user) return false;
   if (id === "change-password") return true;
+  if (!isKnownPage(id)) return false;
 
   const role = normalizeRole(user.roleName || user.role);
   if (role === "ADMIN") return true;
@@ -101,6 +115,9 @@ export function canAccessPage(user, pageId) {
   }
 
   if (role === "ACCOUNT_OFFICER") {
+    /* The Dashboard is open to an Account Officer (their landing page is
+       still Salary Approval — see defaultHomePage). */
+    if (id === "home") return true;
     if (REPORTS.some((item) => item.id === id)) return true;
     return false;
   }
@@ -123,8 +140,10 @@ export function canAccessPage(user, pageId) {
   return hasPermissionPrefix(user, prefix);
 }
 
-export function defaultHomePage(user) {
-  if (isAccountOfficer(user)) return "salary-approval";
+/* Every role lands on the Dashboard. (An Account Officer used to land on
+   Salary Approval; the Dashboard is now their home, and Salary Approval is
+   one click away in the top navigation.) */
+export function defaultHomePage() {
   return "home";
 }
 
@@ -144,7 +163,7 @@ export function getNavMenus(user) {
 
   if (role === "ACCOUNT_OFFICER") {
     return {
-      showHome: false,
+      showHome: canAccessPage(user, "home"),
       masters: [],
       administration: [],
       salary: [],
@@ -180,9 +199,43 @@ export function readHashPage() {
   return hash.split("?")[0];
 }
 
-export function writeHashPage(pageId) {
+/*
+ * The query-string portion of the hash, as a plain object — e.g.
+ * "#/salary-register-detail?workflowId=52&month=8" -> { workflowId: "52", month: "8" }.
+ * Used so a page can carry state (a drill-down's bill identity, a report's
+ * filters) through refresh and browser back/forward, rather than only in
+ * transient React state that a reload discards. Empty when the hash has no
+ * "?" — every existing single-id hash keeps working exactly as before.
+ */
+export function readHashParams() {
+  const hash = String(window.location.hash || "");
+  const qIndex = hash.indexOf("?");
+  if (qIndex === -1) return {};
+  const out = {};
+  new URLSearchParams(hash.slice(qIndex + 1)).forEach((value, key) => {
+    out[key] = value;
+  });
+  return out;
+}
+
+/*
+ * params is optional and additive: writeHashPage(id) writes exactly the same
+ * "#/id" it always has. writeHashPage(id, params) appends params as a query
+ * string on the hash, so a refresh or a hashchange (back/forward) can restore
+ * them via readHashParams() instead of losing them to in-memory state alone.
+ */
+export function writeHashPage(pageId, params) {
   const id = String(pageId || "home");
-  const next = id === "home" ? "#/" : `#/${id}`;
+  const usable =
+    params && typeof params === "object"
+      ? Object.entries(params).filter(
+          ([, v]) => v !== undefined && v !== null && v !== ""
+        )
+      : [];
+  const query = usable.length
+    ? `?${new URLSearchParams(usable.map(([k, v]) => [k, String(v)])).toString()}`
+    : "";
+  const next = (id === "home" ? "#/" : `#/${id}`) + query;
   if (window.location.hash !== next) {
     window.location.hash = next;
   }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "../grid.css";
+import { buildReportPrintHtml, formatIndianMoney, getReportPdfOptions } from "../utils/reportPdfConfig";
 
 function statusClass(value) {
   const key = String(value || "")
@@ -43,30 +44,80 @@ function download(filename, text, mime) {
   URL.revokeObjectURL(url);
 }
 
-function printGrid(title, header, body) {
-  const win = window.open("", "_blank", "noopener,noreferrer,width=1024,height=768");
-  if (!win) return;
-  const rowsHtml = body
-    .map(
-      (row) =>
-        `<tr>${row.map((cell) => `<td>${String(cell).replace(/</g, "&lt;")}</td>`).join("")}</tr>`
-    )
-    .join("");
-  win.document.write(`<!doctype html><html><head><title>${title}</title>
-    <style>
-      body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #1f2937; }
-      h1 { font-size: 16px; }
-      table { border-collapse: collapse; width: 100%; }
-      th, td { border: 1px solid #d5dde5; padding: 6px 8px; }
-      th { background: #2f4e6f; color: #fff; }
-    </style></head><body>
-    <h1>${title}</h1>
-    <table><thead><tr>${header.map((cell) => `<th>${cell}</th>`).join("")}</tr></thead>
-    <tbody>${rowsHtml}</tbody></table>
-    </body></html>`);
-  win.document.close();
-  win.focus();
-  win.print();
+/*
+ * PDF / Print for every report grid (2026-09-24).
+ *
+ * The old version opened a window with "noopener", which makes window.open
+ * return null in current browsers, so both buttons silently did nothing.
+ * This prints through a hidden iframe instead (no popup blocker), with the
+ * report's own paper and orientation from reportPdfConfig.js (Legal landscape for Cheque
+ * Register only, portrait for everything else), a header row that repeats
+ * on every page, the heading / filter lines and the totals row.  The rows
+ * are exactly what the screen grid exports — nothing is fetched again.
+ */
+function printGrid({ reportName, title, subtitle, header, body, footer }) {
+  if (typeof document === "undefined") return;
+  const options = getReportPdfOptions(reportName);
+  const html = buildReportPrintHtml({
+    reportName,
+    title,
+    subtitle,
+    header,
+    body,
+    footer,
+    printedOn: new Date().toLocaleString("en-IN"),
+  });
+  const frame = document.createElement("iframe");
+  frame.setAttribute("aria-hidden", "true");
+  frame.setAttribute("title", "print");
+  /* Laid out at the printable page width so the fit-to-width check below is real. */
+  frame.style.cssText = `position:fixed;left:-20000px;top:0;width:${options.printableWidthPx}px;height:200px;border:0;`;
+  document.body.appendChild(frame);
+  const win = frame.contentWindow;
+  const doc = win.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  const previousTitle = document.title;
+  let removed = false;
+  const cleanup = () => {
+    if (removed) return;
+    removed = true;
+    document.title = previousTitle;
+    frame.remove();
+  };
+
+  window.setTimeout(() => {
+    try {
+      /*
+        Shrink (never enlarge) the font until the table fits the page width,
+        so no column is cut off.  The width is re-measured after every step,
+        so the fit is checked rather than estimated.
+      */
+      const table = doc.querySelector("table");
+      for (let pass = 0; table && pass < 4; pass += 1) {
+        const needed = table.scrollWidth;
+        if (needed <= options.printableWidthPx) break;
+        const current = parseFloat(win.getComputedStyle(doc.body).fontSize) || 10;
+        const next = Math.max(4, Math.floor(current * (options.printableWidthPx / needed) * 10) / 10);
+        if (next >= current) break;
+        doc.body.style.fontSize = `${next}px`;
+      }
+      /* Very wide grids (e.g. Variation Report) still too wide at the smallest
+         font are scaled as a last resort, so nothing is ever clipped. */
+      if (table && table.scrollWidth > options.printableWidthPx) {
+        const zoom = Math.floor((options.printableWidthPx / table.scrollWidth) * 100) / 100;
+        doc.body.style.zoom = String(Math.max(0.3, zoom));
+      }
+      document.title = doc.title || previousTitle;
+      win.addEventListener("afterprint", () => window.setTimeout(cleanup, 0));
+      win.focus();
+      win.print();
+    } finally {
+      window.setTimeout(cleanup, 60000);
+    }
+  }, 60);
 }
 
 export function GridStatus({ value }) {
@@ -106,6 +157,18 @@ export function GridToolbar({
     Defaults to showing everything, so no existing caller changes.
   */
   hiddenActions = [],
+  /*
+    PDF / Print layout (see utils/reportPdfConfig.js):
+      reportName  key into REPORT_PDF_CONFIG (unknown -> A4 portrait)
+      subtitle    heading / filter / period line(s) printed under the title
+      footerRows  totals row(s), same objects/keys as `rows`, printed last
+      moneyKeys   raw numeric keys printed in Indian format (PDF/Print only;
+                  CSV / Copy keep the raw values they always had)
+  */
+  reportName = "",
+  subtitle,
+  footerRows = [],
+  moneyKeys = [],
 }) {
   const hidden = new Set(
     (Array.isArray(hiddenActions) ? hiddenActions : []).map((a) =>
@@ -122,6 +185,14 @@ export function GridToolbar({
       return;
     }
     setLocalVisible((prev) => ({ ...prev, [key]: prev[key] === false }));
+  };
+  /* Select All / Clear All reuse the per-column toggle for only the columns
+     whose state differs, so column-visibility state handling is unchanged. */
+  const setAllVisible = (visible) => {
+    hideable.forEach((column) => {
+      const isVisible = keys[column.key] !== false;
+      if (isVisible !== visible) toggle(column.key);
+    });
   };
 
   const runExport = (mode) => {
@@ -144,7 +215,33 @@ export function GridToolbar({
       download(`${title}.xls`, toCsv(header, body), "application/vnd.ms-excel");
       return;
     }
-    printGrid(title, header, body);
+    const money = new Set(Array.isArray(moneyKeys) ? moneyKeys : []);
+    const printCols = money.size
+      ? visible.map((column) =>
+          money.has(column.key) && !column.getValue
+            ? {
+                ...column,
+                getValue: (row) =>
+                  row?.[column.key] == null || row[column.key] === ""
+                    ? ""
+                    : formatIndianMoney(row[column.key]),
+              }
+            : column
+        )
+      : visible;
+    const printed = exportRows(printCols, rows);
+    const footer = exportRows(
+      printCols.map((column) => (column.type === "serial" ? { ...column, type: undefined } : column)),
+      Array.isArray(footerRows) ? footerRows : []
+    ).body;
+    printGrid({
+      reportName,
+      title,
+      subtitle,
+      header: printed.header,
+      body: printed.body,
+      footer,
+    });
   };
 
   return (
@@ -160,6 +257,14 @@ export function GridToolbar({
           </button>
           {menuOpen ? (
             <div className="data-grid-columns-panel">
+              <div className="data-grid-columns-actions">
+                <button type="button" onClick={() => setAllVisible(true)}>
+                  Select All
+                </button>
+                <button type="button" onClick={() => setAllVisible(false)}>
+                  Clear All
+                </button>
+              </div>
               {hideable.map((column) => (
                 <label key={column.key || column.label}>
                   <input

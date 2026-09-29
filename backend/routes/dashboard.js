@@ -200,6 +200,9 @@ async function buildDashboardSummary() {
       INNER JOIN dbo.SalaryBillInstituteWorkflow w
         ON w.SalaryBillCodeId = d.SalaryBillCodeId
        AND w.InstituteCode = d.InstituteCode
+       /* dbo.SalaryEmployeeDetails is the canonical instance's snapshot:
+          only that instance's workflow row (not an earlier Bill Month's). */
+       AND (w.BillMonth = UPPER(LEFT(LTRIM(RTRIM(b.SalaryMonth)), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4)) OR b.BillCode LIKE N'%-BM-%')
       WHERE LTRIM(RTRIM(b.SalaryYear)) = ${salaryYear}
         AND TRY_CAST(b.SalaryMonthNumber AS INT) = ${salaryMonthNumber}
         AND ISNULL(b.IsArchived, 0) = 0
@@ -216,6 +219,9 @@ async function buildDashboardSummary() {
       INNER JOIN dbo.SalaryBillInstituteWorkflow w
         ON w.SalaryBillCodeId = d.SalaryBillCodeId
        AND w.InstituteCode = d.InstituteCode
+       /* dbo.SalaryEmployeeDetails is the canonical instance's snapshot:
+          only that instance's workflow row (not an earlier Bill Month's). */
+       AND (w.BillMonth = UPPER(LEFT(LTRIM(RTRIM(b.SalaryMonth)), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4)) OR b.BillCode LIKE N'%-BM-%')
       WHERE LTRIM(RTRIM(b.SalaryYear)) = ${prevYear}
         AND TRY_CAST(b.SalaryMonthNumber AS INT) = ${prevMonthNumber}
         AND ISNULL(b.IsArchived, 0) = 0

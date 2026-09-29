@@ -3,6 +3,7 @@ import { getNpsSummary, downloadNpsSummaryExcel } from "../utils/npsSummaryApi";
 import { getChequeRegisterMeta } from "../utils/chequeRegisterApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./npsSummary.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Same amount formatting the other reports use. */
 function money(value) {
@@ -35,6 +36,8 @@ function formatReportDate(iso) {
 }
 
 export default function NpsSummary({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("npsSummary");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [years, setYears] = useState([]);
@@ -136,7 +139,7 @@ export default function NpsSummary({ user, onBack }) {
   }
 
   function handlePrint() {
-    window.print();
+    printReport("npsSummary");
   }
 
   return (
@@ -324,6 +327,8 @@ export default function NpsSummary({ user, onBack }) {
 
           <div className="nps-actions no-print">
             <GridToolbar
+              reportName="npsSummary"
+              subtitle={[report.sectionTitle, report.heading, report.monthLine, report.subHeading]}
               title="NPS Summary"
               columns={COLUMNS}
               rows={exportRows}

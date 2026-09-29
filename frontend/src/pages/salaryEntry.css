@@ -412,6 +412,11 @@
   min-width: 90px;
 }
 
+.retirement-col {
+  width: 100px;
+  min-width: 100px;
+}
+
 .pension-col {
   width: 72px;
   min-width: 72px;
@@ -519,8 +524,12 @@
   left: 414px;
 }
 
-.salary-table .pension-col {
+.salary-table .retirement-col {
   left: 504px;
+}
+
+.salary-table .pension-col {
+  left: 604px;
 }
 
 /* =========================================================
@@ -1111,7 +1120,8 @@
 .salary-table .sticky-col.sr-col,
 .salary-table .sticky-col.name-col,
 .salary-table .sticky-col.designation-col,
-.salary-table .sticky-col.type-col {
+.salary-table .sticky-col.type-col,
+.salary-table .sticky-col.retirement-col {
   color: var(--color-text);
 }
 

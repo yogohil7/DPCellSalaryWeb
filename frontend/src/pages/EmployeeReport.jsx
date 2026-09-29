@@ -6,6 +6,7 @@ import {
 } from "../utils/employeeReportApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./employeeReport.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /*
   EMPLOYEE REPORT — administrative / HR, not a salary report.
@@ -39,6 +40,8 @@ function modeOf(selectionType) {
 }
 
 export default function EmployeeReport({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("employeeReport");
   const [sections, setSections] = useState([]);
   const [institutes, setInstitutes] = useState([]);
 
@@ -131,7 +134,7 @@ export default function EmployeeReport({ user, onBack }) {
       await document.fonts.ready;
     }
     requestAnimationFrame(() => {
-      window.print();
+      printReport("employeeReport");
     });
   }
 
@@ -335,6 +338,8 @@ export default function EmployeeReport({ user, onBack }) {
 
           <div className="emprep-actions no-print">
             <GridToolbar
+              reportName="employeeReport"
+              subtitle={[summary]}
               title="Employee Report"
               columns={columns}
               rows={rows}

@@ -7,6 +7,7 @@ import { getEmployeeWiseSalaryMeta } from "../utils/employeeWiseSalaryApi";
 import { listInstitutes } from "../utils/instituteApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./incomeTaxProfessionalTax.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Same amount formatting the other reports use. */
 function money(value) {
@@ -54,6 +55,8 @@ const SALARY_TYPES = [
 ];
 
 export default function IncomeTaxProfessionalTax({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("incomeTaxProfessionalTax");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [institutes, setInstitutes] = useState([]);
@@ -185,7 +188,7 @@ export default function IncomeTaxProfessionalTax({ user, onBack }) {
       await document.fonts.ready;
     }
     requestAnimationFrame(() => {
-      window.print();
+      printReport("incomeTaxProfessionalTax");
     });
   }
 
@@ -413,6 +416,8 @@ export default function IncomeTaxProfessionalTax({ user, onBack }) {
 
           <div className="itp-actions no-print">
             <GridToolbar
+              reportName="incomeTaxProfessionalTax"
+              subtitle={[report.heading, report.subHeading, summary, report.scopeNote]}
               title="Income Tax & Professional Tax"
               columns={COLUMNS}
               rows={exportRows}

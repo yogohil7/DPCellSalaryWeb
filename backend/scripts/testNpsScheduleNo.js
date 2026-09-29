@@ -204,20 +204,32 @@ function main() {
     /preserveSavedNps\s*=\s*[\s\S]{0,80}npsManual/.test(entrySrc), true);
   check("G. cheque amount still uses the shared helper",
     entrySrc.includes("calculateChequeAmount"), true);
-  /* Every SQL write of the column must target SalaryBillInstituteWorkflow —
-     never SalaryEmployeeDetails or SalaryBillCodes. */
+  /*
+     SUPERSEDED 2026-09-24: NPS Schedule No. (with Bill No. / Bill Date) is
+     now per-Bill-Month-instance, moved from SalaryBillInstituteWorkflow to
+     the new dbo.SalaryEntryBillHeader (migration 49) — see
+     utils/salaryEntryBillHeader.js. routes/salaryEntry.js no longer writes
+     this column directly at all (zero matches here is therefore correct,
+     not a regression); it delegates to upsertSalaryEntryBillHeader.
+     Every SQL write of the column must target SalaryEntryBillHeader — never
+     SalaryEmployeeDetails, SalaryBillCodes or SalaryBillInstituteWorkflow. */
+  const headerSrc = read("utils/salaryEntryBillHeader.js");
   const scheduleWriteTables = [];
-  for (const m of entrySrc.matchAll(/NPSScheduleNo\s*=\s*\$\{/g)) {
-    const before = entrySrc.slice(0, m.index);
+  for (const m of headerSrc.matchAll(/NPSScheduleNo\s*=\s*\$\{/g)) {
+    const before = headerSrc.slice(0, m.index);
     const tables = [...before.matchAll(/(?:UPDATE|INSERT\s+INTO)\s+dbo\.(\w+)/g)];
     scheduleWriteTables.push(tables.length ? tables[tables.length - 1][1] : "(none)");
   }
-  check("G. the only SQL write targets SalaryBillInstituteWorkflow",
-    scheduleWriteTables, ["SalaryBillInstituteWorkflow"]);
+  check("G. every SQL write targets SalaryEntryBillHeader (INSERT + UPDATE)",
+    scheduleWriteTables, ["SalaryEntryBillHeader"]);
+  check("G. routes/salaryEntry.js no longer writes the column directly",
+    /NPSScheduleNo\s*=\s*\$\{/.test(entrySrc), false);
   check("G. never written to SalaryEmployeeDetails",
     scheduleWriteTables.includes("SalaryEmployeeDetails"), false);
   check("G. never written to SalaryBillCodes",
     scheduleWriteTables.includes("SalaryBillCodes"), false);
+  check("G. never written back to SalaryBillInstituteWorkflow",
+    scheduleWriteTables.includes("SalaryBillInstituteWorkflow"), false);
 
   /* ---------------- H ---------------- */
   section("H — Same-month LOCKED bill remains protected");
@@ -240,11 +252,13 @@ function main() {
   check("I. migration drops nothing", /DROP\s+(TABLE|COLUMN)/i.test(migration), false);
   check("I. no new table is created", /CREATE TABLE/i.test(migration), false);
 
-  /* Exactly one storage location across the whole backend. */
+  /* Exactly one storage location across the whole backend — moved to
+     utils/salaryEntryBillHeader.js (SUPERSEDED 2026-09-24, see G above). */
   const backendFiles = ["routes/salaryEntry.js", "routes/salaryBillApproval.js",
-                        "utils/salaryBillInstituteWorkflow.js"];
+                        "utils/salaryBillInstituteWorkflow.js",
+                        "utils/salaryEntryBillHeader.js"];
   const writers = backendFiles.filter((f) => /NPSScheduleNo\s*=\s*\$\{/.test(read(f)));
-  check("I. exactly one writer of the column", writers, ["routes/salaryEntry.js"]);
+  check("I. exactly one writer of the column", writers, ["utils/salaryEntryBillHeader.js"]);
 
   /* Wiring: sent by both save paths and restored on load. */
   const uiSrc = fs.readFileSync(
@@ -258,8 +272,9 @@ function main() {
     /npsScheduleNo:\s*entryNpsScheduleNo/.test(entrySrc), true);
   check("I. backend reads it from the request",
     /req\.body\?\.npsScheduleNo/.test(entrySrc), true);
-  check("I. write is scoped to the exact bill + institute",
-    /NPSScheduleNo = \$\{npsScheduleNo \|\| null\}[\s\S]{0,300}WHERE SalaryBillCodeId = \$\{Number\(bill\.BillCodeId\)\}[\s\S]{0,120}AND InstituteCode/.test(entrySrc),
+  check("I. write is scoped to the exact bill + institute (+ Bill Month)",
+    /NPSScheduleNo = \$\{npsScheduleNo \|\| null\}/.test(headerSrc) &&
+      /SalaryBillCodeId = \$\{Number\(billCodeId\)\}[\s\S]{0,120}AND InstituteCode[\s\S]{0,120}AND BillMonth/.test(headerSrc),
     true);
 
   console.log(`\n${"=".repeat(70)}`);

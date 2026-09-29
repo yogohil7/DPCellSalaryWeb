@@ -6,6 +6,7 @@ import {
 import { listActiveSections } from "../utils/sectionApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./npsInstituteWise.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Whole rupees, as the printed report shows them. */
 function amount(value) {
@@ -41,6 +42,8 @@ function formatReportDate(iso) {
 }
 
 export default function NpsInstituteWiseSummary({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("npsInstituteWiseSummary");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [sectionId, setSectionId] = useState("");
@@ -351,6 +354,8 @@ export default function NpsInstituteWiseSummary({ user, onBack }) {
       {report && rows.length > 0 ? (
         <div className="npsiw-actions no-print">
           <GridToolbar
+            reportName="npsInstituteWiseSummary"
+            subtitle={[report?.sectionTitle, report?.heading, report?.monthLine, report?.subHeading]}
             title="NPS Institute Wise Summary"
             columns={COLUMNS}
             rows={exportRows}
@@ -369,7 +374,7 @@ export default function NpsInstituteWiseSummary({ user, onBack }) {
             <button
               type="button"
               className="npsiw-btn"
-              onClick={() => window.print()}
+              onClick={() => printReport("npsInstituteWiseSummary")}
             >
               Print
             </button>

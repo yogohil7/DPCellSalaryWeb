@@ -6,6 +6,7 @@ import {
 import { listActiveSections } from "../utils/sectionApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./instituteWiseGpf.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Whole rupees, as the legacy GPF report prints them. */
 function amount(value) {
@@ -42,6 +43,8 @@ function formatReportDate(iso) {
 }
 
 export default function InstituteWiseGpfSummary({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("instituteWiseGpfSummary");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [sectionId, setSectionId] = useState("");
@@ -341,6 +344,8 @@ export default function InstituteWiseGpfSummary({ user, onBack }) {
       {report && rows.length > 0 ? (
         <div className="iwg-actions no-print">
           <GridToolbar
+            reportName="instituteWiseGpfSummary"
+            subtitle={[report?.sectionTitle, report?.heading, report?.monthLine, report?.subHeading]}
             title="Institute Wise GPF Summary"
             columns={COLUMNS}
             rows={exportRows}
@@ -359,7 +364,7 @@ export default function InstituteWiseGpfSummary({ user, onBack }) {
             <button
               type="button"
               className="iwg-btn"
-              onClick={() => window.print()}
+              onClick={() => printReport("instituteWiseGpfSummary")}
             >
               Print
             </button>

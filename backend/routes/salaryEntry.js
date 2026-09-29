@@ -9,10 +9,16 @@ const {
 const { loadActivePayrollConfig, isHraForcedZero } = require("../utils/payrollConfig");
 const { calculateSalaryAmounts, calculateNps, calculateChequeAmount } = require("../utils/salaryBasicCalc");
 const {
+  isGpfNpsStoppedForRetirement,
+  salaryYearMonthFromAsOfDate,
+} = require("../utils/retirementRules");
+const {
   getInstituteWorkflow,
   upsertInstituteWorkflow,
   assertInstituteEditable,
+  canonicalBillMonthFromBill,
 } = require("../utils/salaryBillInstituteWorkflow");
+const { APPROVED_WORKFLOW_STATUSES } = require("./chequeRegister");
 const {
   resolveSalaryMonthIncrement,
   recordIncrement,
@@ -20,9 +26,135 @@ const {
 } = require("../utils/employeeIncrement");
 const { loadEmployee, resolveBasicPay } = require("./salaryCalculate");
 const { resolveSalaryEntryBill } = require("../utils/resolveSalaryEntryBill");
+const { normalizeYearMonth, yearMonthKey, formatMonthLabel } = require("../utils/salaryMonthKey");
+const {
+  getSalaryEntryBillHeader,
+  upsertSalaryEntryBillHeader,
+} = require("../utils/salaryEntryBillHeader");
 
+/*
+   Bill Month vs Salary Month display (2026-09-24, superseded same day by
+   real persistence — migration 48, dbo.SalaryBillInstituteWorkflow.BillMonth):
+   Bill Month is no longer merely echoed back for display — it is now saved
+   per institute bill instance (see saveEmployeesHandler below) and reread
+   here on Get Data. This decides what to show for a given call:
+
+   1. The caller explicitly requested a Bill Month THIS call (e.g. the user
+      just changed the dropdown and clicked Get Data, or Save/Submit always
+      sends the selected value) — echo that back, canonicalized.
+   2. Otherwise, fall back to whatever was last PERSISTED for this exact
+      bill + institute (e.g. reopening a saved bill from Returned Bills
+      without the frontend already knowing its Bill Month).
+   3. Otherwise (nothing requested, nothing saved yet — a brand new bill),
+      fall back to elseValue (defaults to the Salary Month).
+*/
+function resolveDisplayBillMonth({
+  requestedBillMonth,
+  canonicalBillMonth,
+  persistedBillMonth,
+  elseValue,
+}) {
+  if (requestedBillMonth && canonicalBillMonth) return canonicalBillMonth;
+  if (persistedBillMonth) return persistedBillMonth;
+  return canonicalBillMonth || elseValue;
+}
+
+
+/**
+ * Identity of the Salary Entry bill INSTANCE being loaded/saved - the ONE
+ * place GET /employees and Save Draft/Submit derive it, so they can never
+ * disagree (2026-09-24, multiple-independent-bills rule).
+ *
+ *   instanceBillMonth   key for dbo.SalaryBillInstituteWorkflow,
+ *                       dbo.SalaryEntryBillHeader and (non-canonical only)
+ *                       dbo.SalaryEntryBillEmployeeDetails
+ *   isCanonicalInstance true  -> employee data in dbo.SalaryEmployeeDetails
+ *                       false -> dbo.SalaryEntryBillEmployeeDetails
+ *   displayBillMonth    what the user selected, for the response only
+ *
+ * Plain master bill (e.g. AUG-2026, the normal case): the instance IS the
+ * selected Bill Month. JUL-2026 and AUG-2026 are two instances of bill 1018;
+ * AUG-2026 (== the bill's own Salary Month) is the canonical one.
+ *
+ * Pre-existing "-BM-" variant bill (e.g. 1019 AUG-2026-BM-JUL, reached by
+ * exact code from Returned Bills): that row is ITSELF a separate bill whose
+ * Bill Month is part of its own identity. Its data has always lived in
+ * dbo.SalaryEmployeeDetails under its own BillCodeId, and migration 51
+ * labelled its workflow rows with its canonical label - exactly as the
+ * approval routes (canonicalBillMonthFromBill) read them. So it is always
+ * its own canonical instance.
+ */
+function resolveEntryInstance(resolved) {
+  const bill = resolved.bill;
+  const sourceBill = resolved.sourceBill || bill;
+  const displayBillMonth =
+    formatMonthLabel(
+      normalizeYearMonth(resolved.canonicalBillMonth, bill.SalaryYear, null)
+    ) || resolved.canonicalBillMonth || "";
+  const billCanonicalLabel =
+    canonicalBillMonthFromBill(bill) || resolved.canonicalSalaryMonth || "";
+
+  if (Number(bill.BillCodeId) !== Number(sourceBill.BillCodeId)) {
+    return {
+      instanceBillMonth: billCanonicalLabel,
+      isCanonicalInstance: true,
+      displayBillMonth,
+    };
+  }
+  return {
+    instanceBillMonth: displayBillMonth,
+    isCanonicalInstance:
+      Boolean(displayBillMonth) && displayBillMonth === billCanonicalLabel,
+    displayBillMonth,
+  };
+}
 
 const router = express.Router();
+
+/*
+ * Salary Entry response trace (2026-09-24, JUL-2026 shows LOCKED
+ * investigation). One JSON line per Get Data / Save Draft / Submit,
+ * written to the console AND to backend/logs/salary-entry-trace.log, with
+ * the exact values returned to the browser and the workflow row they came
+ * from. CODE_STAMP + pid identify which build/process answered. Never
+ * throws - tracing must not break a request.
+ */
+const SALARY_ENTRY_CODE_STAMP = "retirement-date-fix-2026-09-25a";
+
+/* TEMPORARY (2026-09-25) — the exact employee IDs under investigation for
+   the Retirement Date column. Empty this Set (or delete the block that
+   reads it in buildEmployeeRows) once the live API response is confirmed
+   correct; it exists only to answer "is the value lost, or is the running
+   process just old code" without logging the whole employee roster. */
+const RETIREMENT_DEBUG_EMPLOYEE_IDS = new Set([2093, 2094, 2095, 2097, 2098, 2099]);
+const PROCESS_STARTED_AT = new Date().toISOString();
+function traceSalaryEntry(event, data) {
+  const line = JSON.stringify({
+    at: new Date().toISOString(),
+    event,
+    code: SALARY_ENTRY_CODE_STAMP,
+    pid: process.pid,
+    processStartedAt: PROCESS_STARTED_AT,
+    ...data,
+  });
+  try {
+    console.log(`[salary-entry-trace] ${line}`);
+  } catch (_) {
+    /* ignore */
+  }
+  /* Offline test scripts set SALARY_ENTRY_TRACE_FILE=0 so they never
+     write into the real log folder. */
+  if (process.env.SALARY_ENTRY_TRACE_FILE === "0") return;
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const dir = path.join(__dirname, "..", "logs");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(path.join(dir, "salary-entry-trace.log"), line + "\n");
+  } catch (_) {
+    /* ignore */
+  }
+}
 
 function actorFromBody(body = {}) {
   return {
@@ -269,8 +401,27 @@ function nonNeg(value, fieldName, errors, employeeId) {
   return n;
 }
 
-/** Recalculate totals from component amounts (bill snapshot). */
-function finalizeSnapshotAmounts(input, { pension, hraForcedZero }) {
+/**
+ * Recalculate totals from component amounts (bill snapshot).
+ *
+ * `retirementStop` (default false) is the retirement-based GPF/NPS stop
+ * rule (2026-09-25) — see utils/retirementRules.js. It is an explicit,
+ * opt-in parameter rather than something this function derives itself,
+ * because finalizeSnapshotAmounts is called from two very different
+ * contexts:
+ *   - mapSavedDetailToGridRow(): re-derives totals for DISPLAY of an
+ *     already-saved snapshot (any workflow status, including LOCKED /
+ *     SUBMITTED / APPROVED / COMPLETED). It never passes this flag, so a
+ *     historical saved amount is always shown exactly as it was saved —
+ *     never silently zeroed just because today's date now falls in the
+ *     retirement window (existing precedent: this same function already
+ *     never recalculates DA/HRA from today's masters for a saved row).
+ *   - upsertEmployeeSalary() (Save Draft / Submit): only ever reached for
+ *     an editable bill (gated earlier by assertInstituteEditable), so it
+ *     is the only caller that passes this flag, freshly computed from
+ *     EmployeeMaster.DateOfRetirement + the bill's Salary Month.
+ */
+function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop = false }) {
   const employeeId = Number(input.employeeId);
   const errors = [];
 
@@ -408,6 +559,20 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero }) {
     }
   }
 
+  /*
+     Retirement-based GPF/NPS deduction stop (2026-09-25) — see
+     utils/retirementRules.js. Wins over a preserved/manual NPS value too:
+     the rule is not something the operator can override by typing over
+     it. Only the deduction that actually applies to this employee's
+     pension type is touched; GPF Advance, Income Tax, Professional Tax
+     and Other Deduction are untouched, and this never invents a GPF
+     deduction for an NPS employee or vice versa.
+  */
+  if (retirementStop) {
+    if (pensionType === "GPF") gpfSubscription = 0;
+    if (pensionType === "NPS") nps = 0;
+  }
+
   /* Gross uses Basic+FIX Basic via totalBasic once — never add Total Basic again. */
   const grossSalary =
     totalBasic +
@@ -466,6 +631,7 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero }) {
       gpfAdv: gpfAdvance,
       nps,
       npsAdvance: 0,
+      gpfNpsRetirementStop: Boolean(retirementStop),
       npsManual: pensionType === "NPS" ? npsManual && !forceAutoNps : false,
       incomeTax,
       professionalTax,
@@ -479,7 +645,21 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero }) {
   };
 }
 
-function mapSavedDetailToGridRow(dbRow) {
+/**
+ * `retirementStop` (default false) is an explicit opt-in, exactly like
+ * finalizeSnapshotAmounts' own parameter of the same name (2026-09-25,
+ * live-bug fix): a saved snapshot of a bill that is still DRAFT/editable is
+ * NOT the same thing as a genuinely historical APPROVED/LOCKED bill — the
+ * former must keep reflecting the current retirement-stop rule every time
+ * "Get Data" reloads it (an employee's DateOfRetirement can be set/edited
+ * after the row was first saved), while the latter must never be silently
+ * recalculated. buildEmployeeRows() is the only caller that computes and
+ * passes this flag, and only for an instance it has confirmed is NOT
+ * APPROVED/LOCKED; every other caller (including the offline tests that
+ * reopen a saved row for display) omits it and keeps the old, unaffected
+ * behavior.
+ */
+function mapSavedDetailToGridRow(dbRow, { retirementStop = false } = {}) {
   const pension = String(dbRow.PensionType || "")
     .trim()
     .toUpperCase();
@@ -519,6 +699,7 @@ function mapSavedDetailToGridRow(dbRow) {
     {
       pension: pension === "GPF" || pension === "NPS" ? pension : "",
       hraForcedZero: Boolean(dbRow.HraForcedZero),
+      retirementStop,
     }
   ).row;
 
@@ -556,7 +737,34 @@ function mapSavedDetailToGridRow(dbRow) {
   };
 }
 
-async function loadSavedRows(billCodeId, instituteCode) {
+async function loadSavedRows(billCodeId, instituteCode, billMonth, isCanonical) {
+  /*
+     Canonical instance (Bill Month == Salary Month, e.g. AUG-2026 bill for
+     AUG-2026 salary) keeps reading dbo.SalaryEmployeeDetails exactly as
+     before Bill-Month isolation existed - unaffected by any other Bill
+     Month instance's data.
+
+     Non-canonical instance (Bill Month < Salary Month, e.g. JUL-2026 bill
+     for AUG-2026 salary) reads the dedicated
+     dbo.SalaryEntryBillEmployeeDetails table, keyed additionally by the
+     EXACT Bill Month, so it never sees another instance's saved rows.
+  */
+  if (!isCanonical) {
+    const month = String(billMonth || "").trim();
+    const result = await sql.query`
+      SELECT *
+      FROM dbo.SalaryEntryBillEmployeeDetails
+      WHERE SalaryBillCodeId = ${billCodeId}
+        AND InstituteCode = ${String(instituteCode || "").trim()}
+        AND BillMonth = ${month}
+    `;
+    const map = new Map();
+    for (const row of result.recordset) {
+      map.set(Number(row.EmployeeId), row);
+    }
+    return map;
+  }
+
   const result = instituteCode
     ? await sql.query`
         SELECT *
@@ -686,9 +894,9 @@ async function ensureIncrementRecorded(
   }
 }
 
-async function buildEmployeeRows({ bill, institute, asOfDate }) {
+async function buildEmployeeRows({ bill, institute, asOfDate, billMonth, isCanonical }) {
   const empResult = await sql.query`
-    SELECT e.EmployeeId, e.EmployeeName, e.EmployeeCode
+    SELECT e.EmployeeId, e.EmployeeName, e.EmployeeCode, e.DateOfRetirement
     FROM dbo.EmployeeMaster e
     WHERE e.InstituteId = ${institute.InstituteId}
       AND UPPER(ISNULL(e.Status, N'Active')) = N'ACTIVE'
@@ -696,7 +904,54 @@ async function buildEmployeeRows({ bill, institute, asOfDate }) {
     ORDER BY e.EmployeeName, e.EmployeeId
   `;
 
-  const saved = await loadSavedRows(bill.BillCodeId, institute.InstituteCode);
+  /* Retirement Date is display-only in Salary Entry: read straight from
+     dbo.EmployeeMaster (the single source of truth already used by Employee
+     Master / Employee Report), never stored on or derived from the salary
+     snapshot tables, and never recalculated here. */
+  const retirementDateByEmployeeId = new Map();
+  for (const item of empResult.recordset) {
+    retirementDateByEmployeeId.set(
+      Number(item.EmployeeId),
+      item.DateOfRetirement || null
+    );
+  }
+
+  const saved = await loadSavedRows(bill.BillCodeId, institute.InstituteCode, billMonth, isCanonical);
+
+  /*
+     Retirement-based GPF/NPS stop rule, applied to a SAVED-but-still-DRAFT
+     row too (2026-09-25 live-bug fix). A saved snapshot only stays exempt
+     from this recheck once the bill instance is genuinely historical
+     (APPROVED/LOCKED) — see mapSavedDetailToGridRow's doc comment. A bill
+     still being worked on (DRAFT/SUBMITTED/RETURNED, or no workflow row at
+     all yet) must reflect the CURRENT rule every time Get Data reloads it,
+     because DateOfRetirement on EmployeeMaster can be added or corrected
+     after the row was first saved (exactly the live case reported: the row
+     was saved before/without the correct retirement date being effective,
+     then never touched again by Get Data). Looked up once per institute
+     call, using the exact same (billCodeId, instituteCode, billMonth) key
+     the caller uses for its own status display — never a different instance.
+  */
+  let instanceEditableForRetirementStop = true;
+  if (billMonth) {
+    try {
+      const workflow = await getInstituteWorkflow(
+        Number(bill.BillCodeId),
+        institute.InstituteCode,
+        billMonth
+      );
+      if (workflow) {
+        const status = String(workflow.Status || "DRAFT").trim().toUpperCase();
+        instanceEditableForRetirementStop = !APPROVED_WORKFLOW_STATUSES.has(status);
+      }
+    } catch (_) {
+      /* No workflow row / lookup failure -> treat as an editable draft
+         rather than silently skipping the rule. */
+      instanceEditableForRetirementStop = true;
+    }
+  }
+  const retirementSalaryYm = salaryYearMonthFromAsOfDate(asOfDate);
+
   const rows = [];
   const errors = [];
   const warnings = [];
@@ -708,16 +963,30 @@ async function buildEmployeeRows({ bill, institute, asOfDate }) {
 
     /* Prefer saved bill snapshot — do not recalculate from today's masters.
        Still re-apply Payroll Config HRA force-zero as-of the bill month so a
-       wrong/legacy HraForcedZero flag cannot keep calculating HRA. */
+       wrong/legacy HraForcedZero flag cannot keep calculating HRA, and
+       re-check the retirement-stop rule for a still-editable (non
+       APPROVED/LOCKED) instance — see the comment above. */
     if (existing) {
       const payrollConfig = await loadActivePayrollConfig(employeeId, asOfDate);
       const hraForcedZero = isHraForcedZero(payrollConfig);
-      const row = mapSavedDetailToGridRow({
-        ...existing,
-        HraForcedZero: hraForcedZero ? 1 : 0,
-        HRA: hraForcedZero ? 0 : existing.HRA,
-      });
+      const retirementStopForRow =
+        instanceEditableForRetirementStop && retirementSalaryYm
+          ? isGpfNpsStoppedForRetirement({
+              dateOfRetirement: retirementDateByEmployeeId.get(employeeId),
+              salaryYear: retirementSalaryYm.salaryYear,
+              salaryMonth: retirementSalaryYm.salaryMonth,
+            })
+          : false;
+      const row = mapSavedDetailToGridRow(
+        {
+          ...existing,
+          HraForcedZero: hraForcedZero ? 1 : 0,
+          HRA: hraForcedZero ? 0 : existing.HRA,
+        },
+        { retirementStop: retirementStopForRow }
+      );
       row.displayOrder = existing.DisplayOrder || order;
+      row.dateOfRetirement = retirementDateByEmployeeId.get(employeeId) || null;
       rows.push(row);
       order += 1;
       continue;
@@ -737,6 +1006,7 @@ async function buildEmployeeRows({ bill, institute, asOfDate }) {
         displayOrder: order,
         salaryEmployeeDetailId: null,
       });
+      row.dateOfRetirement = retirementDateByEmployeeId.get(employeeId) || null;
 
       if (increment && increment.incrementApplied) {
         row.incrementApplied = true;
@@ -765,6 +1035,32 @@ async function buildEmployeeRows({ bill, institute, asOfDate }) {
       });
     }
     order += 1;
+  }
+
+  /*
+     TEMPORARY DIAGNOSTIC (2026-09-25) — Retirement Date investigation.
+     Prints ONLY the employees under active investigation (never the whole
+     roster), one line each, showing the raw SQL value read from
+     dbo.EmployeeMaster side-by-side with the value actually attached to the
+     row that goes into the API response. This is the fastest way to tell
+     "backend still running old code" apart from "value lost somewhere in
+     this function" without touching the database or guessing.
+     Safe to delete this block (and RETIREMENT_DEBUG_EMPLOYEE_IDS above it)
+     once the live API response has been confirmed correct.
+  */
+  if (RETIREMENT_DEBUG_EMPLOYEE_IDS.size) {
+    const fmt = (value) => {
+      if (!value) return "NULL";
+      const d = value instanceof Date ? value : new Date(value);
+      return Number.isNaN(d.getTime()) ? String(value) : d.toISOString().slice(0, 10);
+    };
+    for (const row of rows) {
+      const id = Number(row.employeeId);
+      if (!RETIREMENT_DEBUG_EMPLOYEE_IDS.has(id)) continue;
+      console.log(
+        `[retirement-date-debug] ${id} SQL=${fmt(retirementDateByEmployeeId.get(id))} mapped=${fmt(row.dateOfRetirement)}`
+      );
+    }
   }
 
   return { rows, errors, warnings };
@@ -803,7 +1099,9 @@ async function upsertEmployeeSalary(
   institute,
   row,
   actor,
-  asOfDate
+  asOfDate,
+  billMonth,
+  isCanonical
 ) {
   const employeeId = Number(row.employeeId);
   const pension = await loadEmployeePension(employeeId);
@@ -823,6 +1121,17 @@ async function upsertEmployeeSalary(
   */
   const taManual = isManualTa(row);
   const taCalc = await calculateForEmployee(employeeId, asOfDate, row.basicPay);
+  /*
+     Retirement-based GPF/NPS deduction stop (2026-09-25): taCalc already
+     computed this fresh (EmployeeMaster.DateOfRetirement as of right now,
+     compared against this bill's Salary Month via asOfDate — never Bill
+     Month) as part of the calculateForEmployee() call directly above, so
+     reuse it rather than querying/deriving it a second time. This save
+     path (upsertEmployeeSalary) is only ever reached for an editable bill
+     — assertInstituteEditable() already gated the request before this
+     function runs — so applying it here can never touch a LOCKED /
+     SUBMITTED / APPROVED / COMPLETED bill's historical data.
+  */
   const finalized = finalizeSnapshotAmounts(
     {
       ...row,
@@ -835,7 +1144,7 @@ async function upsertEmployeeSalary(
         : taCalc.taMasterId,
       taPayLevelGroup: taCalc.taPayLevelGroup,
     },
-    { pension, hraForcedZero }
+    { pension, hraForcedZero, retirementStop: Boolean(taCalc.gpfNpsRetirementStop) }
   );
   if (finalized.errors.length) {
     const err = new Error(finalized.errors.map((e) => e.message).join(" "));
@@ -914,221 +1223,443 @@ async function upsertEmployeeSalary(
   mapped.hraRate = hraRate;
 
   const displayOrder = Number(row.displayOrder) || 1;
-  const existingReq = makeRequest(transaction);
-  const existing = await existingReq.query`
-    SELECT TOP 1 Id
-    FROM dbo.SalaryEmployeeDetails
-    WHERE SalaryBillCodeId = ${bill.BillCodeId}
-      AND EmployeeId = ${employeeId}
-      AND InstituteCode = ${institute.InstituteCode}
-  `;
-
-  let detailId = existing.recordset[0]?.Id
-    ? Number(existing.recordset[0].Id)
-    : null;
-
-  if (detailId) {
-    const upd = makeRequest(transaction);
-    await upd.query`
-      UPDATE dbo.SalaryEmployeeDetails
-      SET
-        EmployeeName = ${employeeName},
-        Designation = ${designation},
-        EmployeeType = ${employeeType},
-        PensionType = ${mapped.pension || null},
-        DisplayOrder = ${displayOrder},
-        BasicPay = ${mapped.basicPay},
-        GradePay = ${mapped.gradePay},
-        TotalBasic = ${mapped.totalBasic},
-        DA = ${mapped.da},
-        HRA = ${mapped.hra},
-        MA = ${mapped.ma},
-        TA = ${mapped.ta},
-        CLA = ${mapped.cla},
-        SpecialAllowance = ${mapped.specialAllowance},
-        WashingAllowance = ${mapped.washingAllowance},
-        OtherEarnings = ${mapped.otherEarnings},
-        NPPA = ${mapped.nppa},
-        GrossSalary = ${mapped.grossSalary},
-        GPFSubscription = ${mapped.gpfSubscription},
-        GPFAdvance = ${mapped.gpfAdvance},
-        NPS = ${mapped.nps},
-        NPSAdvance = 0,
-        NPSManual = ${mapped.npsManual ? 1 : 0},
-        IncomeTax = ${mapped.incomeTax},
-        ProfessionalTax = ${mapped.professionalTax},
-        OtherDeduction = ${mapped.otherDeduction},
-        TotalDeduction = ${mapped.totalDeduction},
-        NetSalary = ${mapped.netSalary},
-        ChequeAmount = ${mapped.chequeAmount},
-        InstituteCode = ${institute.InstituteCode},
-        PayRevisionId = ${payRevisionId},
-        PayLevel = ${payLevel},
-        PayMatrixCellNo = ${payMatrixCellNo},
-        PayMatrixId = ${payMatrixId},
-        DAMasterId = ${daMasterId},
-        HRAMasterId = ${hraMasterId},
-        CLAMasterId = ${claMasterId},
-        PayrollConfigId = ${payrollConfigId},
-        CityClass = ${cityClass || null},
-        AsOfDate = ${asOfDate},
-        HraForcedZero = ${hraForcedZero ? 1 : 0},
-        DAPercentage = ${
-          mapped.daRate != null && Number.isFinite(Number(mapped.daRate))
-            ? Number(mapped.daRate)
-            : null
-        },
-        HRAPercentage = ${
-          mapped.hraRate != null && Number.isFinite(Number(mapped.hraRate))
-            ? Number(mapped.hraRate)
-            : null
-        },
-        UpdatedDate = SYSUTCDATETIME()
-      WHERE Id = ${detailId}
+  let detailId;
+  if (isCanonical) {
+    const existingReq = makeRequest(transaction);
+    const existing = await existingReq.query`
+      SELECT TOP 1 Id
+      FROM dbo.SalaryEmployeeDetails
+      WHERE SalaryBillCodeId = ${bill.BillCodeId}
+        AND EmployeeId = ${employeeId}
+        AND InstituteCode = ${institute.InstituteCode}
     `;
-  } else {
-    const ins = makeRequest(transaction);
-    const inserted = await ins.query`
-      INSERT INTO dbo.SalaryEmployeeDetails
-        (
-          SalaryBillCodeId, EmployeeId, EmployeeName, Designation, EmployeeType, PensionType, DisplayOrder,
-          BasicPay, GradePay, TotalBasic, DA, HRA, MA, TA, CLA, SpecialAllowance, WashingAllowance,
-          OtherEarnings, NPPA, GrossSalary,
-          GPFSubscription, GPFAdvance, NPS, NPSAdvance, IncomeTax, ProfessionalTax, OtherDeduction,
-          TotalDeduction, NetSalary, ChequeAmount,
-          InstituteCode, PayRevisionId, PayLevel, PayMatrixCellNo, PayMatrixId,
-          DAMasterId, HRAMasterId, CLAMasterId, PayrollConfigId, CityClass, AsOfDate, HraForcedZero,
-          DAPercentage, HRAPercentage, NPSManual
-        )
-      OUTPUT INSERTED.Id
-      VALUES
-        (
-          ${bill.BillCodeId},
-          ${employeeId},
-          ${employeeName},
-          ${designation},
-          ${employeeType},
-          ${mapped.pension || null},
-          ${displayOrder},
-          ${mapped.basicPay},
-          ${mapped.gradePay},
-          ${mapped.totalBasic},
-          ${mapped.da},
-          ${mapped.hra},
-          ${mapped.ma},
-          ${mapped.ta},
-          ${mapped.cla},
-          ${mapped.specialAllowance},
-          ${mapped.washingAllowance},
-          ${mapped.otherEarnings},
-          ${mapped.nppa},
-          ${mapped.grossSalary},
-          ${mapped.gpfSubscription},
-          ${mapped.gpfAdvance},
-          ${mapped.nps},
-          0,
-          ${mapped.incomeTax},
-          ${mapped.professionalTax},
-          ${mapped.otherDeduction},
-          ${mapped.totalDeduction},
-          ${mapped.netSalary},
-          ${mapped.chequeAmount},
-          ${institute.InstituteCode},
-          ${payRevisionId},
-          ${payLevel},
-          ${payMatrixCellNo},
-          ${payMatrixId},
-          ${daMasterId},
-          ${hraMasterId},
-          ${claMasterId},
-          ${payrollConfigId},
-          ${cityClass || null},
-          ${asOfDate},
-          ${hraForcedZero ? 1 : 0},
-          ${
+
+    detailId = existing.recordset[0]?.Id
+      ? Number(existing.recordset[0].Id)
+      : null;
+
+    if (detailId) {
+      const upd = makeRequest(transaction);
+      await upd.query`
+        UPDATE dbo.SalaryEmployeeDetails
+        SET
+          EmployeeName = ${employeeName},
+          Designation = ${designation},
+          EmployeeType = ${employeeType},
+          PensionType = ${mapped.pension || null},
+          DisplayOrder = ${displayOrder},
+          BasicPay = ${mapped.basicPay},
+          GradePay = ${mapped.gradePay},
+          TotalBasic = ${mapped.totalBasic},
+          DA = ${mapped.da},
+          HRA = ${mapped.hra},
+          MA = ${mapped.ma},
+          TA = ${mapped.ta},
+          CLA = ${mapped.cla},
+          SpecialAllowance = ${mapped.specialAllowance},
+          WashingAllowance = ${mapped.washingAllowance},
+          OtherEarnings = ${mapped.otherEarnings},
+          NPPA = ${mapped.nppa},
+          GrossSalary = ${mapped.grossSalary},
+          GPFSubscription = ${mapped.gpfSubscription},
+          GPFAdvance = ${mapped.gpfAdvance},
+          NPS = ${mapped.nps},
+          NPSAdvance = 0,
+          NPSManual = ${mapped.npsManual ? 1 : 0},
+          IncomeTax = ${mapped.incomeTax},
+          ProfessionalTax = ${mapped.professionalTax},
+          OtherDeduction = ${mapped.otherDeduction},
+          TotalDeduction = ${mapped.totalDeduction},
+          NetSalary = ${mapped.netSalary},
+          ChequeAmount = ${mapped.chequeAmount},
+          InstituteCode = ${institute.InstituteCode},
+          PayRevisionId = ${payRevisionId},
+          PayLevel = ${payLevel},
+          PayMatrixCellNo = ${payMatrixCellNo},
+          PayMatrixId = ${payMatrixId},
+          DAMasterId = ${daMasterId},
+          HRAMasterId = ${hraMasterId},
+          CLAMasterId = ${claMasterId},
+          PayrollConfigId = ${payrollConfigId},
+          CityClass = ${cityClass || null},
+          AsOfDate = ${asOfDate},
+          HraForcedZero = ${hraForcedZero ? 1 : 0},
+          DAPercentage = ${
             mapped.daRate != null && Number.isFinite(Number(mapped.daRate))
               ? Number(mapped.daRate)
               : null
           },
-          ${
+          HRAPercentage = ${
             mapped.hraRate != null && Number.isFinite(Number(mapped.hraRate))
               ? Number(mapped.hraRate)
               : null
           },
-          ${mapped.npsManual ? 1 : 0}
-        )
-    `;
-    detailId = Number(inserted.recordset[0].Id);
-  }
-
-  /*
-     Stored separately from the INSERT/UPDATE above so that a database which
-     has not yet taken migration 46 keeps working unchanged. The flag is what
-     lets a reopened or returned bill be saved again without the manual TA
-     falling back to the master amount.
-  */
-  if (await hasTaManualColumn()) {
-    const taFlag = makeRequest(transaction);
-    await taFlag.query`
-      UPDATE dbo.SalaryEmployeeDetails
-      SET TAManual = ${mapped.taManual ? 1 : 0}
-      WHERE Id = ${detailId}
-    `;
-  }
-
-  try {
-    const delComp = makeRequest(transaction);
-    await delComp.query`
-      DELETE FROM dbo.SalaryEmployeeComponentDetails
-      WHERE SalaryEmployeeDetailId = ${detailId}
-    `;
-
-    const comps = await sql.query`
-      SELECT SalaryComponentId, ComponentCode
-      FROM dbo.SalaryComponentMaster
-      WHERE IsActive = 1
-    `;
-    const amountMap = {
-      BASIC: mapped.basicPay,
-      DA: mapped.da,
-      HRA: mapped.hra,
-      MEDICAL: mapped.ma,
-      TRANSPORT: mapped.ta,
-      CLA: mapped.cla,
-      SPECIAL: mapped.specialAllowance,
-      WASHING: mapped.washingAllowance,
-      WASHING_ALLOWANCE: mapped.washingAllowance,
-      OTHER_EARNING: mapped.otherEarnings,
-      NPPA: mapped.nppa,
-      PF: mapped.gpfSubscription,
-      GPF: mapped.gpfSubscription,
-      NPS: mapped.nps,
-      INCOME_TAX: mapped.incomeTax,
-      PROFESSIONAL_TAX: mapped.professionalTax,
-      OTHER_DEDUCTION: mapped.otherDeduction,
-    };
-    for (const c of comps.recordset) {
-      const code = String(c.ComponentCode || "").toUpperCase();
-      if (!(code in amountMap)) continue;
-      const amount = toNum(amountMap[code]);
-      const insComp = makeRequest(transaction);
-      await insComp.query`
-        INSERT INTO dbo.SalaryEmployeeComponentDetails
-          (SalaryEmployeeDetailId, SalaryComponentId, Amount, CalculationBase, Rate, Remarks, CreatedBy)
+          UpdatedDate = SYSUTCDATETIME()
+        WHERE Id = ${detailId}
+      `;
+    } else {
+      const ins = makeRequest(transaction);
+      const inserted = await ins.query`
+        INSERT INTO dbo.SalaryEmployeeDetails
+          (
+            SalaryBillCodeId, EmployeeId, EmployeeName, Designation, EmployeeType, PensionType, DisplayOrder,
+            BasicPay, GradePay, TotalBasic, DA, HRA, MA, TA, CLA, SpecialAllowance, WashingAllowance,
+            OtherEarnings, NPPA, GrossSalary,
+            GPFSubscription, GPFAdvance, NPS, NPSAdvance, IncomeTax, ProfessionalTax, OtherDeduction,
+            TotalDeduction, NetSalary, ChequeAmount,
+            InstituteCode, PayRevisionId, PayLevel, PayMatrixCellNo, PayMatrixId,
+            DAMasterId, HRAMasterId, CLAMasterId, PayrollConfigId, CityClass, AsOfDate, HraForcedZero,
+            DAPercentage, HRAPercentage, NPSManual
+          )
+        OUTPUT INSERTED.Id
         VALUES
           (
-            ${detailId},
-            ${Number(c.SalaryComponentId)},
-            ${amount},
-            NULL,
-            NULL,
-            N'Bill snapshot',
-            ${actor.fullName}
+            ${bill.BillCodeId},
+            ${employeeId},
+            ${employeeName},
+            ${designation},
+            ${employeeType},
+            ${mapped.pension || null},
+            ${displayOrder},
+            ${mapped.basicPay},
+            ${mapped.gradePay},
+            ${mapped.totalBasic},
+            ${mapped.da},
+            ${mapped.hra},
+            ${mapped.ma},
+            ${mapped.ta},
+            ${mapped.cla},
+            ${mapped.specialAllowance},
+            ${mapped.washingAllowance},
+            ${mapped.otherEarnings},
+            ${mapped.nppa},
+            ${mapped.grossSalary},
+            ${mapped.gpfSubscription},
+            ${mapped.gpfAdvance},
+            ${mapped.nps},
+            0,
+            ${mapped.incomeTax},
+            ${mapped.professionalTax},
+            ${mapped.otherDeduction},
+            ${mapped.totalDeduction},
+            ${mapped.netSalary},
+            ${mapped.chequeAmount},
+            ${institute.InstituteCode},
+            ${payRevisionId},
+            ${payLevel},
+            ${payMatrixCellNo},
+            ${payMatrixId},
+            ${daMasterId},
+            ${hraMasterId},
+            ${claMasterId},
+            ${payrollConfigId},
+            ${cityClass || null},
+            ${asOfDate},
+            ${hraForcedZero ? 1 : 0},
+            ${
+              mapped.daRate != null && Number.isFinite(Number(mapped.daRate))
+                ? Number(mapped.daRate)
+                : null
+            },
+            ${
+              mapped.hraRate != null && Number.isFinite(Number(mapped.hraRate))
+                ? Number(mapped.hraRate)
+                : null
+            },
+            ${mapped.npsManual ? 1 : 0}
           )
       `;
+      detailId = Number(inserted.recordset[0].Id);
     }
-  } catch (err) {
-    console.warn("Component snapshot sync skipped:", err.message);
+
+    /*
+       Stored separately from the INSERT/UPDATE above so that a database which
+       has not yet taken migration 46 keeps working unchanged. The flag is what
+       lets a reopened or returned bill be saved again without the manual TA
+       falling back to the master amount.
+    */
+    if (await hasTaManualColumn()) {
+      const taFlag = makeRequest(transaction);
+      await taFlag.query`
+        UPDATE dbo.SalaryEmployeeDetails
+        SET TAManual = ${mapped.taManual ? 1 : 0}
+        WHERE Id = ${detailId}
+      `;
+    }
+
+    try {
+      const delComp = makeRequest(transaction);
+      await delComp.query`
+        DELETE FROM dbo.SalaryEmployeeComponentDetails
+        WHERE SalaryEmployeeDetailId = ${detailId}
+      `;
+
+      const comps = await sql.query`
+        SELECT SalaryComponentId, ComponentCode
+        FROM dbo.SalaryComponentMaster
+        WHERE IsActive = 1
+      `;
+      const amountMap = {
+        BASIC: mapped.basicPay,
+        DA: mapped.da,
+        HRA: mapped.hra,
+        MEDICAL: mapped.ma,
+        TRANSPORT: mapped.ta,
+        CLA: mapped.cla,
+        SPECIAL: mapped.specialAllowance,
+        WASHING: mapped.washingAllowance,
+        WASHING_ALLOWANCE: mapped.washingAllowance,
+        OTHER_EARNING: mapped.otherEarnings,
+        NPPA: mapped.nppa,
+        PF: mapped.gpfSubscription,
+        GPF: mapped.gpfSubscription,
+        NPS: mapped.nps,
+        INCOME_TAX: mapped.incomeTax,
+        PROFESSIONAL_TAX: mapped.professionalTax,
+        OTHER_DEDUCTION: mapped.otherDeduction,
+      };
+      for (const c of comps.recordset) {
+        const code = String(c.ComponentCode || "").toUpperCase();
+        if (!(code in amountMap)) continue;
+        const amount = toNum(amountMap[code]);
+        const insComp = makeRequest(transaction);
+        await insComp.query`
+          INSERT INTO dbo.SalaryEmployeeComponentDetails
+            (SalaryEmployeeDetailId, SalaryComponentId, Amount, CalculationBase, Rate, Remarks, CreatedBy)
+          VALUES
+            (
+              ${detailId},
+              ${Number(c.SalaryComponentId)},
+              ${amount},
+              NULL,
+              NULL,
+              N'Bill snapshot',
+              ${actor.fullName}
+            )
+        `;
+      }
+    } catch (err) {
+      console.warn("Component snapshot sync skipped:", err.message);
+    }
+  } else {
+    const existingReq = makeRequest(transaction);
+    const existing = await existingReq.query`
+      SELECT TOP 1 Id
+      FROM dbo.SalaryEntryBillEmployeeDetails
+      WHERE SalaryBillCodeId = ${bill.BillCodeId}
+        AND EmployeeId = ${employeeId}
+        AND InstituteCode = ${institute.InstituteCode}
+        AND BillMonth = ${billMonth}
+    `;
+
+    detailId = existing.recordset[0]?.Id
+      ? Number(existing.recordset[0].Id)
+      : null;
+
+    if (detailId) {
+      const upd = makeRequest(transaction);
+      await upd.query`
+        UPDATE dbo.SalaryEntryBillEmployeeDetails
+        SET
+          EmployeeName = ${employeeName},
+          Designation = ${designation},
+          EmployeeType = ${employeeType},
+          PensionType = ${mapped.pension || null},
+          DisplayOrder = ${displayOrder},
+          BasicPay = ${mapped.basicPay},
+          GradePay = ${mapped.gradePay},
+          TotalBasic = ${mapped.totalBasic},
+          DA = ${mapped.da},
+          HRA = ${mapped.hra},
+          MA = ${mapped.ma},
+          TA = ${mapped.ta},
+          CLA = ${mapped.cla},
+          SpecialAllowance = ${mapped.specialAllowance},
+          WashingAllowance = ${mapped.washingAllowance},
+          OtherEarnings = ${mapped.otherEarnings},
+          NPPA = ${mapped.nppa},
+          GrossSalary = ${mapped.grossSalary},
+          GPFSubscription = ${mapped.gpfSubscription},
+          GPFAdvance = ${mapped.gpfAdvance},
+          NPS = ${mapped.nps},
+          NPSAdvance = 0,
+          NPSManual = ${mapped.npsManual ? 1 : 0},
+          IncomeTax = ${mapped.incomeTax},
+          ProfessionalTax = ${mapped.professionalTax},
+          OtherDeduction = ${mapped.otherDeduction},
+          TotalDeduction = ${mapped.totalDeduction},
+          NetSalary = ${mapped.netSalary},
+          ChequeAmount = ${mapped.chequeAmount},
+          InstituteCode = ${institute.InstituteCode},
+          PayRevisionId = ${payRevisionId},
+          PayLevel = ${payLevel},
+          PayMatrixCellNo = ${payMatrixCellNo},
+          PayMatrixId = ${payMatrixId},
+          DAMasterId = ${daMasterId},
+          HRAMasterId = ${hraMasterId},
+          CLAMasterId = ${claMasterId},
+          PayrollConfigId = ${payrollConfigId},
+          CityClass = ${cityClass || null},
+          AsOfDate = ${asOfDate},
+          HraForcedZero = ${hraForcedZero ? 1 : 0},
+          DAPercentage = ${
+            mapped.daRate != null && Number.isFinite(Number(mapped.daRate))
+              ? Number(mapped.daRate)
+              : null
+          },
+          HRAPercentage = ${
+            mapped.hraRate != null && Number.isFinite(Number(mapped.hraRate))
+              ? Number(mapped.hraRate)
+              : null
+          },
+          UpdatedDate = SYSUTCDATETIME()
+        WHERE Id = ${detailId}
+      `;
+    } else {
+      const ins = makeRequest(transaction);
+      const inserted = await ins.query`
+        INSERT INTO dbo.SalaryEntryBillEmployeeDetails
+          (
+            SalaryBillCodeId, BillMonth, EmployeeId, EmployeeName, Designation, EmployeeType, PensionType, DisplayOrder,
+            BasicPay, GradePay, TotalBasic, DA, HRA, MA, TA, CLA, SpecialAllowance, WashingAllowance,
+            OtherEarnings, NPPA, GrossSalary,
+            GPFSubscription, GPFAdvance, NPS, NPSAdvance, IncomeTax, ProfessionalTax, OtherDeduction,
+            TotalDeduction, NetSalary, ChequeAmount,
+            InstituteCode, PayRevisionId, PayLevel, PayMatrixCellNo, PayMatrixId,
+            DAMasterId, HRAMasterId, CLAMasterId, PayrollConfigId, CityClass, AsOfDate, HraForcedZero,
+            DAPercentage, HRAPercentage, NPSManual
+          )
+        OUTPUT INSERTED.Id
+        VALUES
+          (
+            ${bill.BillCodeId},
+            ${billMonth},
+            ${employeeId},
+            ${employeeName},
+            ${designation},
+            ${employeeType},
+            ${mapped.pension || null},
+            ${displayOrder},
+            ${mapped.basicPay},
+            ${mapped.gradePay},
+            ${mapped.totalBasic},
+            ${mapped.da},
+            ${mapped.hra},
+            ${mapped.ma},
+            ${mapped.ta},
+            ${mapped.cla},
+            ${mapped.specialAllowance},
+            ${mapped.washingAllowance},
+            ${mapped.otherEarnings},
+            ${mapped.nppa},
+            ${mapped.grossSalary},
+            ${mapped.gpfSubscription},
+            ${mapped.gpfAdvance},
+            ${mapped.nps},
+            0,
+            ${mapped.incomeTax},
+            ${mapped.professionalTax},
+            ${mapped.otherDeduction},
+            ${mapped.totalDeduction},
+            ${mapped.netSalary},
+            ${mapped.chequeAmount},
+            ${institute.InstituteCode},
+            ${payRevisionId},
+            ${payLevel},
+            ${payMatrixCellNo},
+            ${payMatrixId},
+            ${daMasterId},
+            ${hraMasterId},
+            ${claMasterId},
+            ${payrollConfigId},
+            ${cityClass || null},
+            ${asOfDate},
+            ${hraForcedZero ? 1 : 0},
+            ${
+              mapped.daRate != null && Number.isFinite(Number(mapped.daRate))
+                ? Number(mapped.daRate)
+                : null
+            },
+            ${
+              mapped.hraRate != null && Number.isFinite(Number(mapped.hraRate))
+                ? Number(mapped.hraRate)
+                : null
+            },
+            ${mapped.npsManual ? 1 : 0}
+          )
+      `;
+      detailId = Number(inserted.recordset[0].Id);
+    }
+
+    /*
+       Stored separately from the INSERT/UPDATE above so that a database which
+       has not yet taken migration 46 keeps working unchanged. The flag is what
+       lets a reopened or returned bill be saved again without the manual TA
+       falling back to the master amount.
+    */
+    {
+      const taFlag = makeRequest(transaction);
+      await taFlag.query`
+        UPDATE dbo.SalaryEntryBillEmployeeDetails
+        SET TAManual = ${mapped.taManual ? 1 : 0}
+        WHERE Id = ${detailId}
+      `;
+    }
+
+    try {
+      const delComp = makeRequest(transaction);
+      await delComp.query`
+        DELETE FROM dbo.SalaryEntryBillEmployeeComponentDetails
+        WHERE SalaryEntryBillEmployeeDetailId = ${detailId}
+      `;
+
+      const comps = await sql.query`
+        SELECT SalaryComponentId, ComponentCode
+        FROM dbo.SalaryComponentMaster
+        WHERE IsActive = 1
+      `;
+      const amountMap = {
+        BASIC: mapped.basicPay,
+        DA: mapped.da,
+        HRA: mapped.hra,
+        MEDICAL: mapped.ma,
+        TRANSPORT: mapped.ta,
+        CLA: mapped.cla,
+        SPECIAL: mapped.specialAllowance,
+        WASHING: mapped.washingAllowance,
+        WASHING_ALLOWANCE: mapped.washingAllowance,
+        OTHER_EARNING: mapped.otherEarnings,
+        NPPA: mapped.nppa,
+        PF: mapped.gpfSubscription,
+        GPF: mapped.gpfSubscription,
+        NPS: mapped.nps,
+        INCOME_TAX: mapped.incomeTax,
+        PROFESSIONAL_TAX: mapped.professionalTax,
+        OTHER_DEDUCTION: mapped.otherDeduction,
+      };
+      for (const c of comps.recordset) {
+        const code = String(c.ComponentCode || "").toUpperCase();
+        if (!(code in amountMap)) continue;
+        const amount = toNum(amountMap[code]);
+        const insComp = makeRequest(transaction);
+        await insComp.query`
+          INSERT INTO dbo.SalaryEntryBillEmployeeComponentDetails
+            (SalaryEntryBillEmployeeDetailId, SalaryComponentId, Amount, CalculationBase, Rate, Remarks, CreatedBy)
+          VALUES
+            (
+              ${detailId},
+              ${Number(c.SalaryComponentId)},
+              ${amount},
+              NULL,
+              NULL,
+              N'Bill snapshot',
+              ${actor.fullName}
+            )
+        `;
+      }
+    } catch (err) {
+      console.warn("Component snapshot sync skipped:", err.message);
+    }
   }
 
   return {
@@ -1232,12 +1763,48 @@ router.get("/employees", async (req, res) => {
       return res.status(400).json({ message: "Institute is required." });
     }
 
+    /*
+       Loading Salary Entry data (a GET) must never create a new Bill Code
+       row as a side effect of merely opening/viewing a bill. Auto-creating
+       a "-BM-XXX" Bill-Month variant here (e.g. AUG-2026-BM-JUL) whenever
+       the requested Bill Month happened to differ from the Salary Month
+       was exactly that: opening AUG-2026 silently wrote a second row to
+       dbo.SalaryBillCodes. The variant is still created deliberately by
+       Save Draft / Submit (see createIfMissing: true below in
+       saveEmployeesHandler) — that is the only place a Bill-Month variant
+       should ever be written. When no variant exists yet, fall back to
+       the salary-month master bill so Get Data still works read-only.
+    */
     const resolved = await resolveSalaryEntryBill({
       billCode,
       billMonth,
       salaryMonth,
-      createIfMissing: true,
+      createIfMissing: false,
       actor: { fullName: "SYSTEM", userName: "SYSTEM" },
+    }).catch(async (err) => {
+      /*
+         A missing Bill-Month variant (e.g. AUG-2026 / Bill Month JUL-2026
+         with no AUG-2026-BM-JUL row yet) must be reported to the user, not
+         silently papered over by loading the salary-month master bill's
+         data under the wrong Bill Month. Salary Bill Code Master remains
+         the only place that may create the missing row; this path only
+         ever searches. Logged explicitly so it's visible in the server log
+         that nothing was auto-created.
+      */
+      if (err.status === 404 && err.code === "BILL_MONTH_VARIANT_NOT_FOUND") {
+        console.log(
+          `[Salary Entry] Bill Code NOT auto-created (search only) — ` +
+            `requested BillCode=${billCode} SalaryMonth=${err.canonicalSalaryMonth} ` +
+            `BillMonth=${err.canonicalBillMonth} Institute=${instituteCode || instituteId || ""}`
+        );
+        throw err;
+      }
+      if (err.status === 404) {
+        const master = await getBillByCode(billCode);
+        if (!master) throw err;
+        return { bill: master, sourceBill: master, created: false, billMonthMatched: false };
+      }
+      throw err;
     });
     const bill = resolved.bill;
     const sourceBill = resolved.sourceBill || bill;
@@ -1272,34 +1839,134 @@ router.get("/employees", async (req, res) => {
         .json({ message: sectionMismatch.message });
     }
 
+    /*
+       instanceBillMonth is THE identity of the Salary Entry instance being
+       loaded - canonicalized, defaults to the Salary Month when the caller
+       requested nothing (2026-09-24, multiple-independent-bills business
+       rule). isCanonical decides which storage this instance reads from:
+       the ORIGINAL dbo.SalaryEmployeeDetails when it equals the bill's own
+       Salary Month (unchanged, every existing consumer keeps working), or
+       the new dbo.SalaryEntryBillEmployeeDetails (migration 50) for any
+       earlier Bill Month instance - so a JUL-2026 bill and an AUG-2026
+       bill of the SAME AUG-2026 salary bill never share a row. */
+    const { instanceBillMonth, isCanonicalInstance, displayBillMonth } =
+      resolveEntryInstance(resolved);
+
     const asOfDate = asOfFromBill(bill);
     const { rows, errors, warnings } = await buildEmployeeRows({
       bill,
       institute,
       asOfDate,
+      billMonth: instanceBillMonth,
+      isCanonical: isCanonicalInstance,
     });
 
+    let instituteStatus = "DRAFT";
+    /* Bill Month of the workflow row the status came from (null = this
+       instance has no workflow row yet). Always equals instanceBillMonth;
+       returned so a mismatch is visible in the response, never silent. */
+    let workflowBillMonth = null;
+    let workflowRow = null;
+    try {
+      /* Keyed on the EXACT resolved bill + EXACT Bill Month instance
+         (migration 51) - a JUL-2026 instance and an AUG-2026 instance of
+         the same bill + institute now have their own independent
+         DRAFT/SUBMITTED/.../APPROVED/LOCKED status, so locking one never
+         affects the other. */
+      const workflow = await getInstituteWorkflow(
+        Number(bill.BillCodeId),
+        institute.InstituteCode,
+        instanceBillMonth
+      );
+      if (workflow) {
+        instituteStatus = String(workflow.Status || "DRAFT").toUpperCase();
+        workflowBillMonth = workflow.BillMonth || null;
+        workflowRow = workflow;
+      }
+    } catch (workflowErr) {
+      /* Only a database that has not yet taken migration 48 (no BillMonth
+         column) may fall back to DRAFT. Any other failure must surface:
+         silently reporting DRAFT would make a LOCKED instance look
+         editable. */
+      if (!/invalid column name|invalid object name/i.test(String(workflowErr.message))) {
+        throw workflowErr;
+      }
+    }
+
+    const responseBillMonth = displayBillMonth || bill.BillMonth || "";
+
+    /*
+       Bill No. / Bill Date / NPS Schedule No. are per-Bill-Month-instance
+       (migration 49, dbo.SalaryEntryBillHeader) — a JUL-2026 bill and an
+       AUG-2026 bill for the SAME AUG-2026 salary data each have their own.
+       Looked up by the EXACT Bill Month being displayed (responseBillMonth,
+       canonicalized), never by the bill+institute alone. If no header
+       exists yet for this specific Bill Month, the fields come back blank —
+       NEVER copied from another Bill Month's saved header. */
     let entryBillNo = "";
     let entryBillDate = null;
     let entryNpsScheduleNo = "";
-    let instituteStatus = "DRAFT";
     try {
-      /* Keyed on the EXACT resolved bill (e.g. JUN-2026-BM-MAY), so a
-         Bill-Month variant never reads the salary-month master's header. */
-      const workflow = await getInstituteWorkflow(
+      const headerBillMonth = instanceBillMonth || responseBillMonth;
+      const header = await getSalaryEntryBillHeader(
         Number(bill.BillCodeId),
-        institute.InstituteCode
+        institute.InstituteCode,
+        headerBillMonth
       );
-      if (workflow) {
-        entryBillNo = workflow.BillNo != null ? String(workflow.BillNo) : "";
-        entryBillDate = workflow.BillDate || null;
+      if (header) {
+        entryBillNo = header.BillNo != null ? String(header.BillNo) : "";
+        entryBillDate = header.BillDate || null;
         entryNpsScheduleNo =
-          workflow.NPSScheduleNo != null ? String(workflow.NPSScheduleNo) : "";
-        instituteStatus = String(workflow.Status || "DRAFT").toUpperCase();
+          header.NPSScheduleNo != null ? String(header.NPSScheduleNo) : "";
       }
     } catch (_) {
-      /* columns may be absent before migration */
+      /* dbo.SalaryEntryBillHeader absent before migration 49 — blank is
+         the correct, documented behavior either way. */
     }
+
+    traceSalaryEntry("GET /employees", {
+      request: { billCode, billMonth, salaryMonth, instituteCode, instituteId },
+      resolvedBill: {
+        BillCodeId: Number(bill.BillCodeId),
+        BillCode: bill.BillCode,
+        BillMonth: bill.BillMonth,
+        SalaryMonth: bill.SalaryMonth,
+        SalaryYear: bill.SalaryYear,
+        SalaryMonthNumber: bill.SalaryMonthNumber,
+        Status: bill.Status,
+        sourceBillCodeId: Number(sourceBill.BillCodeId),
+        canonicalBillMonth: resolved.canonicalBillMonth,
+        canonicalSalaryMonth: resolved.canonicalSalaryMonth,
+      },
+      instance: { instanceBillMonth, isCanonicalInstance, displayBillMonth },
+      workflow: workflowRow
+        ? { WorkflowId: workflowRow.WorkflowId, BillMonth: workflowRow.BillMonth, Status: workflowRow.Status }
+        : null,
+      response: {
+        billCodeId: Number(bill.BillCodeId),
+        billMonth: responseBillMonth,
+        status: instituteStatus,
+        workflowBillMonth,
+        resolvedMasterStatus: String(bill.Status || "").toUpperCase(),
+        masterStatus: String(sourceBill.Status || "").toUpperCase(),
+        employeeRows: rows.length,
+        firstBasicPay: rows[0] ? rows[0].basicPay : null,
+        /* Retirement Date diagnostics (2026-09-25 fix): confirms whether the
+           value actually reached the response returned to the browser — so
+           a report of "still shows -" can be told apart from "genuinely no
+           date on file in EmployeeMaster" without touching the database
+           from outside this request. (rows is buildEmployeeRows()'s
+           already-computed output; nothing here is queried again.) */
+        retirementDate: {
+          employeesTotal: rows.length,
+          rowsWithDateOfRetirement: rows.filter((r) => r.dateOfRetirement).length,
+          sample: rows.slice(0, 3).map((r) => ({
+            employeeId: r.employeeId,
+            dateOfRetirement: r.dateOfRetirement,
+          })),
+        },
+      },
+    });
 
     res.json({
       message: errors.length
@@ -1309,11 +1976,15 @@ router.get("/employees", async (req, res) => {
         billCodeId: Number(bill.BillCodeId),
         billCode: bill.BillCode,
         sourceBillCode: sourceBill.BillCode,
-        billMonth: bill.BillMonth || resolved.canonicalBillMonth || "",
+        billMonth: responseBillMonth,
         salaryMonth: bill.SalaryMonth || resolved.canonicalSalaryMonth || "",
         salaryYear: bill.SalaryYear,
         /* Institute workflow status for Salary Entry UI (not master month status). */
         status: instituteStatus,
+        workflowBillMonth,
+        workflowId: workflowRow ? Number(workflowRow.WorkflowId) : null,
+        instanceBillMonth,
+        codeStamp: SALARY_ENTRY_CODE_STAMP,
         /* Master Status of the resolved SalaryBillCodes row (e.g. BM-MAY). */
         resolvedMasterStatus: String(bill.Status || "").toUpperCase(),
         /* Master Status of the salary-month source code (e.g. JUN-2026). */
@@ -1337,6 +2008,8 @@ router.get("/employees", async (req, res) => {
     console.error("GET /api/salary-entry/employees error:", error);
     const message = String(error.message || "");
     const userMessage =
+      error.code === "BILL_MONTH_VARIANT_NOT_FOUND" ||
+      error.code === "BILL_MONTH_AFTER_SALARY_MONTH" ||
       /Pay Matrix not found/i.test(message) ||
       /not configured/i.test(message) ||
       /Employee not found/i.test(message)
@@ -1552,15 +2225,32 @@ async function saveEmployeesHandler(req, res, { submitted }) {
       .json({ message: sectionMismatch.message });
   }
 
+  /* Same identity as GET /employees: THE Bill Month instance being saved,
+     and whether it is the canonical (Bill Month == Salary Month) instance
+     that keeps using the original SalaryEmployeeDetails storage, or an
+     earlier instance routed to the new per-Bill-Month tables. */
+  const { instanceBillMonth, isCanonicalInstance } =
+    resolveEntryInstance(resolved);
+
   const instituteWorkflow = await getInstituteWorkflow(
     Number(bill.BillCodeId),
-    institute.InstituteCode
+    institute.InstituteCode,
+    instanceBillMonth
   );
   const instituteBlocked = assertInstituteEditable(
     instituteWorkflow,
     bill.BillCode,
     institute.InstituteCode
   );
+  traceSalaryEntry(submitted ? "POST /submit gate" : "POST /save-draft gate", {
+    request: { billCode, billMonth, salaryMonth, instituteCode, instituteId },
+    resolvedBill: { BillCodeId: Number(bill.BillCodeId), BillCode: bill.BillCode },
+    instance: { instanceBillMonth, isCanonicalInstance },
+    workflow: instituteWorkflow
+      ? { WorkflowId: instituteWorkflow.WorkflowId, BillMonth: instituteWorkflow.BillMonth, Status: instituteWorkflow.Status }
+      : null,
+    blocked: instituteBlocked ? instituteBlocked.status : null,
+  });
   if (instituteBlocked) {
     const status = String(instituteWorkflow?.Status || "").toUpperCase();
     const friendly =
@@ -1706,72 +2396,84 @@ async function saveEmployeesHandler(req, res, { submitted }) {
         institute,
         row,
         actor,
-        asOfDate
+        asOfDate,
+        instanceBillMonth,
+        isCanonicalInstance
       );
       out.push(saved);
     }
 
     /* Link each saved snapshot row to the increment it was derived from.
-       Scoped to this bill + institute + employee, so no other month or
-       institute is touched. */
+       Scoped to this bill + institute + employee (+ Bill Month for a
+       non-canonical instance), so no other month or institute is touched. */
     for (const [employeeId, incrementId] of incrementIdByEmployee) {
       try {
-        await makeRequest(transaction).query`
-          UPDATE dbo.SalaryEmployeeDetails
-          SET IncrementId = ${Number(incrementId)}
-          WHERE SalaryBillCodeId = ${Number(bill.BillCodeId)}
-            AND InstituteCode = ${institute.InstituteCode}
-            AND EmployeeId = ${Number(employeeId)}
-        `;
+        if (isCanonicalInstance) {
+          await makeRequest(transaction).query`
+            UPDATE dbo.SalaryEmployeeDetails
+            SET IncrementId = ${Number(incrementId)}
+            WHERE SalaryBillCodeId = ${Number(bill.BillCodeId)}
+              AND InstituteCode = ${institute.InstituteCode}
+              AND EmployeeId = ${Number(employeeId)}
+          `;
+        } else {
+          await makeRequest(transaction).query`
+            UPDATE dbo.SalaryEntryBillEmployeeDetails
+            SET IncrementId = ${Number(incrementId)}
+            WHERE SalaryBillCodeId = ${Number(bill.BillCodeId)}
+              AND InstituteCode = ${institute.InstituteCode}
+              AND EmployeeId = ${Number(employeeId)}
+              AND BillMonth = ${instanceBillMonth}
+          `;
+        }
       } catch (err) {
         /* Column absent on an un-migrated database — not fatal. */
         if (!/invalid column name/i.test(String(err.message))) throw err;
       }
     }
 
+    /* Institute workflow status (DRAFT/SUBMITTED/.../APPROVED/LOCKED) is
+       now Bill-Month-specific (migration 51) — a separate row per exact
+       Bill Month instance, so locking AUG-2026 never touches JUL-2026's
+       row. The old "persist BillMonth as a display fallback" UPDATE
+       (migration 48 follow-up) is retired: it blindly matched every row
+       for this bill+institute, which is no longer safe or meaningful now
+       that more than one such row can exist. upsertInstituteWorkflow
+       creates/updates the exact (bill, institute, instanceBillMonth) row
+       directly. */
     await upsertInstituteWorkflow(transaction, {
       bill,
       institute,
       nextStatus,
       actor,
+      billMonth: instanceBillMonth,
     });
 
-    /* Persist Salary Entry Bill No. / Bill Date / NPS Schedule No. on the
-       institute workflow row for the EXACT resolved bill. Scoping by
-       SalaryBillCodeId is what keeps JUN-2026 and JUN-2026-BM-MAY apart. */
+    /*
+       Bill No. / Bill Date / NPS Schedule No. are per-Bill-Month-instance
+       (migration 49, dbo.SalaryEntryBillHeader) — the SAME AUG-2026 salary
+       bill can have a JUL-2026 instance and an AUG-2026 instance, each
+       keeping its own values without overwriting the other. Written
+       ONLY here, keyed by the EXACT (SalaryBillCodeId, InstituteCode,
+       canonical BillMonth) triple — NEVER on dbo.SalaryBillInstituteWorkflow
+       (see utils/salaryEntryBillHeader.js). */
     try {
-      await makeRequest(transaction).query`
-        UPDATE dbo.SalaryBillInstituteWorkflow
-        SET
-          BillNo = ${billNo || null},
-          BillDate = ${billDate},
-          NPSScheduleNo = ${npsScheduleNo || null},
-          UpdatedDate = SYSUTCDATETIME(),
-          UpdatedBy = ${actor.fullName || actor.userName}
-        WHERE SalaryBillCodeId = ${Number(bill.BillCodeId)}
-          AND InstituteCode = ${institute.InstituteCode}
-      `;
+      await upsertSalaryEntryBillHeader(transaction, {
+        billCodeId: bill.BillCodeId,
+        instituteCode: institute.InstituteCode,
+        billMonth: instanceBillMonth,
+        billNo,
+        billDate,
+        npsScheduleNo,
+        actor,
+      });
     } catch (err) {
-      if (!/invalid column name/i.test(String(err.message))) throw err;
-      console.warn(
-        "BillNo/BillDate/NPSScheduleNo columns missing — run " +
-          "migrate:bill-no-date and migrate:nps-schedule-no"
-      );
-      /* Fall back to the pre-migration columns so a save never fails. */
-      try {
-        await makeRequest(transaction).query`
-          UPDATE dbo.SalaryBillInstituteWorkflow
-          SET
-            BillNo = ${billNo || null},
-            BillDate = ${billDate},
-            UpdatedDate = SYSUTCDATETIME(),
-            UpdatedBy = ${actor.fullName || actor.userName}
-          WHERE SalaryBillCodeId = ${Number(bill.BillCodeId)}
-            AND InstituteCode = ${institute.InstituteCode}
-        `;
-      } catch (inner) {
-        if (!/invalid column name/i.test(String(inner.message))) throw inner;
+      if (!/invalid object name|invalid column name/i.test(String(err.message))) {
+        throw err;
       }
+      console.warn(
+        "dbo.SalaryEntryBillHeader missing — run migrate:salary-entry-bill-header"
+      );
     }
 
     /*
@@ -1780,8 +2482,14 @@ async function saveEmployeesHandler(req, res, { submitted }) {
      * Salary Bill Code Master Complete/Lock. Institute Submit updates only
      * SalaryBillInstituteWorkflow.
      */
-    if (submitted) {
-      /* Snapshot current institute salary for Variation Report (return/edit compare). */
+    if (submitted && isCanonicalInstance) {
+      /* Snapshot current institute salary for Variation Report
+         (return/edit compare). Variation Report reads only the canonical
+         Salary-Month snapshot (dbo.SalaryEmployeeDetails) - unchanged by
+         this feature, so this only runs for the canonical instance; a
+         non-canonical (earlier Bill Month) instance is not yet wired into
+         Variation Report and is skipped here rather than snapshotting the
+         wrong table's data under the master bill's identity. */
       try {
         const snap = makeRequest(transaction);
         await snap.query`
@@ -1864,6 +2572,16 @@ async function saveEmployeesHandler(req, res, { submitted }) {
     return out;
   });
 
+  /* Save/Submit always supplies billMonth explicitly (validated required
+     above), so the just-saved value is always the canonical one — no
+     persisted-fallback needed here (that's a Get Data / reopen concern). */
+  const saveResponseBillMonth = resolveDisplayBillMonth({
+    requestedBillMonth: billMonth,
+    canonicalBillMonth: resolved.canonicalBillMonth,
+    persistedBillMonth: "",
+    elseValue: bill.BillMonth,
+  });
+
   res.json({
     message: submitted
       ? nextStatus === "RESUBMITTED"
@@ -1879,7 +2597,7 @@ async function saveEmployeesHandler(req, res, { submitted }) {
       masterStatus: String(sourceBill.Status || "").toUpperCase(),
       salaryMonth: bill.SalaryMonth,
       salaryYear: bill.SalaryYear,
-      billMonth: bill.BillMonth,
+      billMonth: saveResponseBillMonth,
       billNo,
       billDate,
       npsScheduleNo,
@@ -1893,7 +2611,9 @@ router.post("/save-draft", async (req, res) => {
     await saveEmployeesHandler(req, res, { submitted: false });
   } catch (error) {
     console.error("POST /api/salary-entry/save-draft error:", error);
-    res.status(500).json({
+    /* error.status: e.g. 400 BILL_MONTH_AFTER_SALARY_MONTH must reach the
+       client as a rejection, not a generic 500. */
+    res.status(error.status || 500).json({
       message: error.message || "Unable to save salary draft.",
       error: error.message,
     });
@@ -1905,7 +2625,7 @@ router.post("/submit", async (req, res) => {
     await saveEmployeesHandler(req, res, { submitted: true });
   } catch (error) {
     console.error("POST /api/salary-entry/submit error:", error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       message: error.message || "Unable to submit salary bill.",
       error: error.message,
     });
@@ -1942,3 +2662,7 @@ module.exports.mapSavedDetailToGridRow = mapSavedDetailToGridRow;
 module.exports.statusGateBill = statusGateBill;
 module.exports.assertInstituteInSection = assertInstituteInSection;
 module.exports.isManualTa = isManualTa;
+module.exports.resolveDisplayBillMonth = resolveDisplayBillMonth;
+module.exports.resolveEntryInstance = resolveEntryInstance;
+module.exports.buildEmployeeRows = buildEmployeeRows;
+module.exports.asOfFromBill = asOfFromBill;

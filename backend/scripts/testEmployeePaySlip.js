@@ -293,7 +293,17 @@ function dbRow(over) {
   check("Bill Code / No. / Date",
     [slip.bill.billCode, slip.bill.billNo, slip.bill.billDate],
     ["JUN-2026", "598", "22-07-2026"]);
-  check("NPS Schedule No. is shown", slip.bill.npsScheduleNo, "SCH/2026/06/001");
+  /* 2026-09-24: NPS Schedule No. removed from the Pay Slip (user request). */
+  check("NPS Schedule No. is not part of the Pay Slip", Object.prototype.hasOwnProperty.call(slip.bill, "npsScheduleNo"), false);
+  {
+    const ps = fs.readFileSync(path.join(__dirname, "..", "..", "frontend", "src", "pages", "EmployeePaySlip.jsx"), "utf8");
+    check("Pay Slip page shows no NPS Schedule No.", /NPS Schedule|npsScheduleNo/.test(ps), false);
+    check("header rows are exactly the eight required",
+      [...ps.slice(ps.indexOf('<div className="eps-meta">'), ps.indexOf("EMPLOYEE INFORMATION")).matchAll(/<Row label="([^"]+)"/g)].map((m) => m[1]),
+      ["Salary Month", "Bill Month", "Salary Type", "Bill Code", "Bill No.", "Bill Date", "Institute Code", "Institute Name"]);
+    check("signature reads Account Officer", /<div>Account Officer<\/div>/.test(ps) && !/Authorized Officer/.test(ps), true);
+    check("NPS deduction line still on the Pay Slip", slip.deductions.some((r) => /nps/i.test(r.key || r.label || "")), true);
+  }
   check("Institute Code and Name",
     [slip.institute.instituteCode, slip.institute.instituteName],
     ["CPD-06", "Gujarat State Probation"]);
@@ -319,8 +329,8 @@ function dbRow(over) {
     /no-print/.test(pageSrc), true);
   check("52. the print CSS resets the shell containers",
     /\.app-shell[\s\S]{0,200}overflow:\s*visible/.test(cssSrc), true);
-  check("52. an A4 page box is declared",
-    /@page[\s\S]{0,60}A4/.test(cssSrc), true);
+  check("52. an A4 portrait page box is declared (reportPdfConfig)",
+    (new RegExp("employeePaySlip: \\{[^}]*orientation: \"portrait\"").test(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "utils", "reportPdfConfig.js"), "utf8")) && require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "pages", "EmployeePaySlip.jsx"), "utf8").includes('useReportPrintPage("employeePaySlip")')), true);
   check("52. print rules live in @media print",
     /@media print/.test(cssSrc), true);
 

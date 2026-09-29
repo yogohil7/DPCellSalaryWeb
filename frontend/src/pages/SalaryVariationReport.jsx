@@ -4,6 +4,7 @@ import { listSalaryBillCodes } from "../utils/salaryBillCodeApi";
 import { listInstitutes } from "../utils/instituteApi";
 import { getSalaryVariationReport } from "../utils/salaryVariationApi";
 import "./salaryVariationReport.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 const toNumber = (value) => {
   const n = Number(value);
@@ -212,6 +213,8 @@ export default function SalaryVariationReport({
   initialInstituteCode = "",
   initialInstituteId = null,
 }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("salaryVariationReport");
   const [billCodes, setBillCodes] = useState([]);
   const [institutes, setInstitutes] = useState([]);
   const [previousBillCode, setPreviousBillCode] = useState(
@@ -386,7 +389,7 @@ export default function SalaryVariationReport({
   );
 
   const handlePrint = () => {
-    window.print();
+    printReport("salaryVariationReport");
   };
 
   const handleExport = () => {

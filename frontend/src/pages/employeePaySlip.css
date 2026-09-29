@@ -260,10 +260,8 @@
 
 /* ---------------- print ---------------- */
 
-@page {
-  size: A4;
-  margin: 12mm;
-}
+/* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+     injected only while this report is on screen — never a global rule. */
 
 @media print {
   /*

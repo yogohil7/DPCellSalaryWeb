@@ -19,6 +19,11 @@
 const express = require("express");
 const { sql } = require("../db");
 const {
+  instanceEmployeeRowsSql,
+  queryReport,
+  instanceBillMonthLabel,
+} = require("../utils/reportBillInstance");
+const {
   normalizeYearMonth,
   matchesFilterMonthYear,
 } = require("../utils/salaryMonthKey");
@@ -95,7 +100,7 @@ function round2(value) {
  * arrears bill is a separate payment with its own register entry.
  */
 async function loadApprovedSalaryRows() {
-  const result = await sql.query`
+  const result = await queryReport(`
     SELECT
       b.BillCodeId,
       b.BillCode,
@@ -103,6 +108,8 @@ async function loadApprovedSalaryRows() {
       b.SalaryMonth,
       b.SalaryMonthNumber,
       b.SalaryYear,
+      w.WorkflowId,
+      w.BillMonth            AS WorkflowBillMonth,
       w.InstituteCode,
       w.Status               AS WorkflowStatus,
       i.InstituteId,
@@ -123,9 +130,8 @@ async function loadApprovedSalaryRows() {
     FROM dbo.SalaryBillInstituteWorkflow w
     INNER JOIN dbo.SalaryBillCodes b
       ON b.BillCodeId = w.SalaryBillCodeId
-    INNER JOIN dbo.SalaryEmployeeDetails d
-      ON d.SalaryBillCodeId = w.SalaryBillCodeId
-     AND d.InstituteCode = w.InstituteCode
+    INNER JOIN ${instanceEmployeeRowsSql()} d
+      ON d.InstanceWorkflowId = w.WorkflowId
     LEFT JOIN dbo.Institutes i
       ON i.InstituteCode = w.InstituteCode
     LEFT JOIN dbo.Sections sec
@@ -136,8 +142,8 @@ async function loadApprovedSalaryRows() {
       AND UPPER(ISNULL(b.BillCategory, N'Salary')) <> N'DIFFERENCE'
       AND UPPER(ISNULL(b.BillType, N'')) <> N'DA DIFFERENCE'
       AND ISNULL(b.IsArchived, 0) = 0
-    ORDER BY w.InstituteCode, d.DisplayOrder, d.Id
-  `;
+    ORDER BY w.InstituteCode, w.BillMonth, d.DisplayOrder, d.Id
+  `);
   return result.recordset;
 }
 
@@ -226,7 +232,26 @@ function compareInstituteGroups(a, b) {
   if (aHas && bHas && idA !== idB) return idA < idB ? -1 : 1;
   if (aHas !== bHas) return aHas ? -1 : 1;
 
-  return compareGroupCodes(a.code, b.code);
+  const byCode = compareGroupCodes(a.code, b.code);
+  if (byCode !== 0) return byCode;
+  /*
+     Same institute code, two different bank accounts (rare, but the grouping
+     key in buildBankCopyRows is InstituteCode + Bank Account Number
+     specifically so this can happen): order deterministically by account
+     number so the two beneficiaries always print in the same order.
+
+     The DA path (buildDaBankCopyRows) never reaches this line — its groups
+     are keyed by institute code alone and an institute code never appears
+     twice in that map — so this change is behaviourally neutral there.
+  */
+  return String(a.instituteBankAccount || "").localeCompare(
+    String(b.instituteBankAccount || "")
+  );
+}
+
+function toYearMonthIndex(label) {
+  const parts = normalizeYearMonth(label);
+  return parts ? parts.year * 12 + parts.month : 0;
 }
 
 /**
@@ -237,13 +262,35 @@ function compareInstituteGroups(a, b) {
  * Sr. No. is handed out only once the whole list is in its final order.
  */
 function buildBankCopyRows(salaryRows) {
+  /*
+     One payment block per BENEFICIARY (2026-09-25): a bank credit is owed to
+     an account, not to a Bill Month. The same institute/account paid across
+     several Bill Month instances of the same salary month (a JUL-2026 bill
+     and an AUG-2026 bill both crediting DDRS-16's account 6600286690, say) is
+     ONE payment to that account, so it is now ONE row with the amounts
+     summed — never one row per instance.
+
+     Identity: InstituteCode + Bank Account Number. The account number is
+     part of the key on purpose — grouping by InstituteCode alone would wrongly
+     merge two different bank accounts that happen to share an institute code,
+     which must stay as separate rows.
+
+     (Before this fix, the key also included WorkflowId, so the same
+     institute/account paid via two Bill Month instances printed as two
+     separate rows of the same beneficiary — the bug this fixes.)
+  */
   const byInstitute = new Map();
 
   for (const row of salaryRows) {
     const code = String(row.InstituteCode || "").trim();
-    if (!byInstitute.has(code)) {
-      byInstitute.set(code, {
+    const billMonth = instanceBillMonthLabel(row);
+    const instituteAccount = String(row.InstituteBankAccount || "").trim();
+    const beneficiaryKey = `${code}|${instituteAccount}`;
+    if (!byInstitute.has(beneficiaryKey)) {
+      byInstitute.set(beneficiaryKey, {
         code,
+        /* Every Bill Month instance that contributed to this one payment. */
+        billMonths: new Set(),
         /*
            Section ordering comes from dbo.Sections.SrNo — the same column
            routes/sections.js orders the Section Master by. The institute's
@@ -259,7 +306,8 @@ function buildBankCopyRows(salaryRows) {
         taxTotal: 0,
       });
     }
-    const group = byInstitute.get(code);
+    const group = byInstitute.get(beneficiaryKey);
+    if (billMonth) group.billMonths.add(billMonth);
 
     /*
        One salary month can hold several bills, and the same employee can
@@ -268,13 +316,15 @@ function buildBankCopyRows(salaryRows) {
        they are ADDED into a single credit for that employee rather than one
        overwriting the other: dropping a bill would underpay, and printing the
        employee twice would look like a duplicate instruction to the bank.
-       Identity is the salary row's own (InstituteCode, EmployeeId).
+       Identity is EmployeeId within the beneficiary group above: one credit
+       per employee, however many Bill Month instances contributed to it.
     */
     const employeeId = Number(row.EmployeeId);
     const existing = group.employees.get(employeeId);
     if (existing) {
       existing.amount = round2(existing.amount + toNum(row.NetSalary));
       existing.sourceBillCodes.push(row.BillCode);
+      existing.billMonths.add(billMonth);
       /* Keep the earliest position the employee holds in any of the bills. */
       existing.displayOrder = Math.min(
         existing.displayOrder,
@@ -284,6 +334,7 @@ function buildBankCopyRows(salaryRows) {
       group.employees.set(employeeId, {
         type: "EMPLOYEE",
         code,
+        billMonths: new Set(billMonth ? [billMonth] : []),
         employeeId,
         employeeCode: row.EmployeeCode || "",
         name: row.EmployeeName || "",
@@ -298,7 +349,9 @@ function buildBankCopyRows(salaryRows) {
 
     /*
        The institute's credit accumulates across EVERY applicable row, so a
-       salary month spanning several bills contributes all of their tax.
+       salary month spanning several bills — and now several Bill Month
+       instances of the same account — contributes all of their tax into the
+       one payment.
     */
     group.taxTotal = round2(
       group.taxTotal + toNum(row.ProfessionalTax) + toNum(row.IncomeTax)
@@ -319,6 +372,18 @@ function buildBankCopyRows(salaryRows) {
     );
   }
 
+  /*
+     A Bill Month label kept for traceability only — it is not printed as a
+     column (XLSX_COLUMNS and the screen both stay at five columns). Several
+     contributing instances join as "JUL-2026 + AUG-2026", oldest first; a
+     single instance keeps its own plain label; none produces "".
+  */
+  function combinedBillMonth(billMonths) {
+    return [...billMonths]
+      .sort((a, b) => toYearMonthIndex(a) - toYearMonthIndex(b))
+      .join(" + ");
+  }
+
   const flat = [];
   for (const group of ordered) {
     /*
@@ -330,12 +395,16 @@ function buildBankCopyRows(salaryRows) {
       flat.push({
         type: "INSTITUTE",
         code: group.code,
+        billMonth: combinedBillMonth(group.billMonths),
         name: group.instituteName,
         bankAccount: group.instituteBankAccount,
         amount: group.taxTotal,
       });
     }
-    flat.push(...group.employeeRows);
+    for (const employee of group.employeeRows) {
+      const { billMonths, ...rest } = employee;
+      flat.push({ ...rest, billMonth: combinedBillMonth(billMonths) });
+    }
   }
 
   /*
@@ -454,6 +523,8 @@ function buildDaBankCopyRows(daRows) {
       group.employees.set(employeeId, {
         type: "EMPLOYEE",
         code,
+        /* DA Difference bills have no Bill Month instances. */
+        billMonth: "",
         employeeId,
         employeeCode: row.employeeCode || "",
         name: row.employeeName || "",

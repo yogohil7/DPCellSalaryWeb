@@ -9,6 +9,7 @@ const transportAllowanceMasterRoutes =
     require("./routes/transportAllowanceMaster");
 const {
     authenticate,
+    normalizeRole,
     requirePermissionPrefix,
     requireRoles,
     requireJwtSecret,
@@ -128,7 +129,9 @@ app.use("/api/auth", authRoutes);
 /* Authenticated API surface — login itself stays public. */
 const authed = [authenticate];
 
-app.use("/api/dashboard", ...authed, requirePermissionPrefix("DASHBOARD"), require("./routes/dashboard"));
+/* Dashboard summary: an Account Officer may read it (same aggregate, no new
+   API); every other role keeps the existing DASHBOARD_* permission check. */
+app.use("/api/dashboard", ...authed, (req, res, next) => normalizeRole(req.user && req.user.roleName) === "ACCOUNT_OFFICER" ? next() : requirePermissionPrefix("DASHBOARD")(req, res, next), require("./routes/dashboard"));
 
 app.use("/api/salary-bill-codes", ...authed, requirePermissionPrefix("MASTER_SALARY_BILL_CODE", "SALARY_ENTRY"), salaryBillCodeRoutes);
 app.use("/api/sections", ...authed, requirePermissionPrefix("MASTER_SECTION"), require("./routes/sections"));
@@ -168,6 +171,7 @@ app.use("/api/employee-pay-slip", ...authed, requirePermissionPrefix("REPORT_BIL
 app.use("/api/salary-register", ...authed, requirePermissionPrefix("REPORT_BILL", "REPORT_SALARY", "SALARY_APPROVAL"), require("./routes/salaryRegister"));
 app.use("/api/income-tax-professional-tax", ...authed, requirePermissionPrefix("REPORT_BILL", "REPORT_SALARY", "SALARY_APPROVAL"), require("./routes/incomeTaxProfessionalTax"));
 app.use("/api/institute-wise-salary", ...authed, requirePermissionPrefix("REPORT_BILL", "REPORT_SALARY", "SALARY_APPROVAL"), require("./routes/instituteWiseSalary"));
+app.use("/api/month-wise-employee-salary", ...authed, requirePermissionPrefix("REPORT_BILL", "REPORT_SALARY", "SALARY_APPROVAL"), require("./routes/monthWiseEmployeeSalary"));
 app.use("/api/nps-summary", ...authed, requirePermissionPrefix("REPORT_BILL", "REPORT_SALARY", "SALARY_APPROVAL"), require("./routes/npsSummary"));
 app.use("/api/nps-gpf-deduction", ...authed, requirePermissionPrefix("REPORT_BILL", "REPORT_SALARY", "SALARY_APPROVAL"), require("./routes/npsGpfDeduction"));
 app.use("/api/employee-report", ...authed, requirePermissionPrefix("REPORT_BILL", "REPORT_SALARY", "SALARY_APPROVAL"), require("./routes/employeeReport"));

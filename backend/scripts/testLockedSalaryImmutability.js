@@ -371,9 +371,9 @@ const TAMPER_BODY = {
     check("salaryEntry: assertInstituteEditable precedes it too",
       before(saveHandler, "assertInstituteEditable(",
              "UPDATE dbo\\.SalaryEmployeeDetails"), true);
-    check("salaryEntry: and precedes the workflow UPDATE",
+    check("salaryEntry: and precedes the workflow write (now via upsertInstituteWorkflow, migration 51 - the literal UPDATE lives in utils/salaryBillInstituteWorkflow.js, not inlined here)",
       before(saveHandler, "assertInstituteEditable(",
-             "UPDATE dbo\\.SalaryBillInstituteWorkflow"), true);
+             "await upsertInstituteWorkflow\\("), true);
     check("salaryEntry: the guards are the FIRST thing after the bill resolves",
       before(saveHandler, "const resolved = await resolveSalaryEntryBill",
              "assertBillEditable\\(statusGateBill"), true);

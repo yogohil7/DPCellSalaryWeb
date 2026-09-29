@@ -248,11 +248,8 @@
   gap: 8px;
 }
 
-@page {
-  /* Six columns fit A4 portrait comfortably. */
-  size: A4 portrait;
-  margin: 10mm;
-}
+/* @page (size / orientation / margin) comes from utils/reportPdfConfig.js,
+     injected only while this report is on screen — never a global rule. */
 
 @media print {
   /*

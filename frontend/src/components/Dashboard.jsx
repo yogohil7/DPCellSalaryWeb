@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { canAccessPage } from "../utils/accessControl";
 import { getDashboardSummary } from "../utils/dashboardApi";
+import { SidebarIcon } from "./SidebarIcons";
 
 /* Loading placeholder — never a fake value. */
 const LOADING = "—";
@@ -19,13 +20,13 @@ function formatPadded(value) {
 
 const TOP_CARDS = [
   {
-    id: "salary-process",
+    id: "salary-entry",
     title: "Salary Bills",
     metric: "salaryBills",
     format: formatPlain,
     note: "Current month bills",
     action: "Process",
-    icon: "♙", tone: "lilac",
+    icon: "users", tone: "lilac",
   },
   {
     id: "employee-master",
@@ -34,7 +35,7 @@ const TOP_CARDS = [
     format: formatGrouped,
     note: "Active on payroll",
     action: "View",
-    icon: "⌂", tone: "peach",
+    icon: "building", tone: "peach",
   },
   {
     id: "salary-approval",
@@ -43,17 +44,17 @@ const TOP_CARDS = [
     format: formatPadded,
     note: "Bills awaiting action",
     action: "Open",
-    icon: "✓", tone: "blue",
+    icon: "checkCircle", tone: "blue",
   },
 ];
 
 const TASKS = [
-  { id: "salary-entry", label: "Salary Entry", metric: "salaryEntry", format: formatPadded, note: "Draft bills ready", icon: "▤", tone: "violet" },
-  { id: "salary-process", label: "Verification", metric: "verification", format: formatPadded, note: "Awaiting review", icon: "⇄", tone: "cream" },
-  { id: "salary-approval", label: "Approval Details", metric: "approvalDetails", format: formatPadded, note: "Pending approval", icon: "☷", tone: "mint" },
-  { id: "returning-bills", label: "Returned Bills", metric: "returnedBills", format: formatPadded, note: "Auditor action", icon: "↶", tone: "lilac" },
-  { id: "variation-report", label: "Variation Report", metric: "variationReport", format: formatPadded, note: "Salary variations", icon: "▥", tone: "sky" },
-  { id: "final-salary-bill", label: "Final Salary Bill", metric: "finalSalaryBill", format: formatPlain, note: "Bills processed", icon: "▣", tone: "sage" },
+  { id: "salary-entry", label: "Salary Entry", metric: "salaryEntry", format: formatPadded, note: "Draft bills ready", icon: "fileEdit", tone: "violet" },
+  { id: "salary-approval", label: "Verification", metric: "verification", format: formatPadded, note: "Awaiting review", icon: "gitCompare", tone: "cream" },
+  { id: "salary-approval", label: "Approval Details", metric: "approvalDetails", format: formatPadded, note: "Pending approval", icon: "clipboardList", tone: "mint" },
+  { id: "returning-bills", label: "Returned Bills", metric: "returnedBills", format: formatPadded, note: "Auditor action", icon: "undo", tone: "lilac" },
+  { id: "variation-report", label: "Variation Report", metric: "variationReport", format: formatPadded, note: "Salary variations", icon: "pieChart", tone: "sky" },
+  { id: "final-salary-bill", label: "Final Salary Bill", metric: "finalSalaryBill", format: formatPlain, note: "Bills processed", icon: "fileCheck", tone: "sage" },
 ];
 
 export default function Dashboard({ user, onNavigate }) {
@@ -112,7 +113,7 @@ export default function Dashboard({ user, onNavigate }) {
       <div className="top-cards">
         {topCards.map((card) => (
           <article key={card.title} className={`color-card ${card.tone}`}>
-            <div className="color-icon">{card.icon}</div>
+            <div className="color-icon"><SidebarIcon name={card.icon} size={22} /></div>
             <div className="color-info">
               <div className="color-title">{card.title}</div>
               <div className="color-value">{valueOf(card)}</div>
@@ -135,7 +136,7 @@ export default function Dashboard({ user, onNavigate }) {
               className={`task-tile ${task.tone}`}
               onClick={() => onNavigate(task.id)}
             >
-              <div className="task-icon">{task.icon}</div>
+              <div className="task-icon"><SidebarIcon name={task.icon} size={22} /></div>
               <div><span>{task.label}</span><strong>{valueOf(task)}</strong><small>{task.note}</small></div>
             </button>
           ))}

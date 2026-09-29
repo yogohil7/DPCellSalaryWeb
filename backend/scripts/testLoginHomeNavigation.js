@@ -129,7 +129,7 @@ const VIEWER = { roleName: "Viewer", permissions: ["DASHBOARD_VIEW", "REPORT_SAL
 
 const ROLES = [
   ["Super Admin", ADMIN, "home"],
-  ["Account Officer", ACCOUNT_OFFICER, "salary-approval"],
+  ["Account Officer", ACCOUNT_OFFICER, "home"],
   ["Auditor", AUDITOR, "home"],
   ["Viewer", VIEWER, "home"],
 ];
@@ -154,8 +154,7 @@ function simulateLogin(user, oldHash) {
 /** The AppShell's initial-page expression, transcribed from its source. */
 function appShellInitialPage(user) {
   const fromHash = AC.readHashPage();
-  const preferred =
-    fromHash && fromHash !== "home" ? fromHash : AC.defaultHomePage(user);
+  const preferred = fromHash || AC.defaultHomePage(user);
   return AC.canAccessPage(user, preferred) ? preferred : AC.defaultHomePage(user);
 }
 
@@ -224,8 +223,10 @@ check("no react-router was introduced",
 /* ================================================================== */
 section("4. defaultHomePage() itself was not changed");
 
-check("it still returns salary-approval for an Account Officer only",
-  /isAccountOfficer\(user\)\) return "salary-approval"/.test(accessSrc), true);
+check("it no longer sends an Account Officer to Salary Approval",
+  /return "salary-approval"/.test(accessSrc), false);
+check("it returns the Dashboard for an Account Officer",
+  AC.defaultHomePage(ACCOUNT_OFFICER), "home");
 check("and home for everyone else",
   AC.defaultHomePage({ roleName: "Anything Else", permissions: [] }), "home");
 check("it takes no hash and no storage into account",
@@ -243,8 +244,11 @@ check("safeNavigate still performs the permission check",
     .test(shellCode), true);
 check("the hashchange listener is untouched",
   /window\.addEventListener\("hashchange", onHashChange\)/.test(shellCode), true);
-check("the AppShell's own initial-page expression is unchanged",
-  /fromHash && fromHash !== "home" \? fromHash : defaultHomePage\(user\)/
+/* Deliberate change: a "#/" (Dashboard) hash is now honoured for every role
+   that may open the Dashboard, including an Account Officer. Login still
+   writes the role's own home hash first, so a stale hash is still discarded. */
+check("the AppShell's initial-page expression honours the Dashboard hash",
+  /const preferred = fromHash \|\| defaultHomePage\(user\)/
     .test(shellCode), true);
 
 /* Home → Salary Entry → Employee Report, using the shipped helpers. */

@@ -31,7 +31,32 @@ const {
   getInstituteWorkflow,
   upsertInstituteWorkflow,
   assertInstituteEditable,
+  canonicalBillMonthFromBill,
 } = require("../utils/salaryBillInstituteWorkflow");
+
+/*
+   DA Difference bills have no Bill Month concept of their own (they are
+   not part of the multiple-independent-bills business rule, 2026-09-24) -
+   each always has exactly one dbo.SalaryBillInstituteWorkflow row. That
+   row's identity (migration 51) is now (SalaryBillCodeId, InstituteCode,
+   BillMonth), so it needs SOME stable, non-empty Bill Month value: the
+   canonical Salary Month label of the underlying dbo.SalaryBillCodes
+   master row (the same row DADifferenceBill.SalaryBillCodeId points at).
+   Cached per process since a bill's own Salary Month never changes.
+*/
+const daDifferenceBillMonthCache = new Map();
+async function resolveDaDifferenceBillMonth(salaryBillCodeId) {
+  const id = Number(salaryBillCodeId);
+  if (daDifferenceBillMonthCache.has(id)) return daDifferenceBillMonthCache.get(id);
+  const result = await sql.query`
+    SELECT TOP 1 SalaryMonth, SalaryYear, SalaryMonthNumber
+    FROM dbo.SalaryBillCodes
+    WHERE BillCodeId = ${id}
+  `;
+  const label = canonicalBillMonthFromBill(result.recordset[0] || {});
+  daDifferenceBillMonthCache.set(id, label);
+  return label;
+}
 const {
   assertDaDifferenceMonthEditable,
   isDaDifferenceMonthLocked,
@@ -215,7 +240,8 @@ async function assertEditable(bill, instituteCode) {
 
   const workflow = await getInstituteWorkflow(
     Number(bill.SalaryBillCodeId),
-    instituteCode
+    instituteCode,
+    await resolveDaDifferenceBillMonth(bill.SalaryBillCodeId)
   );
   return assertInstituteEditable(workflow, bill.BillCode, instituteCode);
 }
@@ -825,7 +851,8 @@ async function saveDifferenceHandler(req, res, { submitted }) {
 
   const previousWorkflow = await getInstituteWorkflow(
     Number(bill.SalaryBillCodeId),
-    institute.InstituteCode
+    institute.InstituteCode,
+    await resolveDaDifferenceBillMonth(bill.SalaryBillCodeId)
   );
   const previousStatus = String(
     previousWorkflow?.Status || "DRAFT"
@@ -981,6 +1008,7 @@ async function saveDifferenceHandler(req, res, { submitted }) {
       institute,
       nextStatus,
       actor,
+      billMonth: await resolveDaDifferenceBillMonth(bill.SalaryBillCodeId),
     });
 
     /*
@@ -1154,7 +1182,8 @@ router.get("/:id/detail", async (req, res) => {
 
     const workflow = await getInstituteWorkflow(
       Number(bill.SalaryBillCodeId),
-      institute.InstituteCode
+      institute.InstituteCode,
+      await resolveDaDifferenceBillMonth(bill.SalaryBillCodeId)
     );
 
     const data = employeeRows.recordset.map((row) => ({

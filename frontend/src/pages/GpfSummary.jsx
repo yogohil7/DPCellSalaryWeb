@@ -3,6 +3,7 @@ import { getGpfSummary, downloadGpfSummaryExcel } from "../utils/gpfSummaryApi";
 import { getChequeRegisterMeta } from "../utils/chequeRegisterApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./gpfSummary.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /* Same amount formatting the other reports use. */
 function money(value) {
@@ -36,6 +37,8 @@ function formatReportDate(iso) {
 }
 
 export default function GpfSummary({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("gpfSummary");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [years, setYears] = useState([]);
@@ -137,7 +140,7 @@ export default function GpfSummary({ user, onBack }) {
   }
 
   function handlePrint() {
-    window.print();
+    printReport("gpfSummary");
   }
 
   return (
@@ -301,6 +304,8 @@ export default function GpfSummary({ user, onBack }) {
 
           <div className="gs-actions no-print">
             <GridToolbar
+              reportName="gpfSummary"
+              subtitle={[report.heading, report.monthLine, report.subHeading]}
               title="GPF Summary"
               columns={COLUMNS}
               rows={exportRows}

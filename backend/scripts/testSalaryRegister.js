@@ -156,8 +156,8 @@ function daRow(over) {
       /resolveChequeSalaryType\(\{/.test(routeCode), true);
     check("13. both months are shown, and differ",
       [old.salaryMonth, old.billMonth], ["JUNE 2026", "MAY 2026"]);
-    check("13. Bill Month is resolved by its own parser",
-      /billMonthPartsOf\(/.test(routeCode), true);
+    check("13. Bill Month is resolved from the approved instance (its own parser, never the master)",
+      /billYm = instanceBillMonthPartsOf\(row\)/.test(routeCode), true);
 
     const rows = filterRegisterRows([reg, old], { month: 6, year: 2026 });
     check("12-13. same Salary Month, different Bill Months stay TWO rows",
@@ -219,8 +219,24 @@ function daRow(over) {
       /SUM\(d\.ChequeAmount\)/.test(routeCode), true);
     check("21. and is never derived",
       /NetSalary[^)]*\+[^)]*IncomeTax[^)]*\+[^)]*ProfessionalTax/.test(routeCode), false);
+    /*
+       Scoped to the REGISTER's own aggregate query, same slice technique as
+       check 27 below. The 2026-09-25 drill-down feature (buildSalaryRegister
+       DetailReport / loadSalaryRegisterDetailRows) legitimately selects
+       BasicPay, DA, HRA, TA, GPFSubscription etc. — it displays the SAVED
+       per-employee components, which is its entire purpose — so a whole-file
+       scan would false-positive on that unrelated, later-added function.
+       loadSalaryBillAggregates() itself, the register's own totals query,
+       must still never re-sum a component into GrossAmount / TotalDeduction
+       / NetSalary / ChequeAmount: only their own stored SUM() columns.
+    */
     check("no component is re-summed into a total",
-      /BasicPay|d\.DA\b|d\.HRA|d\.TA\b|GPFSubscription/.test(routeCode), false);
+      /BasicPay|d\.DA\b|d\.HRA|d\.TA\b|GPFSubscription/.test(
+        routeCode.slice(
+          routeCode.indexOf("async function loadSalaryBillAggregates"),
+          routeCode.indexOf("function mapSalaryBillRow")
+        )
+      ), false);
     check("Approved By / Date come from the workflow",
       [row.approvedBy, row.approvedDate], ["Account Officer", "23-07-2026"]);
     check("the register never writes",
@@ -296,8 +312,8 @@ function daRow(over) {
     (pageSrc.match(/\{ key: "/g) || []).length, XLSX_COLUMNS.length);
   check("26. one shared param builder serves screen and export",
     (apiSrc.match(/buildFilterParams\(filters\)/g) || []).length, 2);
-  check("27. SQL uses tagged-template parameters, never interpolation",
-    /\$\{(?!\s*\})/.test(
+  check("27. no value is interpolated into the SQL (only the constant instance-rows fragment)",
+    /\$\{(?!\s*\}|instanceEmployeeRowsSql\(\)\})/.test(
       routeCode.slice(routeCode.indexOf("async function loadSalaryBillAggregates"),
                       routeCode.indexOf("function mapSalaryBillRow"))), false);
   check("27. selection is applied in JS, not concatenated SQL",
@@ -324,8 +340,9 @@ function daRow(over) {
   check("controls are marked no-print", /no-print/.test(pageSrc), true);
   check("the print CSS resets the shell containers",
     /\.app-shell[\s\S]{0,200}overflow:\s*visible/.test(cssSrc), true);
-  check("A4 landscape is declared",
-    /@page[\s\S]{0,60}A4 landscape/.test(cssSrc), true);
+  /* 2026-09-24: every report except Cheque Register prints A4 PORTRAIT. */
+  check("A4 portrait is declared (reportPdfConfig)",
+    (new RegExp("salaryRegister: \\{[^}]*orientation: \"portrait\"").test(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "utils", "reportPdfConfig.js"), "utf8")) && require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "pages", "SalaryRegister.jsx"), "utf8").includes('useReportPrintPage("salaryRegister")')), true);
   check("the table header repeats on every page",
     /thead\s*\{\s*display:\s*table-header-group/.test(cssSrc), true);
   check("the old global visibility-hidden pattern is NOT used",

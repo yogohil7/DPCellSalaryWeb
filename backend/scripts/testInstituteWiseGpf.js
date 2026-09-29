@@ -343,7 +343,7 @@ function main() {
   check("a Back link, as on the GPF Summary page",
     /← Back/.test(pageSrc), true);
   check("Excel and Print sit with the shared toolbar",
-    /<GridToolbar[\s\S]{0,500}onClick=\{handleExcel\}[\s\S]{0,260}window\.print\(\)/.test(pageSrc), true);
+    /<GridToolbar[\s\S]{0,700}onClick=\{handleExcel\}[\s\S]{0,260}printReport\("instituteWiseGpfSummary"\)/.test(pageSrc), true);
   check("filters, toolbar and Back are hidden when printing",
     /\.iwg-filters,[\s\S]{0,160}\.iwg-actions \{\s*\n\s*display: none/.test(cssSrc), true);
   check("the export list carries all nine columns",

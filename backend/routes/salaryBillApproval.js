@@ -4,8 +4,137 @@ const { withTransaction } = require("./salaryEmployeeDetails");
 const {
   getInstituteWorkflow,
   upsertInstituteWorkflow,
+  canonicalBillMonthFromBill,
 } = require("../utils/salaryBillInstituteWorkflow");
+const { normalizeYearMonth, formatMonthLabel } = require("../utils/salaryMonthKey");
 const { buildSalaryVariationReport } = require("../utils/salaryVariationReport");
+
+/*
+   Resolves the Bill Month instance an approval action/detail view targets.
+   Salary Entry's multiple-independent-bills business rule (2026-09-24)
+   made dbo.SalaryBillInstituteWorkflow Bill-Month-specific (migration 51):
+   a JUL-2026 bill instance and an AUG-2026 bill instance of the SAME
+   SalaryBillCodeId + Institute are now two separate workflow rows. A
+   caller that supplies an explicit Bill Month (Salary Entry's own "Bill
+   Month" value, or a queue row's own billMonth echoed back by an AO
+   action) targets that exact instance; every other caller (DA Difference,
+   which has no Bill Month concept, and any request that predates this
+   change) falls back to the bill's own canonical Salary Month label -
+   exactly what every existing workflow row already meant before migration
+   51's backfill.
+*/
+function resolveInstanceBillMonth(bill, requestedBillMonth) {
+  const requested = String(requestedBillMonth || "").trim();
+  if (requested) {
+    return (
+      formatMonthLabel(normalizeYearMonth(requested, bill?.SalaryYear, null)) ||
+      requested
+    );
+  }
+  return canonicalBillMonthFromBill(bill);
+}
+
+function isCanonicalBillMonth(bill, billMonth) {
+  return String(billMonth || "") === canonicalBillMonthFromBill(bill);
+}
+
+/**
+ * The Bill Month instance an approval request targets.
+ *
+ * The Bill Month must come from the queue row the Accounts Officer clicked
+ * (id BillCodeId__InstituteCode__BillMonth, or billMonth in the query/body)
+ * and is used exactly as sent. When a request carries NO Bill Month it is
+ * NEVER defaulted to the bill's canonical Salary Month: with a JUL-2026 and
+ * an AUG-2026 instance of the same bill + institute that default opened -
+ * and would have acted on - the AUG-2026 row instead of the JUL-2026 one the
+ * AO clicked. Instead:
+ *   - exactly one workflow row exists  -> that row's own BillMonth
+ *     (unambiguous; every single-instance bill keeps working unchanged);
+ *   - several rows exist               -> 400 BILL_MONTH_REQUIRED;
+ *   - none exist                       -> canonical label (the caller then
+ *     reports "no workflow" exactly as before).
+ */
+/**
+ * How an approval action names the bill instance it acted on. Bill Code is
+ * the Salary Month (e.g. AUG-2026); Bill Month is the instance (e.g.
+ * JUL-2026) - several instances can exist for one Bill Code + Institute, so
+ * a message naming only "AUG-2026 / DDRS-16" is ambiguous. billMonth must be
+ * the BillMonth of the workflow row the action actually changed.
+ */
+const ACTION_VERBS = {
+  VERIFIED: "verified",
+  APPROVED: "approved",
+  RETURNED: "returned to auditor",
+  REJECTED: "rejected",
+  LOCKED: "locked",
+};
+function approvalInstanceMessage(billCode, instituteCode, billMonth, status) {
+  const verb = ACTION_VERBS[String(status || "").toUpperCase()] || String(status || "").toLowerCase();
+  return `Salary Month ${billCode} / Institute ${instituteCode} / Bill Month ${billMonth} ${verb}.`;
+}
+
+async function resolveApprovalBillMonth(bill, instituteCode, requestedBillMonth, transaction) {
+  const requested = String(requestedBillMonth || "").trim();
+  if (requested) {
+    return { billMonth: resolveInstanceBillMonth(bill, requested), source: "request" };
+  }
+  const request = transaction ? new sql.Request(transaction) : new sql.Request();
+  const result = await request.query`
+    SELECT WorkflowId, BillMonth
+    FROM dbo.SalaryBillInstituteWorkflow
+    WHERE SalaryBillCodeId = ${Number(bill.BillCodeId)}
+      AND InstituteCode = ${String(instituteCode || "").trim()}
+    ORDER BY WorkflowId
+  `;
+  const rows = result.recordset;
+  if (rows.length === 1) {
+    return { billMonth: String(rows[0].BillMonth || ""), source: "only-instance" };
+  }
+  if (rows.length === 0) {
+    return { billMonth: canonicalBillMonthFromBill(bill), source: "no-instance" };
+  }
+  return {
+    error: {
+      status: 400,
+      code: "BILL_MONTH_REQUIRED",
+      message:
+        `Bill Month is required: ${bill.BillCode} / ${instituteCode} has ` +
+        `${rows.length} Bill Month instances (${rows.map((r) => r.BillMonth).join(", ")}). ` +
+        "Refresh the Salary Bill Approval page (Ctrl+F5) and open the bill again.",
+    },
+  };
+}
+
+/*
+ * TEMPORARY approval trace (2026-09-24, JUL-2026 approval opened as
+ * AUG-2026). One JSON line per list / detail / action, to the console and
+ * backend/logs/salary-approval-trace.log. Never throws.
+ */
+const APPROVAL_TRACE_STAMP = "approval-bill-month-2026-09-24a";
+function traceApproval(event, data) {
+  const line = JSON.stringify({
+    at: new Date().toISOString(),
+    event,
+    code: APPROVAL_TRACE_STAMP,
+    pid: process.pid,
+    ...data,
+  });
+  try {
+    console.log(`[salary-approval-trace] ${line}`);
+  } catch (_) {
+    /* ignore */
+  }
+  if (process.env.SALARY_APPROVAL_TRACE_FILE === "0") return;
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const dir = path.join(__dirname, "..", "logs");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(path.join(dir, "salary-approval-trace.log"), line + "\n");
+  } catch (_) {
+    /* ignore */
+  }
+}
 const { calculateChequeAmount } = require("../utils/salaryBasicCalc");
 const { requireRoles } = require("../middleware/auth");
 
@@ -153,8 +282,18 @@ function mapInstituteBill(row) {
     fromMonth && toMonth
       ? `${fromMonth} ${fromYear} to ${toMonth} ${toYear}`.trim()
       : "";
+  /*
+     Workflow rows are now Bill-Month-specific (migration 51): a JUL-2026
+     instance and an AUG-2026 instance of the same BillCodeId + Institute
+     each have their own row, and therefore each needs its own queue
+     identity so an AO can act on either independently. WorkflowBillMonth
+     (row.WorkflowBillMonth, set by every caller below to w.BillMonth) is
+     the exact instance; it falls back to row.BillMonth (the older,
+     bill-master-level column) only for a caller that has not been updated
+     to select it yet. */
+  const instanceBillMonth = row.WorkflowBillMonth || "";
   return {
-    id: `${row.BillCodeId}__${row.InstituteCode}`,
+    id: `${row.BillCodeId}__${row.InstituteCode}__${instanceBillMonth}`,
     workflowId: row.WorkflowId != null ? Number(row.WorkflowId) : null,
     billCodeId: Number(row.BillCodeId),
     billId: Number(row.BillCodeId),
@@ -162,7 +301,7 @@ function mapInstituteBill(row) {
     instituteId: row.InstituteId != null ? Number(row.InstituteId) : null,
     instituteCode: row.InstituteCode || "",
     instituteName: row.InstituteName || "",
-    billMonth: row.BillMonth || "",
+    billMonth: instanceBillMonth,
     salaryMonth: row.SalaryMonth || "",
     salaryYear: row.SalaryYear || "",
     billCategory,
@@ -242,10 +381,28 @@ async function getBillByIdOrCode(idOrCode) {
   return byCode.recordset[0] || null;
 }
 
-async function loadEmployeeSnapshots(billCodeId, instituteCode) {
+async function loadEmployeeSnapshots(billCodeId, instituteCode, billMonth, isCanonical) {
   const code = String(instituteCode || "").trim();
   if (!code) {
     return [];
+  }
+  if (!isCanonical) {
+    /* Non-canonical (Bill Month < Salary Month) instance - read the
+       dedicated per-Bill-Month table (migration 50), scoped to the exact
+       instance so an AO reviewing the JUL-2026 bill never sees AUG-2026's
+       rows or vice versa. */
+    const month = String(billMonth || "").trim();
+    const result = await sql.query`
+      SELECT d.*
+      FROM dbo.SalaryEntryBillEmployeeDetails d
+      WHERE d.SalaryBillCodeId = ${Number(billCodeId)}
+        AND d.InstituteCode = ${code}
+        AND d.BillMonth = ${month}
+      ORDER BY
+        ISNULL(d.DisplayOrder, 9999),
+        d.EmployeeId
+    `;
+    return result.recordset.map(mapDetailRow);
   }
   const result = await sql.query`
     SELECT d.*
@@ -388,11 +545,13 @@ async function loadDaDifferenceSnapshots(billCodeId, instituteCode) {
   );
 }
 
-async function loadApprovalEmployees(bill, instituteCode) {
+async function loadApprovalEmployees(bill, instituteCode, billMonth) {
   if (isDifferenceCategory(bill.BillCategory, bill.BillType)) {
     return loadDaDifferenceSnapshots(Number(bill.BillCodeId), instituteCode);
   }
-  return loadEmployeeSnapshots(Number(bill.BillCodeId), instituteCode);
+  const month = billMonth || canonicalBillMonthFromBill(bill);
+  const isCanonical = isCanonicalBillMonth(bill, month);
+  return loadEmployeeSnapshots(Number(bill.BillCodeId), instituteCode, month, isCanonical);
 }
 
 async function loadHistory(billCodeId, instituteCode) {
@@ -548,6 +707,7 @@ router.get("/returned", async (req, res) => {
     const result = await new sql.Request().query(`
       SELECT
         w.*,
+        w.BillMonth AS WorkflowBillMonth,
         b.BillCode,
         b.BillMonth,
         b.SalaryMonth,
@@ -570,37 +730,37 @@ router.get("/returned", async (req, res) => {
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.EmployeeCount, 0)
-          ELSE ISNULL(sed.EmployeeCount, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.EmployeeCount, 0) ELSE ISNULL(sebd.EmployeeCount, 0) END)
         END AS EmployeeCount,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.TotalBasicPay, 0)
-          ELSE ISNULL(sed.TotalBasicPay, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.TotalBasicPay, 0) ELSE ISNULL(sebd.TotalBasicPay, 0) END)
         END AS TotalBasicPay,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.TotalEarnings, 0)
-          ELSE ISNULL(sed.TotalEarnings, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.TotalEarnings, 0) ELSE ISNULL(sebd.TotalEarnings, 0) END)
         END AS TotalEarnings,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.TotalDeductions, 0)
-          ELSE ISNULL(sed.TotalDeductions, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.TotalDeductions, 0) ELSE ISNULL(sebd.TotalDeductions, 0) END)
         END AS TotalDeductions,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.NetSalary, 0)
-          ELSE ISNULL(sed.NetSalary, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.NetSalary, 0) ELSE ISNULL(sebd.NetSalary, 0) END)
         END AS NetSalary,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.ChequeAmount, 0)
-          ELSE ISNULL(sed.ChequeAmount, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.ChequeAmount, 0) ELSE ISNULL(sebd.ChequeAmount, 0) END)
         END AS ChequeAmount
       FROM dbo.SalaryBillInstituteWorkflow w
       INNER JOIN dbo.SalaryBillCodes b ON b.BillCodeId = w.SalaryBillCodeId
@@ -623,6 +783,27 @@ router.get("/returned", async (req, res) => {
         WHERE d.SalaryBillCodeId = w.SalaryBillCodeId
           AND d.InstituteCode = w.InstituteCode
       ) sed
+      /* Non-canonical (Bill Month < Salary Month) instance totals -
+         dbo.SalaryEntryBillEmployeeDetails (migration 50), scoped to the
+         EXACT workflow row's own Bill Month so a JUL-2026 queue row never
+         shows AUG-2026's totals or vice versa. */
+      OUTER APPLY (
+        SELECT
+          COUNT(*) AS EmployeeCount,
+          ISNULL(SUM(d2.TotalBasic), 0) AS TotalBasicPay,
+          ISNULL(SUM(d2.GrossSalary), 0) AS TotalEarnings,
+          ISNULL(SUM(d2.TotalDeduction), 0) AS TotalDeductions,
+          ISNULL(SUM(d2.NetSalary), 0) AS NetSalary,
+          ISNULL(SUM(
+            ISNULL(d2.NetSalary, 0) +
+            ISNULL(d2.IncomeTax, 0) +
+            ISNULL(d2.ProfessionalTax, 0)
+          ), 0) AS ChequeAmount
+        FROM dbo.SalaryEntryBillEmployeeDetails d2
+        WHERE d2.SalaryBillCodeId = w.SalaryBillCodeId
+          AND d2.InstituteCode = w.InstituteCode
+          AND d2.BillMonth = w.BillMonth
+      ) sebd
       OUTER APPLY (
         SELECT
           COUNT(*) AS EmployeeCount,
@@ -733,6 +914,7 @@ router.get("/", accountOfficerOnly, async (req, res) => {
         w.SalaryBillCodeId AS BillCodeId,
         w.InstituteId,
         w.InstituteCode,
+        w.BillMonth AS WorkflowBillMonth,
         w.Status,
         b.Status AS MasterStatus,
         w.SubmittedDate,
@@ -773,37 +955,37 @@ router.get("/", accountOfficerOnly, async (req, res) => {
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.EmployeeCount, 0)
-          ELSE ISNULL(sed.EmployeeCount, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.EmployeeCount, 0) ELSE ISNULL(sebd.EmployeeCount, 0) END)
         END AS EmployeeCount,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.TotalBasicPay, 0)
-          ELSE ISNULL(sed.TotalBasicPay, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.TotalBasicPay, 0) ELSE ISNULL(sebd.TotalBasicPay, 0) END)
         END AS TotalBasicPay,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.TotalEarnings, 0)
-          ELSE ISNULL(sed.TotalEarnings, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.TotalEarnings, 0) ELSE ISNULL(sebd.TotalEarnings, 0) END)
         END AS TotalEarnings,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.TotalDeductions, 0)
-          ELSE ISNULL(sed.TotalDeductions, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.TotalDeductions, 0) ELSE ISNULL(sebd.TotalDeductions, 0) END)
         END AS TotalDeductions,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.NetSalary, 0)
-          ELSE ISNULL(sed.NetSalary, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.NetSalary, 0) ELSE ISNULL(sebd.NetSalary, 0) END)
         END AS NetSalary,
         CASE
           WHEN UPPER(ISNULL(b.BillCategory, N'Salary')) = N'DIFFERENCE'
             OR UPPER(ISNULL(b.BillType, N'')) = N'DA DIFFERENCE'
           THEN ISNULL(dad.ChequeAmount, 0)
-          ELSE ISNULL(sed.ChequeAmount, 0)
+          ELSE (CASE WHEN w.BillMonth = (UPPER(LEFT(LTRIM(RTRIM(ISNULL(b.SalaryMonth, N''))), 3)) + N'-' + CAST(b.SalaryYear AS NVARCHAR(4))) THEN ISNULL(sed.ChequeAmount, 0) ELSE ISNULL(sebd.ChequeAmount, 0) END)
         END AS ChequeAmount
       FROM dbo.SalaryBillInstituteWorkflow w
       INNER JOIN dbo.SalaryBillCodes b ON b.BillCodeId = w.SalaryBillCodeId
@@ -831,6 +1013,27 @@ router.get("/", accountOfficerOnly, async (req, res) => {
         WHERE d.SalaryBillCodeId = w.SalaryBillCodeId
           AND d.InstituteCode = w.InstituteCode
       ) sed
+      /* Non-canonical (Bill Month < Salary Month) instance totals -
+         dbo.SalaryEntryBillEmployeeDetails (migration 50), scoped to the
+         EXACT workflow row's own Bill Month so a JUL-2026 queue row never
+         shows AUG-2026's totals or vice versa. */
+      OUTER APPLY (
+        SELECT
+          COUNT(*) AS EmployeeCount,
+          ISNULL(SUM(d2.TotalBasic), 0) AS TotalBasicPay,
+          ISNULL(SUM(d2.GrossSalary), 0) AS TotalEarnings,
+          ISNULL(SUM(d2.TotalDeduction), 0) AS TotalDeductions,
+          ISNULL(SUM(d2.NetSalary), 0) AS NetSalary,
+          ISNULL(SUM(
+            ISNULL(d2.NetSalary, 0) +
+            ISNULL(d2.IncomeTax, 0) +
+            ISNULL(d2.ProfessionalTax, 0)
+          ), 0) AS ChequeAmount
+        FROM dbo.SalaryEntryBillEmployeeDetails d2
+        WHERE d2.SalaryBillCodeId = w.SalaryBillCodeId
+          AND d2.InstituteCode = w.InstituteCode
+          AND d2.BillMonth = w.BillMonth
+      ) sebd
       OUTER APPLY (
         SELECT
           COUNT(*) AS EmployeeCount,
@@ -889,7 +1092,17 @@ router.get("/", accountOfficerOnly, async (req, res) => {
 
     res.json({
       message: "OK",
-      data: result.recordset.map(mapInstituteBill),
+      data: (() => {
+        const mapped = result.recordset.map(mapInstituteBill);
+        traceApproval("GET list response", {
+          rows: mapped.map((b) => ({
+            id: b.id, billCodeId: b.billCodeId, billCode: b.billCode,
+            instituteCode: b.instituteCode, workflowId: b.workflowId,
+            workflowBillMonth: b.billMonth, workflowStatus: b.status,
+          })),
+        });
+        return mapped;
+      })(),
     });
   } catch (error) {
     console.error("GET /api/salary-bill-approval error:", error);
@@ -921,13 +1134,39 @@ router.get("/:idOrCode", accountOfficerOnly, async (req, res) => {
       return res.status(404).json({ message: "Salary bill not found." });
     }
 
+    /* An idOrCode of the form BillCodeId__InstituteCode__BillMonth (as the
+       queue now returns, migration 51) carries the exact instance; a plain
+       billMonth query param, or omitting it entirely (falls back to
+       canonical), both still work for any older caller. */
+    const idParts = String(req.params.idOrCode || "").split("__");
+    const requestedBillMonth = req.query.billMonth || idParts[2] || "";
+    const instance = await resolveApprovalBillMonth(bill, instituteCode, requestedBillMonth);
+    traceApproval("GET detail request", {
+      rawParams: req.params,
+      rawQuery: req.query,
+      idOrCode: req.params.idOrCode,
+      billCodeId: Number(bill.BillCodeId),
+      billCode: bill.BillCode,
+      instituteCode,
+      requestedBillMonth,
+      canonicalBillMonth: canonicalBillMonthFromBill(bill),
+      resolvedBillMonth: instance.billMonth || null,
+      resolvedFrom: instance.source || null,
+      error: instance.error || null,
+    });
+    if (instance.error) {
+      return res.status(instance.error.status).json(instance.error);
+    }
+    const instanceBillMonth = instance.billMonth;
+
     const workflow = await getInstituteWorkflow(
       Number(bill.BillCodeId),
-      instituteCode
+      instituteCode,
+      instanceBillMonth
     );
     if (!workflow) {
       return res.status(404).json({
-        message: `No salary workflow found for bill ${bill.BillCode} / institute ${instituteCode}.`,
+        message: `No salary workflow found for bill ${bill.BillCode} / institute ${instituteCode} / Bill Month ${instanceBillMonth}.`,
       });
     }
 
@@ -944,7 +1183,7 @@ router.get("/:idOrCode", accountOfficerOnly, async (req, res) => {
     const daHeader = isDifferenceCategory(bill.BillCategory, bill.BillType)
       ? await loadDaDifferenceHeader(Number(bill.BillCodeId))
       : null;
-    const employees = await loadApprovalEmployees(bill, instituteCode);
+    const employees = await loadApprovalEmployees(bill, instituteCode, instanceBillMonth);
     const totals = computeTotals(employees);
     const history = await loadHistory(Number(bill.BillCodeId), instituteCode);
 
@@ -966,7 +1205,7 @@ router.get("/:idOrCode", accountOfficerOnly, async (req, res) => {
       ...workflow,
       BillCodeId: bill.BillCodeId,
       BillCode: bill.BillCode,
-      BillMonth: bill.BillMonth,
+      WorkflowBillMonth: workflow.BillMonth || instanceBillMonth,
       SalaryMonth: bill.SalaryMonth,
       SalaryYear: bill.SalaryYear,
       BillCategory: bill.BillCategory,
@@ -989,6 +1228,20 @@ router.get("/:idOrCode", accountOfficerOnly, async (req, res) => {
       FromSalaryYear: daHeader?.FromSalaryYear,
       ToSalaryMonth: daHeader?.ToSalaryMonth,
       ToSalaryYear: daHeader?.ToSalaryYear,
+    });
+
+    traceApproval("GET detail response", {
+      billCodeId: billPayload.billCodeId,
+      billCode: billPayload.billCode,
+      instituteCode,
+      requestedBillMonth,
+      canonicalBillMonth: canonicalBillMonthFromBill(bill),
+      workflowId: Number(workflow.WorkflowId),
+      workflowBillMonth: workflow.BillMonth,
+      workflowStatus: workflow.Status,
+      responseBillMonth: billPayload.billMonth,
+      responseStatus: billPayload.status,
+      employeeRows: employees.length,
     });
 
     res.json({
@@ -1048,13 +1301,38 @@ async function mutateInstituteStatus(req, res, nextStatus, extrasBuilder) {
     });
   }
 
+  /* The exact Bill Month instance this action targets (migration 51) - an
+     explicit billMonth in the request body/query (sent by the AO screen,
+     echoed from the queue row it acted on) takes precedence; otherwise
+     this falls back to the bill's own canonical Salary Month, which is
+     what every pre-migration-51 workflow row already meant. */
+  const requestedBillMonth = req.body?.billMonth || req.query.billMonth || "";
+  const instance = await resolveApprovalBillMonth(bill, instituteCode, requestedBillMonth);
+  if (instance.error) {
+    traceApproval(`POST ${nextStatus} rejected`, {
+      billCodeId: Number(bill.BillCodeId), billCode: bill.BillCode, instituteCode,
+      requestedBillMonth, error: instance.error,
+    });
+    return res.status(instance.error.status).json(instance.error);
+  }
+  const instanceBillMonth = instance.billMonth;
+
   const workflow = await getInstituteWorkflow(
     Number(bill.BillCodeId),
-    instituteCode
+    instituteCode,
+    instanceBillMonth
   );
+  traceApproval(`POST ${nextStatus} request`, {
+    billCodeId: Number(bill.BillCodeId), billCode: bill.BillCode, instituteCode,
+    requestedBillMonth, canonicalBillMonth: canonicalBillMonthFromBill(bill),
+    resolvedBillMonth: instanceBillMonth, resolvedFrom: instance.source,
+    workflowId: workflow ? Number(workflow.WorkflowId) : null,
+    workflowBillMonth: workflow ? workflow.BillMonth : null,
+    workflowStatus: workflow ? workflow.Status : null,
+  });
   if (!workflow) {
     return res.status(404).json({
-      message: `No workflow for ${bill.BillCode} / ${instituteCode}.`,
+      message: `No workflow for ${bill.BillCode} / ${instituteCode} / Bill Month ${instanceBillMonth}.`,
     });
   }
 
@@ -1083,6 +1361,7 @@ async function mutateInstituteStatus(req, res, nextStatus, extrasBuilder) {
       nextStatus,
       actor,
       extras: extras || {},
+      billMonth: instanceBillMonth,
     });
 
     /*
@@ -1095,22 +1374,28 @@ async function mutateInstituteStatus(req, res, nextStatus, extrasBuilder) {
 
   const refreshed = await getInstituteWorkflow(
     Number(bill.BillCodeId),
-    instituteCode
+    instituteCode,
+    instanceBillMonth
   );
   const daHeader = isDifferenceCategory(bill.BillCategory, bill.BillType)
     ? await loadDaDifferenceHeader(Number(bill.BillCodeId))
     : null;
-  const employees = await loadApprovalEmployees(bill, instituteCode);
+  const employees = await loadApprovalEmployees(bill, instituteCode, instanceBillMonth);
   const totals = computeTotals(employees);
 
   res.json({
-    message: `Salary bill ${String(nextStatus).toLowerCase()} successfully.`,
+    message: approvalInstanceMessage(
+      bill.BillCode,
+      instituteCode,
+      refreshed?.BillMonth || instanceBillMonth,
+      nextStatus
+    ),
     data: {
       ...mapInstituteBill({
         ...refreshed,
         BillCodeId: bill.BillCodeId,
         BillCode: bill.BillCode,
-        BillMonth: bill.BillMonth,
+        WorkflowBillMonth: refreshed?.BillMonth || instanceBillMonth,
         SalaryMonth: bill.SalaryMonth,
         SalaryYear: bill.SalaryYear,
         BillCategory: bill.BillCategory,
@@ -1169,19 +1454,38 @@ router.post("/:idOrCode/lock", accountOfficerOnly, async (req, res) => {
     const instituteCode = String(req.body?.instituteCode || "").trim();
     const bill = await getBillByIdOrCode(req.params.idOrCode);
     if (!bill || !instituteCode) return res.status(400).json({ message: "Bill and Institute Code are required." });
+    const requestedBillMonth = req.body?.billMonth || req.query.billMonth || "";
+    const instance = await resolveApprovalBillMonth(bill, instituteCode, requestedBillMonth);
+    traceApproval("POST LOCKED request", {
+      billCodeId: Number(bill.BillCodeId), billCode: bill.BillCode, instituteCode,
+      requestedBillMonth, canonicalBillMonth: canonicalBillMonthFromBill(bill),
+      resolvedBillMonth: instance.billMonth || null, error: instance.error || null,
+    });
+    if (instance.error) return res.status(instance.error.status).json(instance.error);
+    const instanceBillMonth = instance.billMonth;
+    let lockedRow = null;
     await withTransaction(async (transaction) => {
-      const workflow = await getInstituteWorkflow(Number(bill.BillCodeId), instituteCode, transaction);
-      if (!workflow) { const e = new Error("No workflow exists for this institute."); e.status = 404; throw e; }
+      const workflow = await getInstituteWorkflow(Number(bill.BillCodeId), instituteCode, instanceBillMonth, transaction);
+      if (!workflow) { const e = new Error(`No workflow exists for this institute / Bill Month ${instanceBillMonth}.`); e.status = 404; throw e; }
       if (String(workflow.Status).toUpperCase() === "LOCKED") { const e = new Error("This institute salary bill is already locked."); e.status = 409; throw e; }
       if (String(workflow.Status).toUpperCase() !== "APPROVED") { const e = new Error("Only an approved institute salary bill can be locked."); e.status = 409; throw e; }
       const instituteRes = await new sql.Request(transaction).query`SELECT TOP 1 * FROM dbo.Institutes WHERE InstituteCode = ${instituteCode}`;
       const institute = instituteRes.recordset[0] || { InstituteCode: instituteCode, InstituteId: workflow.InstituteId };
-      await upsertInstituteWorkflow(transaction, { bill, institute, nextStatus: "LOCKED", actor });
+      lockedRow = await upsertInstituteWorkflow(transaction, { bill, institute, nextStatus: "LOCKED", actor, billMonth: instanceBillMonth });
     });
+    const lockedBillMonth = lockedRow?.BillMonth || instanceBillMonth;
     res.json({
       instituteLocked: true,
       monthLocked: false,
-      message: "Institute salary bill locked successfully. Salary Bill Code Master month status is unchanged.",
+      billCodeId: Number(bill.BillCodeId),
+      billCode: bill.BillCode,
+      instituteCode,
+      billMonth: lockedBillMonth,
+      workflowId: lockedRow?.WorkflowId != null ? Number(lockedRow.WorkflowId) : null,
+      status: String(lockedRow?.Status || "LOCKED").toUpperCase(),
+      message:
+        approvalInstanceMessage(bill.BillCode, instituteCode, lockedBillMonth, "LOCKED") +
+        " Salary Bill Code Master month status is unchanged.",
     });
   } catch (error) { res.status(error.status || 500).json({ message: error.message || "Unable to lock institute salary bill." }); }
 });

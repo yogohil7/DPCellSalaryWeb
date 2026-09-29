@@ -245,7 +245,7 @@ function main() {
   /* ---------------- O, P, Q ---------------- */
   section("O-Q — print layout and legacy typography");
 
-  check("O. A4 portrait", /size: A4 portrait/.test(cssSrc), true);
+  check("O. A4 portrait (reportPdfConfig)", (new RegExp("gpfSummary: \\{[^}]*orientation: \"portrait\"").test(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "utils", "reportPdfConfig.js"), "utf8")) && require("fs").readFileSync(require("path").join(__dirname, "..", "..", "frontend", "src", "pages", "GpfSummary.jsx"), "utf8").includes('useReportPrintPage("gpfSummary")')), true);
   check("O. navigation, filters and buttons are hidden when printing",
     /\.gs-filters,[\s\S]{0,140}\.gs-actions \{\s*\n\s*display: none/.test(cssSrc), true);
   check("P. the screen follows the global typography token",

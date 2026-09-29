@@ -1,12 +1,15 @@
+/* Optional `separatorBefore: true` on an item draws a divider above it in the
+   top-nav dropdown (Header.jsx). Purely visual; ids, labels and order are
+   untouched. */
 export const MASTERS = [
   { id: "section-master", label: "Section Master" },
   { id: "institute-master", label: "Institute Master" },
   { id: "employee-master", label: "Employee Master" },
   { id: "payroll-configuration", label: "Payroll Configuration" },
-  { id: "designation-master", label: "Designation Master" },
+  { id: "designation-master", separatorBefore: true, label: "Designation Master" },
   { id: "pay-revision-master", label: "Pay Revision Master" },
   { id: "pay-matrix", label: "Pay Matrix" },
-  { id: "salary-component-master", label: "Salary Component Master" },
+  { id: "salary-component-master", separatorBefore: true, label: "Salary Component Master" },
   { id: "da-master", label: "DA Master" },
   { id: "increment-master", label: "Increment Master" },
   { id: "hra-master", label: "HRA Master" },
@@ -15,18 +18,11 @@ export const MASTERS = [
   { id: "transport-allowance-master", label: "Transport Allowance" },
   { id: "user-master", label: "User Master" },
   { id: "role-permission-master", label: "Role & Permission Master" },
-  { id: "salary-bill-code-master", label: "Salary Bill Code Master" },
+  { id: "salary-bill-code-master", separatorBefore: true, label: "Salary Bill Code Master" },
 ];
 
 /**
  * Salary navigation.
- *
- * "Salary Process" was removed from this list: it was a stale menu
- * registration only. No SalaryProcess page component exists and AppShell has
- * no renderAuthorized("salary-process", ...) branch, so the entry navigated to
- * a hash that rendered nothing. Its PAGE_PERMISSION_PREFIX mapping and the
- * SALARY_PROCESS permission row are deliberately left in place so no role's
- * permissions change.
  */
 export const SALARY = [
   { id: "salary-entry", label: "Salary Entry" },
@@ -45,18 +41,19 @@ export const REPORTS = [
   { id: "salary-register", label: "Salary Register" },
   { id: "cheque-register", label: "Cheque Register" },
   { id: "bank-copy", label: "Bank Copy" },
-  { id: "institute-wise-salary", label: "Institute Wise Salary Report" },
+  { id: "institute-wise-salary", separatorBefore: true, label: "Institute Wise Salary Report" },
+  { id: "month-wise-employee-salary", label: "Month-Wise Employee Salary Report" },
   { id: "employee-wise-salary", label: "Employee Wise Salary Report" },
   { id: "employee-pay-slip", label: "Employee Pay Slip" },
   { id: "section-summary", label: "Section Summary" },
-  { id: "gpf-summary", label: "GPF Summary" },
+  { id: "gpf-summary", separatorBefore: true, label: "GPF Summary" },
   { id: "institute-wise-gpf", label: "Institute Wise GPF Summary" },
   { id: "nps-summary", label: "NPS Summary" },
   { id: "nps-institute-wise", label: "NPS Institute Wise Summary" },
   { id: "nps-deduction", label: "NPS / GPF Deduction" },
   { id: "income-tax-professional-tax", label: "Income Tax & Professional Tax" },
   { id: "nps-schedule", label: "NPS Schedule Summary" },
-  { id: "employee-report", label: "Employee Report" },
+  { id: "employee-report", separatorBefore: true, label: "Employee Report" },
   { id: "variation-report", label: "Variation Report" },
 ];
 
@@ -79,7 +76,6 @@ export const TITLES = {
   "salary-bill-code-master": "SALARY BILL CODE MASTER",
   "user-master": "USER MASTER",
   "role-permission-master": "ROLE & PERMISSION MASTER",
-  "salary-process": "SALARY PROCESS",
   "salary-entry": "SALARY ENTRY",
   "da-difference-entry": "DA DIFFERENCE ENTRY",
   "salary-approval": "SALARY APPROVAL",
@@ -89,6 +85,7 @@ export const TITLES = {
   "cheque-register": "CHEQUE REGISTER",
   "bank-copy": "BANK COPY",
   "institute-wise-salary": "INSTITUTE WISE SALARY",
+  "month-wise-employee-salary": "MONTH-WISE EMPLOYEE SALARY REPORT",
   "employee-wise-salary": "EMPLOYEE WISE SALARY",
   "employee-pay-slip": "EMPLOYEE PAY SLIP",
   "section-summary": "SECTION SUMMARY",
@@ -102,4 +99,7 @@ export const TITLES = {
   "employee-report": "EMPLOYEE REPORT",
   "variation-report": "VARIATION REPORT",
   "change-password": "CHANGE PASSWORD",
+  /* Drill-down of Salary Register, not a standalone menu entry — see REPORTS
+     above, which deliberately does not list it. */
+  "salary-register-detail": "SALARY DETAILS",
 };

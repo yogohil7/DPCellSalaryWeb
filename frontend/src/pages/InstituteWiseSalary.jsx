@@ -7,6 +7,7 @@ import {
 import { listActiveSections } from "../utils/sectionApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./instituteWiseSalary.css";
+import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
 /*
   Money: stored values, en-IN with paise. An exact zero prints as "0"
@@ -146,6 +147,8 @@ function SalaryTable({ rows, total, totalLabel }) {
 }
 
 export default function InstituteWiseSalary({ user, onBack }) {
+  /* A4 PORTRAIT for this report only — utils/reportPdfConfig.js */
+  useReportPrintPage("instituteWiseSalary");
   const now = new Date();
   const [sections, setSections] = useState([]);
   const [allInstitutes, setAllInstitutes] = useState([]);
@@ -530,6 +533,8 @@ export default function InstituteWiseSalary({ user, onBack }) {
 
           <div className="iws-actions no-print">
             <GridToolbar
+              reportName="instituteWiseSalary"
+              subtitle={[report.heading, report.monthLine, report.subHeading, `${report.sectionTitle || ""} | Type: ${report.salaryType || ""}`]}
               title="Institute Wise Salary"
               columns={exportColumns}
               rows={exportRows}
@@ -548,7 +553,7 @@ export default function InstituteWiseSalary({ user, onBack }) {
               <button
                 type="button"
                 className="iws-btn"
-                onClick={() => window.print()}
+                onClick={() => printReport("instituteWiseSalary")}
               >
                 Print
               </button>

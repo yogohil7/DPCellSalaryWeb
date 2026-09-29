@@ -1,16 +1,51 @@
 ﻿const { sql } = require("../db");
+const { normalizeYearMonth, formatMonthLabel } = require("./salaryMonthKey");
+
+/**
+ * The canonical Bill Month label for a SalaryBillCodes row (e.g. 'AUG-2026'
+ * for a bill whose SalaryMonth/SalaryYear are 'August'/2026) - the
+ * identity every institute workflow row used to implicitly share before
+ * migration 51 made BillMonth part of the key. Every call site that does
+ * not have an explicit, already-resolved Bill Month (DA Difference bills,
+ * which have no Bill Month concept of their own) uses this.
+ */
+function canonicalBillMonthFromBill(bill) {
+  return (
+    formatMonthLabel(
+      normalizeYearMonth(bill?.SalaryMonth, bill?.SalaryYear, bill?.SalaryMonthNumber)
+    ) || ""
+  );
+}
 
 function makeRequest(transaction) {
   return transaction ? new sql.Request(transaction) : new sql.Request();
 }
 
-async function getInstituteWorkflow(billCodeId, instituteCode, transaction) {
+async function getInstituteWorkflow(billCodeId, instituteCode, billMonth, transaction) {
+  /*
+     A workflow row is identified by (SalaryBillCodeId, InstituteCode,
+     BillMonth) - migration 51. There is deliberately NO bill+institute-only
+     fallback: "the most recent row for this bill+institute" is a DIFFERENT
+     Bill Month instance's row whenever more than one exists, which is how a
+     JUL-2026 bill can end up showing the AUG-2026 bill's LOCKED status.
+     A caller without a Bill Month is a bug and fails loudly instead.
+  */
+  const month = String(billMonth || "").trim();
+  if (!month) {
+    const err = new Error(
+      "getInstituteWorkflow requires a Bill Month (SalaryBillCodeId, InstituteCode, BillMonth)."
+    );
+    err.status = 500;
+    err.code = "WORKFLOW_BILL_MONTH_REQUIRED";
+    throw err;
+  }
   const req = makeRequest(transaction);
   const result = await req.query`
     SELECT TOP 1 *
     FROM dbo.SalaryBillInstituteWorkflow
     WHERE SalaryBillCodeId = ${Number(billCodeId)}
       AND InstituteCode = ${String(instituteCode || "").trim()}
+      AND BillMonth = ${month}
   `;
   return result.recordset[0] || null;
 }
@@ -65,6 +100,7 @@ async function upsertInstituteWorkflow(
     nextStatus,
     actor,
     extras = {},
+    billMonth,
   }
 ) {
   const billCodeId = Number(bill.BillCodeId);
@@ -74,10 +110,28 @@ async function upsertInstituteWorkflow(
   const who = actor.fullName || actor.userName || "SYSTEM";
   const userId = actor.userId != null ? Number(actor.userId) : null;
   const status = String(nextStatus || "DRAFT").toUpperCase();
+  /*
+     Every workflow row is now identified by (SalaryBillCodeId,
+     InstituteCode, BillMonth) - migration 51. A caller that has an actual
+     Bill Month instance (Salary Entry) passes it explicitly; every other
+     caller (DA Difference, which has no Bill Month concept) falls back to
+     the bill's own canonical Salary Month label, which is exactly what
+     every existing workflow row already meant before this change.
+  */
+  const instituteBillMonth =
+    String(billMonth || "").trim() || canonicalBillMonthFromBill(bill);
+  if (!instituteBillMonth) {
+    const err = new Error(
+      "Unable to resolve a Bill Month for this institute workflow row."
+    );
+    err.status = 400;
+    throw err;
+  }
 
   const existing = await getInstituteWorkflow(
     billCodeId,
     instituteCode,
+    instituteBillMonth,
     transaction
   );
   const fromStatus = existing ? String(existing.Status || "").toUpperCase() : null;
@@ -87,7 +141,7 @@ async function upsertInstituteWorkflow(
     await ins.query`
       INSERT INTO dbo.SalaryBillInstituteWorkflow
         (
-          SalaryBillCodeId, InstituteId, InstituteCode, Status,
+          SalaryBillCodeId, InstituteId, InstituteCode, BillMonth, Status,
           UpdatedDate, UpdatedBy
         )
       VALUES
@@ -95,6 +149,7 @@ async function upsertInstituteWorkflow(
           ${billCodeId},
           ${instituteId},
           ${instituteCode},
+          ${instituteBillMonth},
           ${status},
           SYSUTCDATETIME(),
           ${who}
@@ -113,6 +168,7 @@ async function upsertInstituteWorkflow(
           ResubmittedByUserId = CASE WHEN ${status} = N'RESUBMITTED' THEN ${userId} ELSE NULL END
         WHERE SalaryBillCodeId = ${billCodeId}
           AND InstituteCode = ${instituteCode}
+          AND BillMonth = ${instituteBillMonth}
       `;
     }
   } else {
@@ -241,7 +297,7 @@ async function upsertInstituteWorkflow(
     remarks: extras.returnedRemarks || extras.rejectReason || null,
   });
 
-  return getInstituteWorkflow(billCodeId, instituteCode, transaction);
+  return getInstituteWorkflow(billCodeId, instituteCode, instituteBillMonth, transaction);
 }
 
 const EDITABLE_INSTITUTE_STATUSES = new Set([
@@ -275,4 +331,5 @@ module.exports = {
   writeApprovalHistory,
   assertInstituteEditable,
   EDITABLE_INSTITUTE_STATUSES,
+  canonicalBillMonthFromBill,
 };

@@ -12,6 +12,10 @@ const {
   getClaPayLevelGroup,
   resolveTransportAllowancePayLevelGroup,
 } = require("../utils/transportAllowanceGroup");
+const {
+  isGpfNpsStoppedForRetirement,
+  salaryYearMonthFromAsOfDate,
+} = require("../utils/retirementRules");
 
 const router = express.Router();
 
@@ -227,6 +231,25 @@ async function calculateForEmployee(employeeId, asOfDate, basicPayOverride = nul
   const gpfNpsFlag = String(employee.GPFNPS || "")
     .trim()
     .toUpperCase();
+
+  /*
+     Retirement-based GPF/NPS deduction stop (2026-09-25): deduction is
+     ZERO for the retirement month and the two calendar months before it,
+     compared against the SALARY Month (onDate/monthLabel, always derived
+     from the bill's Salary Month — see asOfFromBill() in salaryEntry.js —
+     never the Bill Month). employee.DateOfRetirement comes straight from
+     EmployeeMaster (loadEmployee() selects e.*); a NULL value never stops
+     the deduction. Only zeroes the deduction that actually applies to this
+     employee's pension type — never invents the other one.
+  */
+  const retirementSalaryYm = salaryYearMonthFromAsOfDate(onDate);
+  const gpfNpsRetirementStop = retirementSalaryYm
+    ? isGpfNpsStoppedForRetirement({
+        dateOfRetirement: employee.DateOfRetirement,
+        salaryYear: retirementSalaryYm.salaryYear,
+        salaryMonth: retirementSalaryYm.salaryMonth,
+      })
+    : false;
 
   const daRes = await sql.query`
     SELECT DAId, DAPercentage, EffectiveFrom, EffectiveTo, PayRevisionId
@@ -683,11 +706,21 @@ async function calculateForEmployee(employeeId, asOfDate, basicPayOverride = nul
     gpfSubscription = 0;
   } else if (gpfNpsFlag === "GPF") {
     nps = 0;
-    if (gpfSubscription === 0) {
+    if (gpfSubscription === 0 && !gpfNpsRetirementStop) {
       warnings.push(
         "GPF/PF deduction rule not configured in SalaryComponentRule for this employee."
       );
     }
+  }
+
+  /* Retirement stop applies AFTER the normal GPF/NPS calculation above, and
+     only to whichever deduction actually exists for this employee's
+     pension type. GPF Advance, Income Tax, Professional Tax and Other
+     Deduction are untouched (requirement: stop is specific to GPF/NPS
+     subscription only). */
+  if (gpfNpsRetirementStop) {
+    if (gpfNpsFlag === "GPF") gpfSubscription = 0;
+    if (gpfNpsFlag === "NPS") nps = 0;
   }
 
   const incomeTax = amountBy("INCOME_TAX");
@@ -782,6 +815,9 @@ async function calculateForEmployee(employeeId, asOfDate, basicPayOverride = nul
       otherDeduction,
       totalDeduction,
     },
+    /* Diagnostic/testable flag only — the deductions above are already the
+       authoritative zeroed values when this is true. */
+    gpfNpsRetirementStop,
     netSalary,
     chequeAmount,
   };
@@ -883,6 +919,21 @@ function mapCalcToGridRow(calc, extras = {}) {
     }
   }
 
+  /*
+     Retirement-based GPF/NPS deduction stop (2026-09-25): this must win
+     over BOTH the default derivation above and any manual override —
+     the whole point of the rule is that the operator cannot re-enable the
+     deduction during the final 3 months. calc.gpfNpsRetirementStop was
+     already computed against EmployeeMaster.DateOfRetirement + the Salary
+     Month by calculateForEmployee(); never recomputed here so there is one
+     source of truth. GPF Advance / Income Tax / Professional Tax / Other
+     Deduction are untouched.
+  */
+  if (calc.gpfNpsRetirementStop) {
+    if (pension === "GPF") gpfSubscription = 0;
+    if (pension === "NPS") nps = 0;
+  }
+
   const grossSalary =
     totalBasic +
     da +
@@ -964,6 +1015,11 @@ function mapCalcToGridRow(calc, extras = {}) {
     gpfAdvance,
     nps,
     npsAdvance: 0,
+    /* Surfaced so the Salary Entry grid can keep the GPF/NPS cell
+       non-editable for this row without recomputing the rule client-side
+       from scratch (frontend/src/utils/retirementRules.js mirrors it for
+       the same purpose when the operator edits Basic Pay etc. live). */
+    gpfNpsRetirementStop: Boolean(calc.gpfNpsRetirementStop),
     npsManual: Boolean(manual.npsManual) && !manual.recalcFromBasic && !manual.basicDriven,
     incomeTax,
     professionTax: professionalTax,
