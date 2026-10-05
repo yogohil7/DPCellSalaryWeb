@@ -89,6 +89,7 @@
     "test:gpf-institute": "node scripts/testInstituteWiseGpf.js",
     "test:nps-schedule-summary": "node scripts/testNpsScheduleSummary.js",
     "test:nps-schedule-mr29": "node scripts/testNpsScheduleMr29Instances.js",
+    "diagnose:nps-schedule-bill-month": "node scripts/diagnoseNpsScheduleBillMonth.js",
     "test:phase8-security": "node scripts/testPhase8Security.js",
     "test:salary-type": "node scripts/testSalaryTypeFilter.js",
     "test:nps-gpf-deduction": "node scripts/testNpsGpfDeduction.js",
