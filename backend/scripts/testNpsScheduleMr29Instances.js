@@ -31,6 +31,15 @@ const HEADERS = [
     BillDate: "2026-09-03",
     NPSScheduleNo: "SCH-AUG-MR29",
   },
+  /* A Schedule No. exists, but this instance has no saved NPS amount. */
+  {
+    SalaryBillCodeId: 1018,
+    InstituteCode: "MR-29",
+    BillMonth: "JUN-2026",
+    BillNo: "600",
+    BillDate: "2026-07-01",
+    NPSScheduleNo: "SCH-JUN-MR29",
+  },
 ];
 
 function employee(o) {
@@ -86,6 +95,11 @@ const EMPLOYEES = [
   employee({
     code: "MR-29", name: "Observation Home", billMonth: "JUL-2026",
     workflowId: 62, detailId: 4, emp: 3024, empName: "Jul Zero", nps: 0,
+  }),
+  /* JUN-2026 has a workflow and a Schedule No., but no saved NPS deduction. */
+  employee({
+    code: "MR-29", name: "Observation Home", billMonth: "JUN-2026",
+    workflowId: 80, detailId: 6, emp: 3025, empName: "Jun No Nps", nps: 0,
   }),
   /* A different institute with one instance must stay one row. */
   employee({
@@ -167,6 +181,9 @@ function excelRows(rows) {
   console.log("API rows for Salary Month AUG-2026 / MR-29:");
   console.log(JSON.stringify(mr, null, 2));
 
+  check("JUN-2026 is absent because it has no saved NPS deduction",
+    report.rows.some((r) => r.billMonth === "JUN-2026" || r.scheduleNo === "SCH-JUN-MR29"),
+    false);
   check("exactly two MR-29 rows", report.rows.length, 2);
   check("Bill Months are JUL-2026 then AUG-2026", mr.map((r) => r.billMonth), ["JUL-2026", "AUG-2026"]);
   check("each instance keeps its own schedule number", mr.map((r) => r.scheduleNo), ["SCH-JUL-MR29", "SCH-AUG-MR29"]);

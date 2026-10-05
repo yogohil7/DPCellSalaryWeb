@@ -219,6 +219,17 @@ function daRowToScheduleRow(row) {
  * the fallback so a row that has no workflow id still does not merge two
  * months. Employees of the same instance stay on one line.
  */
+/**
+ * A saved NPS deduction entry is a stored NPS amount on that instance's
+ * own employee row (dbo.SalaryEmployeeDetails for the canonical Bill Month,
+ * dbo.SalaryEntryBillEmployeeDetails for an earlier Bill Month). A workflow
+ * row or a Schedule No. is not an entry: a blank Schedule No. still counts
+ * when NPS is stored, and a Schedule No. with no NPS amount does not.
+ */
+function hasSavedNpsDeduction(row) {
+  return toNum(row && row.nps) !== 0;
+}
+
 function scheduleGroupKey(row) {
   const billMonth = String(row.paidMonth || row.billMonth || "")
     .trim()
@@ -240,6 +251,9 @@ function buildScheduleGroups(rows) {
   const groups = new Map();
 
   rows.forEach((row) => {
+    /* No stored NPS on this instance's employee row: do not open a schedule
+       line for the workflow, the bill, or a Schedule No. alone. */
+    if (!hasSavedNpsDeduction(row)) return;
     /* Keyed by the bill INSTANCE, not only the institute or the salary-month
        bill code. A REGULAR and an OLD bill stay two lines, and so do two
        Bill Month instances of the same salary bill (MR-29 JUL-2026 and
@@ -383,8 +397,10 @@ async function buildNpsScheduleReport(query = {}) {
   const scopedDa = filterSalaryRows(daMapped, { ...query, salaryType: "ALL" });
   const scoped = [...scopedSalary, ...scopedDa];
 
-  /* NPS Summary keeps only non-zero NPS rows; the schedule does the same. */
-  const withNps = scoped.filter((row) => toNum(row.nps) !== 0);
+  /* Only instances whose own saved employee rows carry an NPS amount.
+     Schedule No. is not the test: it is printed when present and left
+     blank when the entry was saved without one. */
+  const withNps = scoped.filter(hasSavedNpsDeduction);
 
   const groups = filterByInstitute(
     buildScheduleGroups(withNps),
@@ -746,6 +762,7 @@ module.exports = router;
 module.exports.parseBillType = parseBillType;
 module.exports.daRowToScheduleRow = daRowToScheduleRow;
 module.exports.loadScheduleNumbers = loadScheduleNumbers;
+module.exports.hasSavedNpsDeduction = hasSavedNpsDeduction;
 module.exports.scheduleGroupKey = scheduleGroupKey;
 module.exports.mapSalaryScheduleRow = mapSalaryScheduleRow;
 module.exports.buildScheduleGroups = buildScheduleGroups;

@@ -22,7 +22,7 @@ require.cache[dbPath].exports = {
 
 const sch = require("../routes/npsSchedule");
 const { parseBillType, buildScheduleGroups, compareGroups, filterByInstitute,
-        monthPartsFromLabel, mapSalaryScheduleRow } = sch;
+        monthPartsFromLabel, mapSalaryScheduleRow, hasSavedNpsDeduction } = sch;
 const { mapSalaryRow, filterSalaryRows } = require("../routes/employeeWiseSalary");
 const nps = require("../routes/npsSummary");
 const cheque = require("../routes/chequeRegister");
@@ -120,7 +120,7 @@ function build(query) {
   /* Mirrors the route: OLD narrows, everything else spans the salary bills. */
   const scoped = filterSalaryRows(mapped, {
     ...query, salaryType: billType === "OLD" ? "OLD" : "ALL" });
-  const withNps = scoped.filter((r) => Number(r.nps || 0) !== 0);
+  const withNps = scoped.filter(hasSavedNpsDeduction);
   const groups = filterByInstitute(buildScheduleGroups(withNps), query.instituteCode)
     .sort(compareGroups);
   const rows = groups.map((g, i) => ({ ...g, srNo: i + 1 }));
@@ -331,6 +331,18 @@ function main() {
         nps:7, employeeId:2, type:"REGULAR" },
     ]).map((g) => [g.employeeCount, g.amount]),
     [[2, 12]]);
+  check("saved NPS with a blank Schedule No. is still a row",
+    buildScheduleGroups([
+      { instituteCode:"MR-29", billCodeId:1018, workflowId:62, paidMonth:"JUL-2026",
+        nps:80, npsScheduleNo:"", employeeId:9, type:"OLD" },
+    ]).map((g) => [g.billMonth, g.scheduleNo, g.amount]),
+    [["JUL-2026", "", 80]]);
+  check("a Schedule No. without a saved NPS amount is not a row",
+    buildScheduleGroups([
+      { instituteCode:"MR-29", billCodeId:1018, workflowId:80, paidMonth:"JUN-2026",
+        nps:0, npsScheduleNo:"SCH-JUN-ONLY", employeeId:8, type:"OLD" },
+    ]),
+    []);
 
   section("Totals and reconciliation with NPS Summary");
   check("the total is the sum of the displayed amounts",
