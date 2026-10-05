@@ -22,7 +22,7 @@ require.cache[dbPath].exports = {
 
 const sch = require("../routes/npsSchedule");
 const { parseBillType, buildScheduleGroups, compareGroups, filterByInstitute,
-        monthPartsFromLabel } = sch;
+        monthPartsFromLabel, mapSalaryScheduleRow } = sch;
 const { mapSalaryRow, filterSalaryRows } = require("../routes/employeeWiseSalary");
 const nps = require("../routes/npsSummary");
 const cheque = require("../routes/chequeRegister");
@@ -47,16 +47,36 @@ const JUL_OLD = { BillCodeId: 72, BillCode:"JUL-2026-BM-JUN", BillMonth:"JUN-202
                   SalaryMonth:"July", SalaryMonthNumber:"07", SalaryYear:"2026" };
 const AUG     = { BillCodeId: 81, BillCode:"AUG-2026", BillMonth:"AUG-2026",
                   SalaryMonth:"August", SalaryMonthNumber:"08", SalaryYear:"2026" };
+/* One salary bill, two saved Bill Month instances (same BillCodeId). */
+const AUG_SAL = { BillCodeId: 1018, BillCode:"AUG-2026", BillMonth:"AUG-2026",
+                  SalaryMonth:"August", SalaryMonthNumber:"08", SalaryYear:"2026" };
+const AUG_JUL = { BillCodeId: 1018, BillCode:"AUG-2026", BillMonth:"JUL-2026",
+                  SalaryMonth:"August", SalaryMonthNumber:"08", SalaryYear:"2026" };
 
-const raw = (o) => ({
-  WorkflowStatus: "APPROVED", BillCategory: "Salary", BillType: "Salary",
-  InstituteCode: o.code, InstituteName: o.instName || o.code,
-  SectionId: o.secId, SectionSrNo: o.secSr, SectionName: o.secName,
-  EmployeeId: o.emp, EmployeeName: o.name, EmployeeCode: String(o.emp),
-  GPFNPSNumber: o.pran || null,
-  NPS: o.nps || 0, BasicPay: 34400, GrossSalary: 50000, NetSalary: 40000,
-  ...(o.bill || JUL),
-});
+const SCHEDULE_NOS = new Map([
+  ["71|CPD-06",  "SCH/7/2026/173683"],
+  ["72|CPD-06",  "SCH/6/2026/132438"],
+  ["71|CPD-17",  "SCH/7/2026/168402"],
+  ["71|CPD-100", "SCH/7/2026/151959"],
+  ["71|OGE-05",  "SCH/7/2026/172165"],
+]);
+
+const raw = (o) => {
+  const bill = o.bill || JUL;
+  return {
+    WorkflowStatus: "APPROVED", BillCategory: "Salary", BillType: "Salary",
+    InstituteCode: o.code, InstituteName: o.instName || o.code,
+    SectionId: o.secId, SectionSrNo: o.secSr, SectionName: o.secName,
+    EmployeeId: o.emp, EmployeeName: o.name, EmployeeCode: String(o.emp),
+    GPFNPSNumber: o.pran || null,
+    NPS: o.nps || 0, BasicPay: 34400, GrossSalary: 50000, NetSalary: 40000,
+    ReportWorkflowId: o.workflowId == null ? null : o.workflowId,
+    NPSScheduleNo: o.scheduleNo != null
+      ? o.scheduleNo
+      : (SCHEDULE_NOS.get(`${bill.BillCodeId}|${o.code}`) || null),
+    ...bill,
+  };
+};
 
 const RAWS = [
   raw({ code:"CPD-06",  instName:"Gujarat State Probation", secId:11, secSr:1, secName:"CPD Section", emp:2002, name:"Ramanbhai D. Damor", pran:"110022003300", nps:1850 }),
@@ -72,15 +92,17 @@ const RAWS = [
   raw({ code:"CPD-06",  instName:"Gujarat State Probation", secId:11, secSr:1, secName:"CPD Section", emp:2009, name:"No NPS Emp", nps:0 }),
   /* Not approved -> excluded. */
   { ...raw({ code:"CPD-06", secId:11, secSr:1, secName:"CPD Section", emp:2012, name:"Draft Emp", nps:5555 }), WorkflowStatus:"DRAFT" },
+  /* Salary Month AUG-2026, institute MR-29, two Bill Month instances of bill 1018. */
+  raw({ code:"MR-29", instName:"Observation Home", secId:11, secSr:1, secName:"CPD Section",
+        emp:3021, name:"Jul Bill Emp", pran:"110077700001", nps:1110,
+        scheduleNo:"SCH/JUL/MR29", workflowId:62, bill:AUG_JUL }),
+  raw({ code:"MR-29", instName:"Observation Home", secId:11, secSr:1, secName:"CPD Section",
+        emp:3022, name:"Aug Bill Emp A", pran:"110077700002", nps:2200,
+        scheduleNo:"SCH/AUG/MR29", workflowId:52, bill:AUG_SAL }),
+  raw({ code:"MR-29", instName:"Observation Home", secId:11, secSr:1, secName:"CPD Section",
+        emp:3023, name:"Aug Bill Emp B", pran:"110077700003", nps:3300,
+        scheduleNo:"SCH/AUG/MR29", workflowId:52, bill:AUG_SAL }),
 ];
-
-const SCHEDULE_NOS = new Map([
-  ["71|CPD-06",  "SCH/7/2026/173683"],
-  ["72|CPD-06",  "SCH/6/2026/132438"],
-  ["71|CPD-17",  "SCH/7/2026/168402"],
-  ["71|CPD-100", "SCH/7/2026/151959"],
-  ["71|OGE-05",  "SCH/7/2026/172165"],
-]);
 
 let passed=0, failed=0; const failures=[];
 function check(name, actual, expected) {
@@ -94,15 +116,7 @@ const section = (t) => { console.log(`\n${t}`); console.log("-".repeat(t.length)
 /* Mirrors buildNpsScheduleReport without the database. */
 function build(query) {
   const billType = parseBillType(query.billType);
-  const mapped = RAWS.map((r) => {
-    const base = mapSalaryRow(r);
-    const bp = cheque.billMonthPartsOf(r.BillMonth, r.SalaryMonth, r.SalaryYear, r.SalaryMonthNumber);
-    return { ...base,
-      sectionSrNo: r.SectionSrNo == null ? null : Number(r.SectionSrNo),
-      billMonthIndex: bp ? bp.year * 12 + bp.month : null,
-      npsScheduleNo: SCHEDULE_NOS.get(`${base.billCodeId}|${base.instituteCode}`) || "",
-      pran: r.GPFNPSNumber == null ? "" : String(r.GPFNPSNumber).trim() };
-  });
+  const mapped = RAWS.map((r) => mapSalaryScheduleRow(r));
   /* Mirrors the route: OLD narrows, everything else spans the salary bills. */
   const scoped = filterSalaryRows(mapped, {
     ...query, salaryType: billType === "OLD" ? "OLD" : "ALL" });
@@ -241,8 +255,11 @@ function main() {
     cpd06.map(r => r.amount), [1700, 3500]);
   check("both rows share the same salary month",
     [...new Set(cpd06.map(r => r.salaryMonth))], ["JUL-2026"]);
-  check("the grouping key is institute + source bill, not institute alone",
-    /\$\{row\.instituteCode\}\|\$\{row\.billCodeId\}/.test(routeSrc), true);
+  check("the grouping key is the bill instance, not institute + bill code alone",
+    /function scheduleGroupKey\(/.test(routeSrc) &&
+    /wf:\$\{workflowId\}/.test(routeSrc) &&
+    /\$\{row\.instituteCode\}\|\$\{row\.billCodeId\}\|\$\{billMonth\}/.test(routeSrc),
+    true);
   check("separating rows does not change the total",
     Number(cpd06.reduce((a,r)=>a+r.amount,0).toFixed(2)), 5200);
   check("the saved snapshot stores Bill Month per detail row",
@@ -255,6 +272,65 @@ function main() {
     /\{ key: "billMonth", label: "Bill Month" \}/.test(pageSrc), true);
   check("Bill Month is exported and printed, not hidden",
     /billMonth: row\.billMonth/.test(pageSrc), true);
+
+  section("Two Bill Month instances of one salary bill stay two rows");
+  /* MR-29, Salary Month AUG-2026, saved instances JUL-2026 (workflow 62)
+     and AUG-2026 (workflow 52). Same BillCodeId 1018. They must not merge. */
+  const mr29 = build({ month:8, year:2026, billType:"REGULAR", instituteCode:"MR-29" });
+  check("exactly two report rows for the two instances", mr29.rows.length, 2);
+  check("each row shows its own Bill Month",
+    mr29.rows.map((r) => r.billMonth), ["JUL-2026", "AUG-2026"]);
+  check("each row keeps its own Bill Type",
+    mr29.rows.map((r) => r.billType), ["OLD", "REGULAR"]);
+  check("each row keeps its own Schedule No.",
+    mr29.rows.map((r) => r.scheduleNo), ["SCH/JUL/MR29", "SCH/AUG/MR29"]);
+  check("each row keeps its own employee count",
+    mr29.rows.map((r) => r.employeeCount), [1, 2]);
+  check("each row keeps its own NPS amount",
+    mr29.rows.map((r) => r.amount), [1110, 5500]);
+  check("the total equals the sum of the two rows",
+    mr29.totals, { employeeCount: 3, amount: 6610 });
+  check("the same workflow instance is one row, not one per employee",
+    mr29.rows.filter((r) => r.billMonth === "AUG-2026").length, 1);
+  check("a single-instance institute is unchanged",
+    build({ month:8, year:2026, billType:"REGULAR", instituteCode:"CPD-06" }).rows
+      .map((r) => ({ billMonth: r.billMonth, amount: r.amount, employeeCount: r.employeeCount })),
+    [{ billMonth: "AUG-2026", amount: 9999, employeeCount: 1 }]);
+  {
+    const excel = mr29.rows.map((row) =>
+      sch.XLSX_COLUMNS.map((column) => {
+        const value = row[column.key];
+        if (column.type === "number") return Number(value || 0);
+        return value == null ? "" : String(value);
+      })
+    );
+    const screen = mr29.rows.map((row) =>
+      sch.XLSX_COLUMNS.map((column) => {
+        const value = row[column.key];
+        if (column.type === "number") return Number(value || 0);
+        return value == null ? "" : String(value);
+      })
+    );
+    check("screen and Excel export use the same instance rows", excel, screen);
+    check("Excel still lists both Bill Months",
+      excel.map((cells) => cells[3]), ["JUL-2026", "AUG-2026"]);
+  }
+  check("rows with no workflow id still split by Bill Month",
+    buildScheduleGroups([
+      { instituteCode:"MR-29", billCodeId:1018, paidMonth:"JUL-2026", nps:10,
+        employeeId:1, type:"OLD", salaryMonth:"AUG-2026" },
+      { instituteCode:"MR-29", billCodeId:1018, paidMonth:"AUG-2026", nps:20,
+        employeeId:2, type:"REGULAR", salaryMonth:"AUG-2026" },
+    ]).map((g) => [g.billMonth, g.amount, g.employeeCount]),
+    [["JUL-2026", 10, 1], ["AUG-2026", 20, 1]]);
+  check("the same workflow id is never two rows",
+    buildScheduleGroups([
+      { instituteCode:"MR-29", billCodeId:1018, workflowId:52, paidMonth:"AUG-2026",
+        nps:5, employeeId:1, type:"REGULAR" },
+      { instituteCode:"MR-29", billCodeId:1018, workflowId:52, paidMonth:"AUG-2026",
+        nps:7, employeeId:2, type:"REGULAR" },
+    ]).map((g) => [g.employeeCount, g.amount]),
+    [[2, 12]]);
 
   section("Totals and reconciliation with NPS Summary");
   check("the total is the sum of the displayed amounts",
