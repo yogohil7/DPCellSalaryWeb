@@ -359,7 +359,7 @@ export default function NpsScheduleSummary({ onBack }) {
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={`${row.instituteCode}-${row.srNo}`}>
+                  <tr key={`${row.instituteCode}-${row.billMonth}-${row.billCodeId}-${row.workflowId}-${row.srNo}`}>
                     <td className="nsch-c">{row.srNo}</td>
                     <td className="nsch-c">{row.instituteCode}</td>
                     <td className="nsch-l">{row.instituteName}</td>

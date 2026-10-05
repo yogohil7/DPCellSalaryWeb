@@ -156,6 +156,7 @@ async function loadEmployeeSalaryRows() {
         existing selected value is affected.
       */
       d.PensionType,
+      d.InstanceBillMonth,
       w.NPSScheduleNo,
       em.EmployeeCode,
       em.DateOfBirth,

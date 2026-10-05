@@ -40,7 +40,8 @@ const {
   mapSalaryRow,
   filterSalaryRows,
 } = require("./employeeWiseSalary");
-const { compareGroupCodes, billMonthPartsOf } = require("./chequeRegister");
+const { compareGroupCodes, billMonthPartsOf, resolveChequeSalaryType } = require("./chequeRegister");
+const { instanceBillMonthLabel } = require("../utils/reportBillInstance");
 const { loadDaDifferenceRows } = require("../utils/salaryCategory");
 
 const router = express.Router();
@@ -153,11 +154,27 @@ function parseBillType(value) {
  */
 function mapSalaryScheduleRow(raw) {
   const base = mapSalaryRow(raw);
+  /* The instance month is the workflow row's own Bill Month (or the
+     employee-instance month), never SalaryBillCodes.BillMonth, which is
+     shared by every Bill Month of the salary bill. */
+  const paidMonth =
+    instanceBillMonthLabel(raw) ||
+    (raw.InstanceBillMonth == null ? "" : String(raw.InstanceBillMonth).trim()) ||
+    base.paidMonth;
   const parts = billMonthPartsOf(
-    raw.BillMonth, raw.SalaryMonth, raw.SalaryYear, raw.SalaryMonthNumber
+    paidMonth, raw.SalaryMonth, raw.SalaryYear, null
   );
+  const salaryType = resolveChequeSalaryType({
+    salaryMonth: raw.SalaryMonth,
+    billMonth: paidMonth,
+    salaryYear: raw.SalaryYear,
+    billYear: raw.SalaryYear,
+    salaryMonthNumber: raw.SalaryMonthNumber,
+  });
   return {
     ...base,
+    paidMonth,
+    type: salaryType === "OLD" ? "OLD" : "REGULAR",
     sectionSrNo:
       raw.SectionSrNo == null || raw.SectionSrNo === ""
         ? null
@@ -166,7 +183,9 @@ function mapSalaryScheduleRow(raw) {
     npsScheduleNo:
       raw.NPSScheduleNo == null ? "" : String(raw.NPSScheduleNo).trim(),
     pran: raw.GPFNPSNumber == null ? "" : String(raw.GPFNPSNumber).trim(),
-    workflowId: toIntOrNull(raw.ReportWorkflowId),
+    workflowId: toIntOrNull(
+      raw.ReportWorkflowId != null ? raw.ReportWorkflowId : raw.WorkflowId
+    ),
   };
 }
 
@@ -201,12 +220,16 @@ function daRowToScheduleRow(row) {
  * months. Employees of the same instance stay on one line.
  */
 function scheduleGroupKey(row) {
-  const workflowId = toIntOrNull(row.workflowId);
-  if (workflowId != null) return `wf:${workflowId}`;
   const billMonth = String(row.paidMonth || row.billMonth || "")
     .trim()
     .toUpperCase();
-  return `${row.instituteCode}|${row.billCodeId}|${billMonth}`;
+  const workflowId = toIntOrNull(row.workflowId);
+  /* Workflow id alone is not enough: two Bill Months must stay apart even
+     when a row has no workflow id, and a shared id must not swallow a
+     different Bill Month. The same instance (same id AND same month) stays
+     one row. */
+  if (workflowId != null) return `wf:${workflowId}|${billMonth}`;
+  return `${String(row.instituteCode || "").trim().toUpperCase()}|${row.billCodeId}|${billMonth}`;
 }
 
 /**
@@ -237,6 +260,7 @@ function buildScheduleGroups(rows) {
         billType: row.type,
         billCodeId: row.billCodeId,
         billCode: row.billCode,
+        workflowId: toIntOrNull(row.workflowId),
         employees: [],
         employeeCount: 0,
         amount: 0,
@@ -380,6 +404,7 @@ async function buildNpsScheduleReport(query = {}) {
     billType: group.billType,
     billCodeId: group.billCodeId,
     billCode: group.billCode,
+    workflowId: group.workflowId,
     employeeCount: group.employeeCount,
     amount: round2(group.amount),
     employees: group.employees,

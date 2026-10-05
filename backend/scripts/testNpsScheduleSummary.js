@@ -255,10 +255,10 @@ function main() {
     cpd06.map(r => r.amount), [1700, 3500]);
   check("both rows share the same salary month",
     [...new Set(cpd06.map(r => r.salaryMonth))], ["JUL-2026"]);
-  check("the grouping key is the bill instance, not institute + bill code alone",
+  check("the grouping key is workflow id plus Bill Month, never institute alone",
     /function scheduleGroupKey\(/.test(routeSrc) &&
-    /wf:\$\{workflowId\}/.test(routeSrc) &&
-    /\$\{row\.instituteCode\}\|\$\{row\.billCodeId\}\|\$\{billMonth\}/.test(routeSrc),
+    /wf:\$\{workflowId\}\|\$\{billMonth\}/.test(routeSrc) &&
+    /\$\{row\.billCodeId\}\|\$\{billMonth\}/.test(routeSrc),
     true);
   check("separating rows does not change the total",
     Number(cpd06.reduce((a,r)=>a+r.amount,0).toFixed(2)), 5200);
