@@ -76,6 +76,7 @@
     "diagnose:returned-bills": "node scripts/diagnoseReturnedBills.js",
     "test:cheque-group": "node scripts/testChequeRegisterGroup.js",
     "test:da-bill-month": "node scripts/testDaDifferenceBillMonth.js",
+    "test:da-rupee-rounding": "node scripts/testDaRupeeRounding.js",
     "test:section-filter": "node scripts/testSalaryEntrySectionFilter.js",
     "test:manual-ta": "node scripts/testManualTransportAllowance.js",
     "test:gpf-adv": "node scripts/testGpfAdvanceColumn.js",

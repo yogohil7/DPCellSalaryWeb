@@ -13,6 +13,20 @@ function roundMoney(value) {
 }
 
 /**
+ * DA amount, nearest rupee, half up (away from zero).
+ * Below .50 stays on the lower rupee; .50 and above goes to the next.
+ * 17380.49 → 17380, 17380.50 → 17381. Other components stay on roundMoney.
+ */
+function roundDaRupee(value) {
+  const n = toNum(value);
+  const sign = n < 0 ? -1 : 1;
+  const abs = Math.abs(n);
+  const whole = Math.floor(abs);
+  const fraction = abs - whole;
+  return sign * (fraction + 1e-9 >= 0.5 ? whole + 1 : whole);
+}
+
+/**
  * NPS = CEILING((Total Basic Pay + DA) × 10%, 1)
  */
 function calculateNps(totalBasicPay, da) {
@@ -36,7 +50,7 @@ function calculateSalaryAmounts(input = {}) {
   const payrollHra = Boolean(input.payrollHra);
 
   const totalBasicPay = roundMoney(basic + fixBasic);
-  const da = roundMoney((totalBasicPay * daPercentage) / 100);
+  const da = roundDaRupee((totalBasicPay * daPercentage) / 100);
   const hra = payrollHra
     ? 0
     : roundMoney((totalBasicPay * hraPercentage) / 100);
@@ -79,6 +93,7 @@ function calculateChequeAmount({
 module.exports = {
   toNum,
   roundMoney,
+  roundDaRupee,
   calculateNps,
   calculateSalaryAmounts,
   calculateChequeAmount,
