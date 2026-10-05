@@ -643,6 +643,53 @@ function main() {
         .replace(/Math\.floor\([^)]*\)/g, "")
         .replace(/10000000|100000|1000|100/g, "")), false);
 
+  section("SHOW — report appears only after the button");
+  {
+    const mountEffect = pageSrc.slice(
+      pageSrc.indexOf("useEffect(() => {"),
+      pageSrc.indexOf("/* Natural InstituteCode")
+    );
+    const showFn = pageSrc.slice(
+      pageSrc.indexOf("async function handleShow"),
+      pageSrc.indexOf("async function handleExcel")
+    );
+    const effects = [...pageSrc.matchAll(/useEffect\(\(\) => \{([\s\S]*?)\n  \}, \[[^\]]*\]\);/g)]
+      .map((m) => m[1]);
+    const filterChanges = [
+      ...pageSrc.matchAll(/onChange=\{([\s\S]*?)\}/g),
+    ].map((m) => m[1]);
+
+    check("page entry starts with no report",
+      /const \[report, setReport\] = useState\(null\)/.test(pageSrc), true);
+    check("page entry loads the filter lists",
+      /getEmployeeWiseSalaryMeta\(\)/.test(mountEffect) &&
+        /listInstitutes\(\)/.test(mountEffect), true);
+    check("page entry does not fetch or display the report",
+      /getNpsSchedule|handleShow|downloadNpsScheduleExcel|setReport\(/.test(mountEffect),
+      false);
+    check("no effect fetches the report or calls Show",
+      effects.length > 0 &&
+        effects.every((body) => !/getNpsSchedule|handleShow\(/.test(body)),
+      true);
+    check("the schedule table stays hidden until a report has rows",
+      /\{report && rows\.length > 0 \?/.test(pageSrc), true);
+    check("Show is the only control that fetches the report",
+      /onSubmit=\{handleShow\}/.test(pageSrc) &&
+        /<button type="submit"[\s\S]{0,180}Show/.test(pageSrc) &&
+        (pageSrc.match(/getNpsSchedule\(/g) || []).length === 1 &&
+        /await getNpsSchedule\(filters\)/.test(showFn),
+      true);
+    check("changing a filter does not fetch or replace the report",
+      filterChanges.length >= 5 &&
+        filterChanges.every((body) => !/getNpsSchedule|handleShow|setReport/.test(body)),
+      true);
+    check("Show keeps the loading label and the no-records message",
+      /\{loading \? "Loading\.\.\." : "Show"\}/.test(pageSrc) &&
+        /No NPS schedule records found for the selected criteria\./.test(showFn) &&
+        /setReport\(null\)/.test(showFn),
+      true);
+  }
+
   section("NOTHING EXISTING WAS CHANGED");
   check("26. NPS still reads the stored SalaryEmployeeDetails.NPS",
     /d\.NPS,/.test(ewsSrc), true);
