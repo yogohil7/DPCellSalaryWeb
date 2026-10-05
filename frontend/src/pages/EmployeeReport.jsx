@@ -5,6 +5,7 @@ import {
   downloadEmployeeReportExcel,
 } from "../utils/employeeReportApi";
 import { GridToolbar } from "../components/DataGrid";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import "./employeeReport.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
@@ -81,13 +82,15 @@ export default function EmployeeReport({ user, onBack }) {
   }, []);
 
   /* Institutes narrow with the chosen Section, using the master data the
-     meta endpoint already returned — no second lookup, no local copy. */
+     meta endpoint already returned — no second lookup, no local copy.
+     Natural InstituteCode presentation order (never InstituteId). */
   const visibleInstitutes = useMemo(() => {
-    if (!sectionId) return institutes;
-    const wanted = Number(sectionId);
-    return institutes.filter(
-      (i) => !i.instituteCode || Number(i.sectionId) === wanted
-    );
+    const list = !sectionId
+      ? institutes
+      : institutes.filter(
+          (i) => !i.instituteCode || Number(i.sectionId) === Number(sectionId)
+        );
+    return sortInstitutesByCode(list);
   }, [institutes, sectionId]);
 
   const filters = useMemo(

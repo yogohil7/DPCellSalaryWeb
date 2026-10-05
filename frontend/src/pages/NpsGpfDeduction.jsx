@@ -5,6 +5,7 @@ import {
 } from "../utils/npsGpfDeductionApi";
 import { getEmployeeWiseSalaryMeta } from "../utils/employeeWiseSalaryApi";
 import { listInstitutes } from "../utils/instituteApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { listEmployees } from "../utils/employeeApi";
 import { GridToolbar } from "../components/DataGrid";
 import "./npsGpfDeduction.css";
@@ -109,12 +110,15 @@ export default function NpsGpfDeduction({ onBack }) {
     };
   }, []);
 
-  /* Institute list follows the chosen section, without a second request. */
+  /* Institute list follows the chosen section, without a second request.
+     Natural InstituteCode presentation order (never InstituteId). */
   const visibleInstitutes = useMemo(() => {
-    if (!sectionId) return institutes;
-    return institutes.filter(
-      (i) => String(i.sectionId ?? i.SectionId ?? "") === String(sectionId)
-    );
+    const list = !sectionId
+      ? institutes
+      : institutes.filter(
+          (i) => String(i.sectionId ?? i.SectionId ?? "") === String(sectionId)
+        );
+    return sortInstitutesByCode(list);
   }, [institutes, sectionId]);
 
   const visibleEmployees = useMemo(() => {

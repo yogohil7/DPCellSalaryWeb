@@ -14,6 +14,7 @@ import {
 } from "../utils/salaryEntryApi";
 import SalaryEntryVariationReport from "./SalaryEntryVariationReport";
 import { listInstitutes } from "../utils/instituteApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { listActiveSections } from "../utils/sectionApi";
 import { calculateSalaryAmounts, calculateNps, calculateChequeAmount } from "../utils/salaryBasicCalc";
 import { isGpfNpsStoppedForRetirement } from "../utils/retirementRules";
@@ -605,13 +606,22 @@ export default function SalaryEntry({
         if (!active) return;
         /* sectionId/sectionName already come from Institute Master — the real
            dbo.Institutes.SectionId relationship, not a code-prefix guess. */
-        const mapped = (Array.isArray(rows) ? rows : []).map((row) => ({
-          id: row.instituteId ?? row.id,
-          code: row.instituteCode || row.code || "",
-          name: row.instituteName || row.name || "",
-          sectionId: row.sectionId != null ? Number(row.sectionId) : null,
-          sectionName: row.sectionName || row.instituteType || "",
-        })).filter((row) => row.code);
+        /* Presentation order for this dropdown is natural InstituteCode order
+           (prefix, then numeric portion, then full code) — see
+           utils/instituteCodeSort.js. InstituteId is deliberately NOT a
+           sorting key here. SectionId filtering below is unchanged. */
+        const mapped = sortInstitutesByCode(
+          (Array.isArray(rows) ? rows : [])
+            .map((row) => ({
+              id: row.instituteId ?? row.id,
+              code: row.instituteCode || row.code || "",
+              name: row.instituteName || row.name || "",
+              sectionId: row.sectionId != null ? Number(row.sectionId) : null,
+              sectionName: row.sectionName || row.instituteType || "",
+            }))
+            .filter((row) => row.code),
+          (row) => row.code
+        );
         setInstitutes(mapped);
         if (mapped.length === 0) {
           setInstitutesError("No institutes found in Institute Master.");
@@ -683,12 +693,17 @@ export default function SalaryEntry({
     }
   }, [instituteCode, institutes]);
 
-  /* Institutes belonging to the chosen section (all when none chosen). */
+  /* Institutes belonging to the chosen section (all when none chosen).
+     Natural InstituteCode order is established at load and re-applied after
+     the SectionId filter, so this dropdown never depends on API row order or
+     on InstituteId. Filtering never re-orders by anything else. */
   const visibleInstitutes = useMemo(() => {
-    if (!sectionId) return institutes;
-    return institutes.filter(
-      (row) => String(row.sectionId ?? "") === String(sectionId)
-    );
+    const list = !sectionId
+      ? institutes
+      : institutes.filter(
+          (row) => String(row.sectionId ?? "") === String(sectionId)
+        );
+    return sortInstitutesByCode(list, (row) => row.code);
   }, [institutes, sectionId]);
 
   /*

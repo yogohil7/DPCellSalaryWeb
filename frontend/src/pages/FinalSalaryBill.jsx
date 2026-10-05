@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { listSalaryBillCodes } from "../utils/salaryBillCodeApi";
 import { listInstitutes } from "../utils/instituteApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { getFinalSalaryBill, listFinalBillInstitutes } from "../utils/finalSalaryBillApi";
 import "./finalSalaryBill.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
@@ -232,11 +233,14 @@ export default function FinalSalaryBill({ user, onBack }) {
         const eligible = billList
           .filter(isClosedMainSalaryBill)
           .sort(compareSalaryMonthDesc);
-        const instList = (Array.isArray(inst) ? inst : []).map((row) => ({
-          id: row.instituteId ?? row.id,
-          code: row.instituteCode || row.code || "",
-          name: row.instituteName || row.name || "",
-        }));
+        /* Natural InstituteCode presentation order (never InstituteId). */
+        const instList = sortInstitutesByCode(
+          (Array.isArray(inst) ? inst : []).map((row) => ({
+            id: row.instituteId ?? row.id,
+            code: row.instituteCode || row.code || "",
+            name: row.instituteName || row.name || "",
+          }))
+        );
         setBillCodes(eligible);
         setInstitutes(instList);
         if (eligible.length) {
@@ -271,13 +275,16 @@ export default function FinalSalaryBill({ user, onBack }) {
     })
       .then((rows) => {
         if (!active) return;
-        const list = (Array.isArray(rows) ? rows : [])
-          .map((row) => ({
-            id: row.instituteId ?? row.id,
-            code: row.instituteCode || row.code || "",
-            name: row.instituteName || row.name || "",
-          }))
-          .filter((row) => row.code);
+        /* Natural InstituteCode presentation order (never InstituteId). */
+        const list = sortInstitutesByCode(
+          (Array.isArray(rows) ? rows : [])
+            .map((row) => ({
+              id: row.instituteId ?? row.id,
+              code: row.instituteCode || row.code || "",
+              name: row.instituteName || row.name || "",
+            }))
+            .filter((row) => row.code)
+        );
         if (list.length) {
           setInstitutes(list);
           setInstituteCode((prev) =>

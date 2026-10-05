@@ -10,6 +10,7 @@ import {
 } from "../utils/employeeIncrementApi";
 import { listEmployees } from "../utils/employeeApi";
 import { listInstitutes } from "../utils/instituteApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import "./incrementMaster.css";
 
 /*
@@ -108,13 +109,16 @@ export default function IncrementMaster({ onBack, user }) {
           listInstitutes(),
         ]);
         setEmployees(Array.isArray(employeeRows) ? employeeRows : []);
+        /* Natural InstituteCode presentation order (never InstituteId). */
         setInstitutes(
-          (Array.isArray(instituteRows) ? instituteRows : [])
-            .map((row) => ({
-              code: row.instituteCode || row.code || "",
-              name: row.instituteName || row.name || "",
-            }))
-            .filter((row) => row.code)
+          sortInstitutesByCode(
+            (Array.isArray(instituteRows) ? instituteRows : [])
+              .map((row) => ({
+                code: row.instituteCode || row.code || "",
+                name: row.instituteName || row.name || "",
+              }))
+              .filter((row) => row.code)
+          )
         );
       } catch {
         setEmployees([]);

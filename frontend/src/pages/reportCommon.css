@@ -202,3 +202,273 @@
     box-shadow: none;
   }
 }
+
+/* =========================================================
+   GOVERNMENT REPORT STYLE — Arial + visible borders
+
+   ONE place for the report typography and border system used
+   by every report screen (Cheque Register, Bank Copy, Salary
+   Register + Detail, Institute Wise Salary, Month-Wise
+   Employee Salary, Employee Wise Salary, Employee Pay Slip,
+   Section Summary, GPF Summary, Institute Wise GPF, NPS
+   Summary, NPS Institute Wise, NPS/GPF Deduction, Income Tax
+   & Professional Tax, NPS Schedule, Employee Report,
+   Salary Variation Report incl. the entry-page overlay,
+   Final Salary Bill). No JSX changed, no data/filter/total/
+   sorting/print-layout logic touched — presentation only.
+
+   Palette (single system, never heavy black on screen):
+     outer panel/result : 1px solid #cbd5e1, radius 6px
+     table outer        : 1px solid #9aa7b5
+     table cells        : 1px solid #b8c4d1 (every th + td,
+                          so vertical column borders exist)
+     table header cells : 1px solid #8fa0b2 (backgrounds kept)
+     filter controls    : 1px solid #b8c4d1
+
+   Print keeps each report's own black-border government
+   format; only the serif exceptions are lifted to Arial.
+   Border rules below are screen-only (@media screen) so no
+   print block can lose its borders to this cascade.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   REPORT TYPEFACE — Arial everywhere inside report scopes.
+
+   Every report element inherits the app font token or the
+   base variable, so redefining the token inside each report
+   scope flips the whole subtree to Arial without touching
+   the rest of the application. Elements using `font: inherit`
+   follow automatically.
+   --------------------------------------------------------- */
+.cr-page,
+.bc-page,
+.eps-page,
+.emprep-page,
+.ews-page,
+.fsb-page,
+.gs-page,
+.itp-page,
+.iwg-page,
+.iws-page,
+.mw-page,
+.ngd-page,
+.npsiw-page,
+.nsch-page,
+.nps-page,
+.sr-page,
+.svr-page,
+.ss-page,
+.ser-overlay {
+  --font-family-base: Arial, Helvetica, sans-serif;
+  --font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@media print {
+  /* GPF Summary, Institute Wise GPF and Section Summary print
+     blocks historically forced a Times serif face; reports
+     print in Arial like everything else. Higher specificity
+     than those single-class print rules by design. */
+  .gs-page .gs-sheet,
+  .iwg-page .iwg-sheet,
+  .ss-page .ss-sheet {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}
+
+@media screen {
+  /* -------------------------------------------------------
+     FILTER PANELS — one visible container per report.
+     Layouts, gaps, padding and colours are untouched.
+     ------------------------------------------------------- */
+  .cr-page .cr-filters,
+  .bc-page .bc-filters,
+  .ss-page .ss-filters,
+  .gs-page .gs-filters,
+  .iwg-page .iwg-filters,
+  .nps-page .nps-filters,
+  .npsiw-page .npsiw-filters,
+  .nsch-page .nsch-filters,
+  .ngd-page .ngd-filters,
+  .ews-page .ews-filters,
+  .iws-page .iws-filters,
+  .eps-page .eps-filters,
+  .sr-page .sr-filters,
+  .itp-page .itp-filters,
+  .mw-page .mw-filters,
+  .emprep-page .emprep-filters,
+  .fsb-page .fsb-card,
+  .fsb-page .fsb-filters,
+  .svr-page .svr-card,
+  .svr-page .svr-filters,
+  .svr-page .svr-secondary-filters {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+  }
+
+  /* -------------------------------------------------------
+     FILTER CONTROLS — every select/input visibly outlined.
+     Radius, padding and backgrounds stay as each report
+     designed them.
+     ------------------------------------------------------- */
+  .cr-page .cr-filters select,
+  .cr-page .cr-filters input,
+  .bc-page .bc-filters select,
+  .bc-page .bc-filters input,
+  .ss-page .ss-filters select,
+  .ss-page .ss-filters input,
+  .gs-page .gs-filters select,
+  .gs-page .gs-filters input,
+  .iwg-page .iwg-filters select,
+  .iwg-page .iwg-filters input,
+  .nps-page .nps-filters select,
+  .nps-page .nps-filters input,
+  .npsiw-page .npsiw-filters select,
+  .npsiw-page .npsiw-filters input,
+  .nsch-page .nsch-filters select,
+  .nsch-page .nsch-filters input,
+  .ngd-page .ngd-filters select,
+  .ngd-page .ngd-filters input,
+  .ews-page .ews-filters select,
+  .ews-page .ews-filters input,
+  .iws-page .iws-filters select,
+  .iws-page .iws-filters input,
+  .eps-page .eps-filters select,
+  .eps-page .eps-filters input,
+  .sr-page .sr-filters select,
+  .sr-page .sr-filters input,
+  .itp-page .itp-filters select,
+  .itp-page .itp-filters input,
+  .mw-page .mw-filters select,
+  .mw-page .mw-filters input,
+  .emprep-page .emprep-filters select,
+  .emprep-page .emprep-filters input,
+  .fsb-page .fsb-filters select,
+  .fsb-page .fsb-filters input,
+  .svr-page .svr-filters select,
+  .svr-page .svr-filters input,
+  .svr-page .svr-secondary-filters select,
+  .svr-page .svr-secondary-filters input {
+    border: 1px solid #b8c4d1;
+  }
+
+  /* -------------------------------------------------------
+     RESULT / SHEET CONTAINERS — one clear outer border.
+     Padding, spacing and shadows are untouched.
+     ------------------------------------------------------- */
+  .cr-page .cr-result,
+  .bc-page .bc-sheet,
+  .ss-page .ss-sheet,
+  .gs-page .gs-sheet,
+  .iwg-page .iwg-sheet,
+  .nps-page .nps-sheet,
+  .npsiw-page .npsiw-sheet,
+  .nsch-page .nsch-sheet,
+  .ngd-page .ngd-sheet,
+  .ews-page .ews-sheet,
+  .iws-page .iws-sheet,
+  .eps-page .eps-slip,
+  .sr-page .sr-sheet,
+  .itp-page .itp-sheet,
+  .mw-page .mw-sheet,
+  .emprep-page .emprep-sheet,
+  .fsb-page .fsb-bill-surface,
+  .svr-page .svr-card,
+  .ser-overlay .ser-modal {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+  }
+
+  /* -------------------------------------------------------
+     REPORT TABLES — outer border plus a visible border on
+     EVERY header and body cell (verticals included; never
+     horizontal separators alone). Header backgrounds, sticky
+     positioning, alignment, zebra striping, totals styling
+     and overflow-x scrolling are all preserved.
+     ------------------------------------------------------- */
+  .cr-page .cr-table,
+  .bc-page .bc-table,
+  .ss-page .ss-table,
+  .gs-page .gs-table,
+  .iwg-page .iwg-table,
+  .nps-page .nps-table,
+  .npsiw-page .npsiw-table,
+  .nsch-page .nsch-table,
+  .ngd-page .ngd-table,
+  .ews-page .ews-table,
+  .iws-page .iws-table,
+  .eps-page .eps-table,
+  .sr-page .sr-table,
+  .itp-page .itp-table,
+  .mw-page .mw-table,
+  .emprep-page .emprep-table,
+  .fsb-page .fsb-table,
+  .svr-page .svr-table,
+  .ser-overlay .ser-table {
+    border: 1px solid #9aa7b5;
+    border-collapse: collapse;
+  }
+
+  .cr-page .cr-table th,
+  .cr-page .cr-table td,
+  .bc-page .bc-table th,
+  .bc-page .bc-table td,
+  .ss-page .ss-table th,
+  .ss-page .ss-table td,
+  .gs-page .gs-table th,
+  .gs-page .gs-table td,
+  .iwg-page .iwg-table th,
+  .iwg-page .iwg-table td,
+  .nps-page .nps-table th,
+  .nps-page .nps-table td,
+  .npsiw-page .npsiw-table th,
+  .npsiw-page .npsiw-table td,
+  .nsch-page .nsch-table th,
+  .nsch-page .nsch-table td,
+  .ngd-page .ngd-table th,
+  .ngd-page .ngd-table td,
+  .ews-page .ews-table th,
+  .ews-page .ews-table td,
+  .iws-page .iws-table th,
+  .iws-page .iws-table td,
+  .eps-page .eps-table th,
+  .eps-page .eps-table td,
+  .sr-page .sr-table th,
+  .sr-page .sr-table td,
+  .itp-page .itp-table th,
+  .itp-page .itp-table td,
+  .mw-page .mw-table th,
+  .mw-page .mw-table td,
+  .emprep-page .emprep-table th,
+  .emprep-page .emprep-table td,
+  .fsb-page .fsb-table th,
+  .fsb-page .fsb-table td,
+  .svr-page .svr-table th,
+  .svr-page .svr-table td,
+  .ser-overlay .ser-table th,
+  .ser-overlay .ser-table td {
+    border: 1px solid #b8c4d1;
+  }
+
+  .cr-page .cr-table th,
+  .bc-page .bc-table th,
+  .ss-page .ss-table th,
+  .gs-page .gs-table th,
+  .iwg-page .iwg-table th,
+  .nps-page .nps-table th,
+  .npsiw-page .npsiw-table th,
+  .nsch-page .nsch-table th,
+  .ngd-page .ngd-table th,
+  .ews-page .ews-table th,
+  .iws-page .iws-table th,
+  .eps-page .eps-table th,
+  .sr-page .sr-table th,
+  .itp-page .itp-table th,
+  .mw-page .mw-table th,
+  .emprep-page .emprep-table th,
+  .fsb-page .fsb-table th,
+  .svr-page .svr-table th,
+  .ser-overlay .ser-table th {
+    border: 1px solid #8fa0b2;
+  }
+}

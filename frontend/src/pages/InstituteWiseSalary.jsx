@@ -5,6 +5,7 @@ import {
   downloadInstituteWiseSalaryExcel,
 } from "../utils/instituteWiseSalaryApi";
 import { listActiveSections } from "../utils/sectionApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { GridToolbar } from "../components/DataGrid";
 import "./instituteWiseSalary.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
@@ -213,11 +214,14 @@ export default function InstituteWiseSalary({ user, onBack }) {
     };
   }, []);
 
-  /* The institute dropdown follows the selected section. */
+  /* The institute dropdown follows the selected section.
+     Natural InstituteCode presentation order (never InstituteId). */
   const visibleInstitutes = useMemo(() => {
     const list = allInstitutes.filter((i) => i.instituteCode && i.instituteName);
-    if (!sectionId) return list;
-    return list.filter((i) => String(i.sectionId) === String(sectionId));
+    const filtered = !sectionId
+      ? list
+      : list.filter((i) => String(i.sectionId) === String(sectionId));
+    return sortInstitutesByCode(filtered);
   }, [allInstitutes, sectionId]);
 
   useEffect(() => {

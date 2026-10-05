@@ -285,11 +285,17 @@
     padding: 0;
     margin: 0;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .cr-result {
     border: none;
     padding: 0;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   /* Title block: CHEQUE REGISTER - MONTH-YEAR plus the section context. */
@@ -316,7 +322,7 @@
     margin: 0;
   }
 
-  /* Fit every column onto the sheet rather than clipping. */
+  /* Fit every column onto the Legal landscape sheet rather than clipping. */
   .cr-table-wrap {
     overflow: visible !important;
     border: none;
@@ -326,27 +332,109 @@
     width: 100% !important;
     min-width: 0 !important;
     table-layout: fixed;
-    font-size: 6.5pt;
+    font-size: 7.5pt;
     border-collapse: collapse;
+    font-family: Arial, Helvetica, sans-serif;
   }
 
+  /* Explicit Legal-landscape column widths (26 columns): wide text/amount
+     columns get room to wrap instead of being squeezed by an even split.
+     No column is removed, hidden, truncated or clipped. */
+  .cr-table th:nth-child(1),
+  .cr-table td:nth-child(1) { width: 1.8%; }    /* Sr. No. */
+  .cr-table th:nth-child(2),
+  .cr-table td:nth-child(2) { width: 10.3%; }   /* Name of Institute */
+  .cr-table th:nth-child(3),
+  .cr-table td:nth-child(3) { width: 5.8%; }    /* Place */
+  .cr-table th:nth-child(4),
+  .cr-table td:nth-child(4) { width: 3.4%; }    /* Bill No. */
+  .cr-table th:nth-child(5),
+  .cr-table td:nth-child(5) { width: 3.6%; }    /* Date */
+  .cr-table th:nth-child(6),
+  .cr-table td:nth-child(6) { width: 3.8%; }    /* Bill Month */
+  .cr-table th:nth-child(7),
+  .cr-table td:nth-child(7) { width: 2.4%; }    /* TYPE */
+  .cr-table th:nth-child(8),
+  .cr-table td:nth-child(8) { width: 2.4%; }    /* Group */
+  .cr-table th:nth-child(9),
+  .cr-table td:nth-child(9) { width: 2.2%; }    /* EMP */
+  .cr-table th:nth-child(10),
+  .cr-table td:nth-child(10) { width: 4%; }     /* Basic */
+  .cr-table th:nth-child(11),
+  .cr-table td:nth-child(11) { width: 2.8%; }   /* G.P. */
+  .cr-table th:nth-child(12),
+  .cr-table td:nth-child(12) { width: 3.8%; }   /* T.Pay */
+  .cr-table th:nth-child(13),
+  .cr-table td:nth-child(13) { width: 3.6%; }    /* D.A. */
+  .cr-table th:nth-child(14),
+  .cr-table td:nth-child(14) { width: 3.6%; }    /* H.R.A. */
+  .cr-table th:nth-child(15),
+  .cr-table td:nth-child(15) { width: 3%; }     /* C.L.A. */
+  .cr-table th:nth-child(16),
+  .cr-table td:nth-child(16) { width: 3.8%; }   /* Medical */
+  .cr-table th:nth-child(17),
+  .cr-table td:nth-child(17) { width: 5.4%; }   /* Special Allowance */
+  .cr-table th:nth-child(18),
+  .cr-table td:nth-child(18) { width: 2.6%; }   /* T.A. */
+  .cr-table th:nth-child(19),
+  .cr-table td:nth-child(19) { width: 5%; }     /* Gross Amt. */
+  .cr-table th:nth-child(20),
+  .cr-table td:nth-child(20) { width: 4%; }     /* GPF AMT */
+  .cr-table th:nth-child(21),
+  .cr-table td:nth-child(21) { width: 3.2%; }    /* NPS */
+  .cr-table th:nth-child(22),
+  .cr-table td:nth-child(22) { width: 3.2%; }    /* IT Tax */
+  .cr-table th:nth-child(23),
+  .cr-table td:nth-child(23) { width: 3.2%; }    /* P.Tax */
+  .cr-table th:nth-child(24),
+  .cr-table td:nth-child(24) { width: 4.4%; }   /* Other Deduction */
+  .cr-table th:nth-child(25),
+  .cr-table td:nth-child(25) { width: 4.5%; }   /* Net Amt. */
+  .cr-table th:nth-child(26),
+  .cr-table td:nth-child(26) { width: 4.5%; }   /* Cheque Amt. */
+
+  /* Long text wraps inside its own cell — headers and body alike — so no
+     value is truncated, ellipsised or overlapped. Rows grow automatically:
+     no fixed heights anywhere. */
   .cr-table th,
   .cr-table td {
-    padding: 2px 3px !important;
+    padding: 3px 4px !important;
     border: 1px solid #000000 !important;
-    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    vertical-align: top;
   }
 
   .cr-table th {
     position: static;
     background: #e9ecef !important;
     color: #000000 !important;
-    font-size: 6.5pt;
+    font-size: 7.5pt;
+    line-height: 1.1;
+    vertical-align: middle;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* Repeat headers and keep the totals row with the table across pages. */
+  /* Numeric amount cells stay right-aligned and readable; the pill badge
+     from the screen would overflow its narrow print column, so it prints
+     as plain text. */
+  .cr-table td.cr-num {
+    text-align: right;
+  }
+
+  .cr-table .cr-type {
+    min-width: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none !important;
+    font-size: inherit;
+  }
+
+  /* Repeat headers on every vertical page; keep body rows whole without
+     forcing the totals footer onto a page of its own. */
   .cr-table thead {
     display: table-header-group;
   }
@@ -356,7 +444,8 @@
     font-weight: 700;
   }
 
-  .cr-table tr {
+  .cr-table tbody tr {
+    break-inside: avoid;
     page-break-inside: avoid;
   }
 }

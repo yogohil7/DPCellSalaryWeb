@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import DataGrid from "../components/DataGrid";
 import { listSalaryBillCodes } from "../utils/salaryBillCodeApi";
 import { listInstitutes } from "../utils/instituteApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { getSalaryVariationReport } from "../utils/salaryVariationApi";
 import "./salaryVariationReport.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
@@ -247,11 +248,14 @@ export default function SalaryVariationReport({
       .then(([bills, inst]) => {
         if (!active) return;
         const billList = Array.isArray(bills) ? bills : [];
-        const instList = (Array.isArray(inst) ? inst : []).map((row) => ({
-          id: row.instituteId ?? row.id,
-          code: row.instituteCode || row.code || "",
-          name: row.instituteName || row.name || "",
-        }));
+        /* Natural InstituteCode presentation order (never InstituteId). */
+        const instList = sortInstitutesByCode(
+          (Array.isArray(inst) ? inst : []).map((row) => ({
+            id: row.instituteId ?? row.id,
+            code: row.instituteCode || row.code || "",
+            name: row.instituteName || row.name || "",
+          }))
+        );
         setBillCodes(billList);
         setInstitutes(instList);
 

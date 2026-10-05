@@ -1,7 +1,7 @@
 /**
  * PDF / PRINT LAYOUT — regression tests (2026-09-24).
  *
- *   Cheque Register = A4 LANDSCAPE, every other report = A4 PORTRAIT,
+ *   Cheque Register = LEGAL LANDSCAPE, every other report = A4 PORTRAIT,
  *   one shared config (frontend/src/utils/reportPdfConfig.js), no global
  *   landscape default, no report's @page leaking into another, every visible
  *   PDF button wired, same rows as the screen (no second query).
@@ -180,6 +180,31 @@ const REPORT_PAGES = {
   check("Salary Entry PDF totals = the table-foot `totals` memo", /footerRows=\{\s*calculatedEmployees\.length\s*\?\s*\[\{ \.\.\.totals/.test(se));
   const ao = read(path.join(PAGES, "AccountOfficerBills.jsx"));
   check("Approval PDF totals = the summary-card values", /grossSalary: selectedBill\.grossAmount/.test(ao) && /netSalary: selectedBill\.netSalary/.test(ao));
+
+  console.log("TEST 15 - Cheque Register print: wrap, widths, borders, Arial");
+  const crCss = read(path.join(PAGES, "chequeRegister.css"));
+  const crPrint = crCss.slice(crCss.indexOf("@media print"));
+  check("print block exists", crPrint.length > 0 && crPrint.includes(".cr-table"));
+  check("cells wrap in place (white-space normal)", /white-space:\s*normal/.test(crPrint));
+  check("cells wrap anywhere (overflow-wrap)", /overflow-wrap:\s*anywhere/.test(crPrint));
+  check("no aggressive word breaking", /word-break:\s*normal/.test(crPrint));
+  check("cells top-aligned", /vertical-align:\s*top/.test(crPrint));
+  const widthCols = new Set([...crPrint.matchAll(/nth-child\((\d+)\)/g)].map((m) => m[1]));
+  check("explicit widths for all 26 columns", widthCols.size === 26, [...widthCols].join(","));
+  check("no ellipsis truncation", !/text-overflow\s*:\s*ellipsis/.test(crPrint));
+  check("no nowrap in print (nothing clipped)", !/white-space\s*:\s*nowrap/.test(crPrint));
+  check(
+    "no fixed row/cell heights (rows grow)",
+    !/\.cr-table\s+(tr|th|td)[^{]*\{[^}]*\bheight\s*:/.test(crPrint)
+  );
+  check("print borders retained on every cell", /border:\s*1px solid #00/.test(crPrint));
+  check("print uses Arial", crPrint.includes("font-family: Arial, Helvetica, sans-serif"));
+  const printSize = crPrint.match(/\.cr-table\s*\{[^}]*font-size:\s*([\d.]+)pt/);
+  check("print type not extremely small (>= 7pt)", printSize && Number(printSize[1]) >= 7, printSize && printSize[0]);
+  const widthFiles = allSrc.filter(
+    (p) => p.endsWith(".css") && !p.endsWith("chequeRegister.css") && /nth-child\(\d+\)\s*\{[^}]*width\s*:/.test(read(p))
+  );
+  check("no other report CSS gains print column widths", widthFiles.length === 0, widthFiles.map((p) => path.basename(p)).join(", "));
 
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);

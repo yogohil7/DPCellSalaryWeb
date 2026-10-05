@@ -5,6 +5,7 @@ import {
   downloadSalaryRegisterExcel,
 } from "../utils/salaryRegisterApi";
 import { GridToolbar } from "../components/DataGrid";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import "./salaryRegister.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
@@ -266,7 +267,7 @@ export default function SalaryRegister({ user, onBack, pageParams, onOpenDetail 
             onChange={(e) => setInstituteCode(e.target.value)}
           >
             <option value="">All Institutes</option>
-            {(meta.institutes || []).map((i) => (
+            {sortInstitutesByCode(meta.institutes || []).map((i) => (
               <option key={i.instituteCode} value={i.instituteCode}>
                 {i.instituteCode} — {i.instituteName}
               </option>

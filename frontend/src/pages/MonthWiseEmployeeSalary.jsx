@@ -5,6 +5,7 @@ import {
   downloadMonthWiseEmployeeSalaryExcel,
 } from "../utils/monthWiseEmployeeSalaryApi";
 import { GridToolbar } from "../components/DataGrid";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import "./monthWiseEmployeeSalary.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
@@ -243,7 +244,7 @@ export default function MonthWiseEmployeeSalary({ user, onBack }) {
           <label>Institute</label>
           <select value={instituteCode} onChange={(e) => setInstituteCode(e.target.value)}>
             <option value="">All Institutes</option>
-            {(meta.institutes || []).map((i) => (
+            {sortInstitutesByCode(meta.institutes || []).map((i) => (
               <option key={i.instituteCode} value={i.instituteCode}>
                 {i.instituteCode} — {i.instituteName}
               </option>

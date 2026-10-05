@@ -3,6 +3,7 @@ import Breadcrumb from "../components/Breadcrumb";
 import ModuleFrame from "../components/ModuleFrame";
 import DataGrid, { GridActions } from "../components/DataGrid";
 import { listInstitutes } from "../utils/instituteApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { listActiveDesignations } from "../utils/designationApi";
 import { listActiveSections } from "../utils/sectionApi";
 import { listActivePayRevisions } from "../utils/payRevisionApi";
@@ -400,9 +401,11 @@ export default function EmployeeMaster({ onBack, user }) {
           instituteDistrict: form.district,
           cityClass: form.cityClass,
         };
-      return [...activeRows, fallback];
+      /* Natural InstituteCode order (never InstituteId); the fallback stays
+         visible in its natural position so an edit never strands. */
+      return sortInstitutesByCode([...activeRows, fallback]);
     }
-    return activeRows;
+    return sortInstitutesByCode(activeRows);
   }, [institutes, form.instituteCode, form.instituteName, form.district, form.cityClass]);
 
   const filtered = useMemo(() => {
@@ -743,9 +746,17 @@ export default function EmployeeMaster({ onBack, user }) {
                 <select value={form.scaleOfPay} onChange={setField("scaleOfPay")}>
                   <option value="">Select</option>
                   <option>14800-47100 (IS-1)</option>
+                  <option>15000-47600 (IS-2)</option>
+                  <option>15700-50000 (IS-3)</option>
                   <option>18000-56900 (Level-1)</option>
                   <option>19900-63200 (Level-2)</option>
+                  <option>21700-69100 (Level-3)</option>
+                  <option>25500-81100 (Level-4)</option>
+                  <option>29200-92300 (Level-5)</option>
                   <option>35400-112400 (Level-6)</option>
+                  <option>39900-126600 (Level-7)</option>
+                  <option>44900-142400 (Level-8)</option>
+                  <option>53100-167800 (Level-9)</option>
                 </select>
               </Field>
               <Field label="Date of Joining" required>
@@ -850,7 +861,7 @@ export default function EmployeeMaster({ onBack, user }) {
             <div className="hr-actions">
               {message ? <span className="hr-msg">{message}</span> : <span />}
               <button type="submit" className="btn primary" disabled={saving}>
-                {saving ? "Saving..." : "Save"}
+                {saving ? "Saving..." : isEditMode ? "Update" : "Save"}
               </button>
               <button
                 type="button"

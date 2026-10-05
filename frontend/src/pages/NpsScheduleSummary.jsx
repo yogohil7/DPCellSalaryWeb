@@ -5,6 +5,7 @@ import {
 } from "../utils/npsScheduleApi";
 import { getEmployeeWiseSalaryMeta } from "../utils/employeeWiseSalaryApi";
 import { listInstitutes } from "../utils/instituteApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { GridToolbar } from "../components/DataGrid";
 import "./npsScheduleSummary.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
@@ -107,11 +108,14 @@ export default function NpsScheduleSummary({ onBack }) {
     };
   }, []);
 
+  /* Natural InstituteCode presentation order (never InstituteId). */
   const visibleInstitutes = useMemo(() => {
-    if (!sectionId) return institutes;
-    return institutes.filter(
-      (i) => String(i.sectionId ?? i.SectionId ?? "") === String(sectionId)
-    );
+    const list = !sectionId
+      ? institutes
+      : institutes.filter(
+          (i) => String(i.sectionId ?? i.SectionId ?? "") === String(sectionId)
+        );
+    return sortInstitutesByCode(list);
   }, [institutes, sectionId]);
 
   /*

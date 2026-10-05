@@ -169,6 +169,10 @@ async function loadInstituteById(id) {
 
 router.get("/", async (_req, res) => {
   try {
+    /* Global list order is intentionally left as-is (newest first) — other
+       screens share this endpoint. Salary Entry establishes its own natural
+       InstituteCode presentation order in the frontend
+       (utils/instituteCodeSort.js) and never relies on this ordering. */
     const result = await new sql.Request().query(`
       ${instituteSelect}
       ORDER BY i.InstituteId DESC

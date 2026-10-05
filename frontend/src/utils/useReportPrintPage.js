@@ -1,7 +1,7 @@
 /*
  * Report-scoped print page (2026-09-24).
  *
- * While a report is mounted, its own @page rule (A4 portrait, or A4
+ * While a report is mounted, its own @page rule (A4 portrait, or Legal
  * landscape for Cheque Register only — see reportPdfConfig.js) is the only
  * one in the document, so Ctrl+P, the page's Print button and "Save as PDF"
  * all use that report's orientation and nothing leaks into other reports.

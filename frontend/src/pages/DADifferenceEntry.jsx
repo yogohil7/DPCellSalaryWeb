@@ -9,6 +9,7 @@ import {
   getDaDifferenceDetail,
 } from "../utils/daDifferenceApi";
 import { listInstitutes } from "../utils/instituteApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import "./daDifference.css";
 
 /*
@@ -99,13 +100,17 @@ export default function DADifferenceEntry({ onBack, user }) {
 
         setBills(billRows);
 
-        const mapped = (Array.isArray(instituteRows) ? instituteRows : [])
-          .map((row) => ({
-            id: row.instituteId ?? row.id,
-            code: row.instituteCode || row.code || "",
-            name: row.instituteName || row.name || "",
-          }))
-          .filter((row) => row.code);
+        /* Natural InstituteCode presentation order (prefix, numeric portion,
+           full code) — never InstituteId order. */
+        const mapped = sortInstitutesByCode(
+          (Array.isArray(instituteRows) ? instituteRows : [])
+            .map((row) => ({
+              id: row.instituteId ?? row.id,
+              code: row.instituteCode || row.code || "",
+              name: row.instituteName || row.name || "",
+            }))
+            .filter((row) => row.code)
+        );
         setInstitutes(mapped);
 
         if (billRows.length === 0) {

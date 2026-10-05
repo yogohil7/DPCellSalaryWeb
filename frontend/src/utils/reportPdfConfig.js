@@ -39,7 +39,7 @@ export const REPORT_PRINT_STYLE_ID = "report-print-page";
 const PORTRAIT_FIT = 0.68;
 
 export const REPORT_PDF_CONFIG = Object.freeze({
-  chequeRegister: { title: "Cheque Register", pageSize: "legal", orientation: "landscape", margin: "10mm", printScale: 1 },
+  chequeRegister: { title: "Cheque Register", pageSize: "legal", orientation: "landscape", margin: "6mm", printScale: 1 },
   bankCopy: { title: "Bank Copy", orientation: "portrait", margin: "10mm", printScale: 1 },
   salaryRegister: { title: "Salary Register", orientation: "portrait", margin: "10mm", printScale: PORTRAIT_FIT },
   salaryRegisterDetail: { title: "Salary Details", orientation: "portrait", margin: "10mm", printScale: PORTRAIT_FIT },

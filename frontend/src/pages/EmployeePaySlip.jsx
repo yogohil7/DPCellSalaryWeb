@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPaySlipOptions, getPaySlips } from "../utils/employeePaySlipApi";
+import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import "./employeePaySlip.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
@@ -293,7 +294,7 @@ export default function EmployeePaySlip({ user, onBack }) {
             }}
           >
             <option value="">All Institutes</option>
-            {(options.institutes || []).map((i) => (
+            {sortInstitutesByCode(options.institutes || []).map((i) => (
               <option key={i.instituteCode} value={i.instituteCode}>
                 {i.instituteCode} — {i.instituteName}
               </option>
