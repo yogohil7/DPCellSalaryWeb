@@ -3,12 +3,17 @@
  *
  * Salary Month AUG-2026, BillCodeId 1018, institute MR-29. The rows are
  * NOT pre-joined. They are assembled the way loadEmployeeSalaryRows does:
- *   WorkflowId 62  Bill Month JUL-2026  employees in SalaryEntryBillEmployeeDetails
+ *   WorkflowId 62  LOCKED  Bill Month JUL-2026
+ *                  3 employees in SalaryEntryBillEmployeeDetails, NPS 10+20+30
  *                  Schedule No. only on SalaryEntryBillHeader (SCH-JUL-MR29)
- *                  stored NPS 100 + 50
- *   WorkflowId 52  Bill Month AUG-2026  employees in SalaryEmployeeDetails
+ *   WorkflowId 52  LOCKED  Bill Month AUG-2026
+ *                  3 employees in SalaryEmployeeDetails, NPS 100+200+300
  *                  Schedule No. on SalaryEntryBillHeader (SCH-AUG-MR29)
- *                  stored NPS 200
+ *
+ * The live page showed only AUG-2026 because the report grouped by
+ * institute + salary-bill code. That key keeps the first employee row's
+ * Bill Month and Schedule No. and folds the other instance into it.
+ * REGULAR includes that OLD JUL row; it is not a bill-type exclusion.
  *   WorkflowId 80  Bill Month JUN-2026  header schedule, NPS 0 — no report row
  *   WorkflowId 81  Bill Month MAY-2026  DRAFT, NPS 999 — no report row
  *
@@ -40,7 +45,7 @@ const INSTITUTES = [
 ];
 
 const WORKFLOWS = [
-  { WorkflowId: 62, SalaryBillCodeId: 1018, InstituteCode: "MR-29", BillMonth: "JUL-2026", Status: "APPROVED", NPSScheduleNo: null, BillNo: "701", BillDate: "2026-08-11" },
+  { WorkflowId: 62, SalaryBillCodeId: 1018, InstituteCode: "MR-29", BillMonth: "JUL-2026", Status: "LOCKED", NPSScheduleNo: null, BillNo: "701", BillDate: "2026-08-11" },
   { WorkflowId: 52, SalaryBillCodeId: 1018, InstituteCode: "MR-29", BillMonth: "AUG-2026", Status: "LOCKED", NPSScheduleNo: "SCH-AUG-WORKFLOW", BillNo: "849", BillDate: "2026-09-03" },
   { WorkflowId: 80, SalaryBillCodeId: 1018, InstituteCode: "MR-29", BillMonth: "JUN-2026", Status: "APPROVED", NPSScheduleNo: "SCH-JUN-MR29", BillNo: "600", BillDate: "2026-07-01" },
   { WorkflowId: 81, SalaryBillCodeId: 1018, InstituteCode: "MR-29", BillMonth: "MAY-2026", Status: "DRAFT", NPSScheduleNo: "SCH-MAY-MR29", BillNo: null, BillDate: null },
@@ -49,17 +54,19 @@ const WORKFLOWS = [
 
 /* Canonical Bill Month (AUG-2026) lives here. JUL must not be read from this table. */
 const SALARY_EMPLOYEE_DETAILS = [
-  detail({ table: "SED", code: "MR-29", billMonth: null, emp: 3023, name: "Aug Emp", nps: 200, pran: "P3" }),
-  detail({ table: "SED", code: "CPD-06", billMonth: null, emp: 4001, name: "Only Aug", nps: 9999, pran: "P9" }),
+  detail({ code: "MR-29", billMonth: null, emp: 5201, name: "A Aug 1", nps: 100 }),
+  detail({ code: "MR-29", billMonth: null, emp: 5202, name: "A Aug 2", nps: 200 }),
+  detail({ code: "MR-29", billMonth: null, emp: 5203, name: "A Aug 3", nps: 300 }),
+  detail({ code: "CPD-06", billMonth: null, emp: 4001, name: "Only Aug", nps: 9999 }),
 ];
 
 /* Earlier Bill Months live here, keyed by their own BillMonth. */
 const SALARY_ENTRY_BILL_EMPLOYEE_DETAILS = [
-  detail({ table: "SEBED", code: "MR-29", billMonth: "JUL-2026", emp: 3021, name: "Jul Emp A", nps: 100, pran: "P1" }),
-  detail({ table: "SEBED", code: "MR-29", billMonth: "JUL-2026", emp: 3022, name: "Jul Emp B", nps: 50, pran: "P2" }),
-  detail({ table: "SEBED", code: "MR-29", billMonth: "JUL-2026", emp: 3024, name: "Jul Zero", nps: 0 }),
-  detail({ table: "SEBED", code: "MR-29", billMonth: "JUN-2026", emp: 3025, name: "Jun No Nps", nps: 0 }),
-  detail({ table: "SEBED", code: "MR-29", billMonth: "MAY-2026", emp: 3026, name: "May Draft", nps: 999 }),
+  detail({ code: "MR-29", billMonth: "JUL-2026", emp: 6201, name: "Z Jul 1", nps: 10 }),
+  detail({ code: "MR-29", billMonth: "JUL-2026", emp: 6202, name: "Z Jul 2", nps: 20 }),
+  detail({ code: "MR-29", billMonth: "JUL-2026", emp: 6203, name: "Z Jul 3", nps: 30 }),
+  detail({ code: "MR-29", billMonth: "JUN-2026", emp: 3025, name: "Jun No Nps", nps: 0 }),
+  detail({ code: "MR-29", billMonth: "MAY-2026", emp: 3026, name: "May Draft", nps: 999 }),
 ];
 
 function detail(o) {
@@ -220,7 +227,7 @@ stub.exports = {
 require.cache[dbPath] = stub;
 
 const fs = require("fs");
-const { buildNpsScheduleReport, XLSX_COLUMNS, scheduleGroupKey } = require("../routes/npsSchedule");
+const { buildNpsScheduleReport, XLSX_COLUMNS, scheduleGroupKey, mapSalaryScheduleRow } = require("../routes/npsSchedule");
 const { instanceEmployeeRowsSql } = require("../utils/reportBillInstance");
 
 let passed = 0;
@@ -286,9 +293,33 @@ function excelRows(rows) {
       !/const key = `\$\{row\.instituteCode\}\|\$\{row\.billCodeId\}`;/.test(routeSrc),
     true);
   const loaded = loadEmployeeRowsFromSourceTables().filter((row) => row.InstituteCode === "MR-29" && Number(row.NPS) !== 0);
-  check("source tables yield JUL from the earlier-month table and AUG from the canonical table",
-    loaded.map((row) => [row.WorkflowId, row.BillMonth, row.EmployeeId, row.NPS]).sort((a, b) => a[2] - b[2]),
-    [[62, "JUL-2026", 3021, 100], [62, "JUL-2026", 3022, 50], [52, "AUG-2026", 3023, 200]]);
+  check("source tables yield 3 JUL rows from SalaryEntryBillEmployeeDetails and 3 AUG rows from SalaryEmployeeDetails",
+    loaded.map((row) => [row.WorkflowId, row.BillMonth, row.NPS]).sort((a, b) => a[0] - b[0] || a[2] - b[2]),
+    [[52, "AUG-2026", 100], [52, "AUG-2026", 200], [52, "AUG-2026", 300],
+     [62, "JUL-2026", 10], [62, "JUL-2026", 20], [62, "JUL-2026", 30]]);
+  const byName = loadEmployeeRowsFromSourceTables()
+    .filter((row) => row.InstituteCode === "MR-29" && Number(row.NPS) !== 0)
+    .sort((a, b) => String(a.EmployeeName).localeCompare(String(b.EmployeeName)))
+    .map((row) => mapSalaryScheduleRow(row));
+  const collapsed = new Map();
+  for (const row of byName) {
+    const key = `${row.instituteCode}|${row.billCodeId}`;
+    if (!collapsed.has(key)) {
+      collapsed.set(key, {
+        billMonth: row.paidMonth,
+        scheduleNo: row.npsScheduleNo,
+        billType: row.type,
+        count: 0,
+        amount: 0,
+      });
+    }
+    const group = collapsed.get(key);
+    group.count += 1;
+    group.amount += row.nps;
+  }
+  check("the old institute+bill key keeps one AUG row and swallows JUL",
+    [...collapsed.values()],
+    [{ billMonth: "AUG-2026", scheduleNo: "SCH-AUG-WORKFLOW", billType: "REGULAR", count: 6, amount: 660 }]);
   check("the old institute+bill key would collapse both instances",
     new Set(report.rows.map((row) => `${row.instituteCode}|${row.billCodeId}`)).size,
     1);
@@ -316,11 +347,14 @@ function excelRows(rows) {
   check("exactly two MR-29 rows", report.rows.length, 2);
   check("Bill Months are JUL-2026 then AUG-2026", mr.map((r) => r.billMonth), ["JUL-2026", "AUG-2026"]);
   check("each instance keeps its own schedule number", mr.map((r) => r.scheduleNo), ["SCH-JUL-MR29", "SCH-AUG-MR29"]);
-  check("counts come from that instance's NPS employees", mr.map((r) => r.count), [2, 1]);
-  check("amounts come from that instance's stored NPS", mr.map((r) => r.amount), [150, 200]);
+  check("counts come from that instance's NPS employees", mr.map((r) => r.count), [3, 3]);
+  check("amounts come from that instance's stored NPS", mr.map((r) => r.amount), [60, 600]);
   check("Bill Types stay OLD and REGULAR", mr.map((r) => r.billType), ["OLD", "REGULAR"]);
   check("workflow ids stay distinct", mr.map((r) => r.workflowId), [62, 52]);
-  check("total equals the two rows", report.totals, { employeeCount: 3, amount: 350 });
+  check("total equals the two rows", report.totals, { employeeCount: 6, amount: 660 });
+  check("REGULAR still returns the locked JUL instance",
+    mr.map((r) => [r.workflowId, r.billType]),
+    [[62, "OLD"], [52, "REGULAR"]]);
 
   const all = await buildNpsScheduleReport({ month: 8, year: 2026, billType: "REGULAR" });
   const cpd = all.rows.filter((r) => r.instituteCode === "CPD-06");
