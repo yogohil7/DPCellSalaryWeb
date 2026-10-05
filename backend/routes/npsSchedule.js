@@ -40,7 +40,8 @@ const {
   mapSalaryRow,
   filterSalaryRows,
 } = require("./employeeWiseSalary");
-const { compareGroupCodes, billMonthPartsOf } = require("./chequeRegister");
+const { compareGroupCodes, billMonthPartsOf, resolveChequeSalaryType } = require("./chequeRegister");
+const { instanceBillMonthLabel } = require("../utils/reportBillInstance");
 const { loadDaDifferenceRows } = require("../utils/salaryCategory");
 
 const router = express.Router();
@@ -146,6 +147,49 @@ function parseBillType(value) {
 }
 
 /**
+ * A salary NPS row in schedule shape. NPSScheduleNo and ReportWorkflowId
+ * come from the shared loader: the schedule number is already the instance's
+ * own header, and ReportWorkflowId is that instance's workflow row. Both are
+ * required so two Bill Months of one salary bill stay two schedule lines.
+ */
+function mapSalaryScheduleRow(raw) {
+  const base = mapSalaryRow(raw);
+  /* The instance month is the workflow row's own Bill Month (or the
+     employee-instance month), never SalaryBillCodes.BillMonth, which is
+     shared by every Bill Month of the salary bill. */
+  const paidMonth =
+    instanceBillMonthLabel(raw) ||
+    (raw.InstanceBillMonth == null ? "" : String(raw.InstanceBillMonth).trim()) ||
+    base.paidMonth;
+  const parts = billMonthPartsOf(
+    paidMonth, raw.SalaryMonth, raw.SalaryYear, null
+  );
+  const salaryType = resolveChequeSalaryType({
+    salaryMonth: raw.SalaryMonth,
+    billMonth: paidMonth,
+    salaryYear: raw.SalaryYear,
+    billYear: raw.SalaryYear,
+    salaryMonthNumber: raw.SalaryMonthNumber,
+  });
+  return {
+    ...base,
+    paidMonth,
+    type: salaryType === "OLD" ? "OLD" : "REGULAR",
+    sectionSrNo:
+      raw.SectionSrNo == null || raw.SectionSrNo === ""
+        ? null
+        : Number(raw.SectionSrNo),
+    billMonthIndex: parts ? parts.year * 12 + parts.month : null,
+    npsScheduleNo:
+      raw.NPSScheduleNo == null ? "" : String(raw.NPSScheduleNo).trim(),
+    pran: raw.GPFNPSNumber == null ? "" : String(raw.GPFNPSNumber).trim(),
+    workflowId: toIntOrNull(
+      raw.ReportWorkflowId != null ? raw.ReportWorkflowId : raw.WorkflowId
+    ),
+  };
+}
+
+/**
  * A DA Difference schedule line, in the same shape as a salary schedule line.
  *
  * The NPS amount is the STORED dbo.DADifferenceEmployeeDetails.TotalNPSDeduction
@@ -166,17 +210,55 @@ function daRowToScheduleRow(row) {
 }
 
 /**
- * One schedule row per (institute, source bill): the printed line. Employee
+ * Identity of one saved bill instance on the schedule.
+ *
+ * A Salary Month bill (one SalaryBillCodeId) can carry several Bill Month
+ * instances for the same institute — AUG-2026 salary with a JUL-2026 instance
+ * and an AUG-2026 instance. Those share institute code and bill code, so the
+ * key is the workflow row (WorkflowId / ReportWorkflowId). Bill Month stays in
+ * the fallback so a row that has no workflow id still does not merge two
+ * months. Employees of the same instance stay on one line.
+ */
+/**
+ * A saved NPS deduction entry is a stored NPS amount on that instance's
+ * own employee row (dbo.SalaryEmployeeDetails for the canonical Bill Month,
+ * dbo.SalaryEntryBillEmployeeDetails for an earlier Bill Month). A workflow
+ * row or a Schedule No. is not an entry: a blank Schedule No. still counts
+ * when NPS is stored, and a Schedule No. with no NPS amount does not.
+ */
+function hasSavedNpsDeduction(row) {
+  return toNum(row && row.nps) !== 0;
+}
+
+function scheduleGroupKey(row) {
+  const billMonth = String(row.paidMonth || row.billMonth || "")
+    .trim()
+    .toUpperCase();
+  const workflowId = toIntOrNull(row.workflowId);
+  /* Workflow id alone is not enough: two Bill Months must stay apart even
+     when a row has no workflow id, and a shared id must not swallow a
+     different Bill Month. The same instance (same id AND same month) stays
+     one row. */
+  if (workflowId != null) return `wf:${workflowId}|${billMonth}`;
+  return `${String(row.instituteCode || "").trim().toUpperCase()}|${row.billCodeId}|${billMonth}`;
+}
+
+/**
+ * One schedule row per saved bill instance: the printed line. Employee
  * rows are kept alongside for the snapshot and the reconciliation check.
  */
 function buildScheduleGroups(rows) {
   const groups = new Map();
 
   rows.forEach((row) => {
-    /* Keyed by the SOURCE BILL as well as the institute, so a REGULAR and an
-       OLD bill for the same institute stay two schedule lines, exactly as the
-       legacy schedule listed them (BD-11 twice, with two schedule numbers). */
-    const key = `${row.instituteCode}|${row.billCodeId}`;
+    /* No stored NPS on this instance's employee row: do not open a schedule
+       line for the workflow, the bill, or a Schedule No. alone. */
+    if (!hasSavedNpsDeduction(row)) return;
+    /* Keyed by the bill INSTANCE, not only the institute or the salary-month
+       bill code. A REGULAR and an OLD bill stay two lines, and so do two
+       Bill Month instances of the same salary bill (MR-29 JUL-2026 and
+       MR-29 AUG-2026 under Salary Month AUG-2026). */
+    const key = scheduleGroupKey(row);
     if (!groups.has(key)) {
       groups.set(key, {
         instituteCode: row.instituteCode,
@@ -192,6 +274,7 @@ function buildScheduleGroups(rows) {
         billType: row.type,
         billCodeId: row.billCodeId,
         billCode: row.billCode,
+        workflowId: toIntOrNull(row.workflowId),
         employees: [],
         employeeCount: 0,
         amount: 0,
@@ -271,29 +354,7 @@ async function buildNpsScheduleReport(query = {}) {
     wantsDa ? loadDaDifferenceRows() : Promise.resolve([]),
   ]);
 
-  const mapped = raws.map((raw) => {
-    const base = mapSalaryRow(raw);
-    return {
-      ...base,
-      sectionSrNo:
-        raw.SectionSrNo == null || raw.SectionSrNo === ""
-          ? null
-          : Number(raw.SectionSrNo),
-      billMonthIndex: (() => {
-        const parts = billMonthPartsOf(
-          raw.BillMonth, raw.SalaryMonth, raw.SalaryYear, raw.SalaryMonthNumber
-        );
-        return parts ? parts.year * 12 + parts.month : null;
-      })(),
-      /* The schedule number of THIS row's Bill Month instance, already
-         resolved by the shared loader (its Bill-Month header, else its own
-         workflow row). The bill+institute map below cannot tell a JUL-2026
-         instance from the AUG-2026 one, so it is used for DA bills only. */
-      npsScheduleNo:
-        raw.NPSScheduleNo == null ? "" : String(raw.NPSScheduleNo).trim(),
-      pran: raw.GPFNPSNumber == null ? "" : String(raw.GPFNPSNumber).trim(),
-    };
-  });
+  const mapped = raws.map((raw) => mapSalaryScheduleRow(raw));
 
   /*
     DA Difference rows carry their own schedule number from the institute
@@ -336,8 +397,10 @@ async function buildNpsScheduleReport(query = {}) {
   const scopedDa = filterSalaryRows(daMapped, { ...query, salaryType: "ALL" });
   const scoped = [...scopedSalary, ...scopedDa];
 
-  /* NPS Summary keeps only non-zero NPS rows; the schedule does the same. */
-  const withNps = scoped.filter((row) => toNum(row.nps) !== 0);
+  /* Only instances whose own saved employee rows carry an NPS amount.
+     Schedule No. is not the test: it is printed when present and left
+     blank when the entry was saved without one. */
+  const withNps = scoped.filter(hasSavedNpsDeduction);
 
   const groups = filterByInstitute(
     buildScheduleGroups(withNps),
@@ -357,6 +420,7 @@ async function buildNpsScheduleReport(query = {}) {
     billType: group.billType,
     billCodeId: group.billCodeId,
     billCode: group.billCode,
+    workflowId: group.workflowId,
     employeeCount: group.employeeCount,
     amount: round2(group.amount),
     employees: group.employees,
@@ -698,6 +762,9 @@ module.exports = router;
 module.exports.parseBillType = parseBillType;
 module.exports.daRowToScheduleRow = daRowToScheduleRow;
 module.exports.loadScheduleNumbers = loadScheduleNumbers;
+module.exports.hasSavedNpsDeduction = hasSavedNpsDeduction;
+module.exports.scheduleGroupKey = scheduleGroupKey;
+module.exports.mapSalaryScheduleRow = mapSalaryScheduleRow;
 module.exports.buildScheduleGroups = buildScheduleGroups;
 module.exports.compareGroups = compareGroups;
 module.exports.filterByInstitute = filterByInstitute;

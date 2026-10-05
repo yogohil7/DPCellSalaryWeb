@@ -7,7 +7,7 @@ const {
   toNum,
 } = require("./salaryCalculate");
 const { loadActivePayrollConfig, isHraForcedZero } = require("../utils/payrollConfig");
-const { calculateSalaryAmounts, calculateNps, calculateChequeAmount } = require("../utils/salaryBasicCalc");
+const { calculateSalaryAmounts, calculateNps, calculateChequeAmount, roundDaRupee } = require("../utils/salaryBasicCalc");
 const {
   isGpfNpsStoppedForRetirement,
   salaryYearMonthFromAsOfDate,
@@ -532,6 +532,11 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop
   } else if (hraForcedZero) {
     hra = 0;
   }
+
+  /* DA is stored as a whole rupee (half up). Gross, NPS and the cheque
+     amount below all use this rounded figure. Approved/Locked bills never
+     reach this function. */
+  da = roundDaRupee(da);
 
   const pensionType = pension === "GPF" || pension === "NPS" ? pension : "";
   const npsManual = Boolean(

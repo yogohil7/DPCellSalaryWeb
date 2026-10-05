@@ -16,7 +16,7 @@ import SalaryEntryVariationReport from "./SalaryEntryVariationReport";
 import { listInstitutes } from "../utils/instituteApi";
 import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { listActiveSections } from "../utils/sectionApi";
-import { calculateSalaryAmounts, calculateNps, calculateChequeAmount } from "../utils/salaryBasicCalc";
+import { calculateSalaryAmounts, calculateNps, calculateChequeAmount, roundDaRupee } from "../utils/salaryBasicCalc";
 import { isGpfNpsStoppedForRetirement } from "../utils/retirementRules";
 import "./salaryEntry.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
@@ -232,7 +232,11 @@ const calculateEmployee = (employee, salaryMonth) => {
 
   let da = toNumber(employee.da);
   if (forceEarningsFromBasic || !daManual) {
-    da = daRate != null ? derived.da : da;
+    /* Same nearest-rupee DA the backend stored. Do not replace it with a
+       paisa recalculation. */
+    da = daRate != null ? derived.da : roundDaRupee(da);
+  } else {
+    da = roundDaRupee(da);
   }
 
   let hra = toNumber(employee.hra);

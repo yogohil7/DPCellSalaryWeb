@@ -78,6 +78,8 @@ export default function NpsScheduleSummary({ onBack }) {
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [billType, setBillType] = useState("REGULAR");
 
+  /* Hidden until Show. Entry loads the filter lists only; a later filter
+     change keeps the last result until Show is clicked again. */
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -359,7 +361,7 @@ export default function NpsScheduleSummary({ onBack }) {
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={`${row.instituteCode}-${row.srNo}`}>
+                  <tr key={`${row.instituteCode}-${row.billMonth}-${row.billCodeId}-${row.workflowId}-${row.srNo}`}>
                     <td className="nsch-c">{row.srNo}</td>
                     <td className="nsch-c">{row.instituteCode}</td>
                     <td className="nsch-l">{row.instituteName}</td>

@@ -7,7 +7,7 @@ const {
   isHraForcedZero,
   isHraApplicable,
 } = require("../utils/payrollConfig");
-const { calculateSalaryAmounts, toNum, calculateNps, calculateChequeAmount } = require("../utils/salaryBasicCalc");
+const { calculateSalaryAmounts, toNum, calculateNps, calculateChequeAmount, roundDaRupee } = require("../utils/salaryBasicCalc");
 const {
   getClaPayLevelGroup,
   resolveTransportAllowancePayLevelGroup,
@@ -879,11 +879,13 @@ function mapCalcToGridRow(calc, extras = {}) {
     payrollHra: hraForcedZero,
   });
 
-  /* Manual DA/HRA only when explicitly provided; otherwise derive from Total Basic. */
-  const da =
+  /* Manual DA/HRA only when explicitly provided; otherwise derive from Total Basic.
+     DA is always the nearest rupee (half up) so the grid matches Draft/Submit. */
+  const da = roundDaRupee(
     manual.da != null && manual.da !== ""
       ? toNum(manual.da)
-      : derived.da;
+      : derived.da
+  );
   const hra = hraForcedZero
     ? 0
     : manual.hra != null && manual.hra !== ""
