@@ -148,6 +148,7 @@ async function loadSalaryAggregates() {
       ISNULL(SUM(d.GrossSalary), 0) AS GrossSalary,
       ISNULL(SUM(d.NPS), 0) AS NPS,
       ISNULL(SUM(d.GPFSubscription), 0) AS GPFSubscription,
+      ISNULL(SUM(d.GPFAdvance), 0) AS GPFAdvance,
       ISNULL(SUM(d.IncomeTax), 0) AS IncomeTax,
       ISNULL(SUM(d.ProfessionalTax), 0) AS ProfessionalTax,
       ISNULL(SUM(d.OtherDeduction), 0) AS OtherDeduction,
@@ -220,6 +221,7 @@ async function loadSalaryAggregates() {
       ISNULL(SUM(d.GrossSalary), 0) AS GrossSalary,
       ISNULL(SUM(d.NPS), 0) AS NPS,
       ISNULL(SUM(d.GPFSubscription), 0) AS GPFSubscription,
+      ISNULL(SUM(d.GPFAdvance), 0) AS GPFAdvance,
       ISNULL(SUM(d.IncomeTax), 0) AS IncomeTax,
       ISNULL(SUM(d.ProfessionalTax), 0) AS ProfessionalTax,
       ISNULL(SUM(d.OtherDeduction), 0) AS OtherDeduction,
@@ -299,6 +301,7 @@ async function loadDaAggregates() {
       ISNULL(SUM(e.TotalDifferenceAmount), 0) AS GrossSalary,
       ISNULL(SUM(e.TotalNPSDeduction), 0) AS NPS,
       CAST(0 AS DECIMAL(18,2)) AS GPFSubscription,
+      CAST(0 AS DECIMAL(18,2)) AS GPFAdvance,
       CAST(0 AS DECIMAL(18,2)) AS IncomeTax,
       CAST(0 AS DECIMAL(18,2)) AS ProfessionalTax,
       CAST(0 AS DECIMAL(18,2)) AS OtherDeduction,
@@ -414,7 +417,9 @@ function mapAggregateRow(row, srNo) {
   const specialAllowance = moneyRound(row.SpecialAllowance);
   const grossAmount = moneyRound(row.GrossSalary);
   const nps = moneyRound(row.NPS);
-  const gpfAmount = moneyRound(row.GPFSubscription);
+  /* GPF AMT is the saved subscription plus the saved advance for the
+     employees already summed into this institute/bill row. */
+  const gpfAmount = moneyRound(toNum(row.GPFSubscription) + toNum(row.GPFAdvance));
   const incomeTax = moneyRound(row.IncomeTax);
   const professionalTax = moneyRound(row.ProfessionalTax);
   const otherDeductions = moneyRound(row.OtherDeduction);
