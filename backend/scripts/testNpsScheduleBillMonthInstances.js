@@ -18,7 +18,16 @@
 
 const fs = require("fs");
 const path = require("path");
-const { buildScheduleGroups } = require("../routes/npsSchedule");
+const {
+  buildScheduleGroups,
+  parseBillType,
+} = require("../routes/npsSchedule");
+const {
+  filterSalaryRows,
+} = require("../routes/employeeWiseSalary");
+const {
+  billTypeMatchesFilter,
+} = require("../utils/salaryMonthKey");
 
 const routeSrc = fs.readFileSync(
   path.join(__dirname, "..", "routes", "npsSchedule.js"),
@@ -129,7 +138,42 @@ function main() {
   check("C. per-instance headcounts kept", [mrJul && mrJul.employeeCount, mrAug && mrAug.employeeCount], [2, 2]);
   check("C. per-instance saved NPS kept", [mrJul && mrJul.amount, mrAug && mrAug.amount], [14852, 14214]);
 
-  section("D — Source guards");
+  section("D — 'Regular Salary (incl. Old)' returns REGULAR + OLD");
+  const pageSrc = fs.readFileSync(
+    path.join(__dirname, "..", "..", "frontend", "src", "pages", "NpsScheduleSummary.jsx"),
+    "utf8"
+  );
+  check(
+    "D. dropdown sends value REGULAR for the combined label",
+    /<option value="REGULAR">Regular Salary \(incl\. Old\)<\/option>/.test(pageSrc),
+    true
+  );
+  check("D. parseBillType keeps REGULAR combined", parseBillType("REGULAR"), "REGULAR");
+  check("D. parseBillType keeps OLD narrow", parseBillType("OLD"), "OLD");
+  const comboRows = [
+    { workflowStatus: "LOCKED", sectionId: 15, employeeId: 1, type: "REGULAR", salaryMonthIndex: 2026 * 12 + 8, nps: 100 },
+    { workflowStatus: "LOCKED", sectionId: 15, employeeId: 2, type: "OLD", salaryMonthIndex: 2026 * 12 + 8, nps: 200 },
+  ];
+  check(
+    "D. combined scope keeps both types",
+    filterSalaryRows(comboRows, { month: "8", year: "2026", salaryType: "ALL" }).map((r) => r.type),
+    ["REGULAR", "OLD"]
+  );
+  check(
+    "D. OLD-only scope stays narrow",
+    filterSalaryRows(comboRows, { month: "8", year: "2026", salaryType: "OLD" }).map((r) => r.type),
+    ["OLD"]
+  );
+  check("D. REGULAR matches OLD rows", billTypeMatchesFilter("REGULAR", "OLD"), true);
+  check("D. OLD does not match REGULAR rows", billTypeMatchesFilter("OLD", "REGULAR"), false);
+  check(
+    "D. zero-NPS OLD row still excluded by the non-zero rule",
+    comboRows.filter((r) => Number(r.nps) !== 0).length === 2 &&
+      [{ ...comboRows[1], nps: 0 }].filter((r) => Number(r.nps) !== 0).length === 0,
+    true
+  );
+
+  section("E — Source guards");
   check(
     "C. group key includes the instance Bill Month",
     /row\.instituteCode\}\|\$\{row\.billCodeId\}\|\$\{row\.paidMonth/.test(routeSrc),
