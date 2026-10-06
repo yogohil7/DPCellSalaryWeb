@@ -59,7 +59,7 @@ const REPORT_PAGES = {
   check("chequeRegister orientation landscape", cr.orientation === "landscape");
   check("chequeRegister page size legal", cr.pageSize === "legal");
   check("chequeRegister @page rule", /size: legal landscape/.test(reportPageRuleCss("chequeRegister")));
-  check("chequeRegister printable width = 14in - 20mm", cr.printableWidthPx === Math.floor((355.6 - 20) * 96 / 25.4), cr.printableWidthPx);
+  check("chequeRegister printable width = 14in - 12mm margins", cr.printableWidthPx === Math.floor((355.6 - 12) * 96 / 25.4), cr.printableWidthPx);
   check("no other report uses legal", Object.keys(REPORT_PDF_CONFIG).filter((k) => getReportPdfOptions(k).pageSize !== "A4").join() === "chequeRegister");
 
   console.log("TEST 2 - every other report is A4 PORTRAIT");
@@ -191,11 +191,22 @@ const REPORT_PAGES = {
   check("cells top-aligned", /vertical-align:\s*top/.test(crPrint));
   const widthCols = new Set([...crPrint.matchAll(/nth-child\((\d+)\)/g)].map((m) => m[1]));
   check("explicit widths for all 26 columns", widthCols.size === 26, [...widthCols].join(","));
+  const widthVals = [...crPrint.matchAll(/nth-child\(\d+\)[^{]*\{\s*width:\s*([\d.]+)%/g)].map((m) => Number(m[1]));
+  const widthTotal = widthVals.reduce((s, v) => s + v, 0);
+  check(
+    "column widths total approximately 100% (no overflow)",
+    widthVals.length === 26 && widthTotal >= 99 && widthTotal <= 101,
+    `${widthVals.length} cols totalling ${widthTotal.toFixed(1)}%`
+  );
   check("no ellipsis truncation", !/text-overflow\s*:\s*ellipsis/.test(crPrint));
   check("no nowrap in print (nothing clipped)", !/white-space\s*:\s*nowrap/.test(crPrint));
+  const crRowRules = (
+    crPrint.match(/\.cr-table\s+(?:tbody\s+tr|tfoot\s+tr|tr|th|td)[^{]*\{[^}]*\}/g) || []
+  ).join(" ");
   check(
     "no fixed row/cell heights (rows grow)",
-    !/\.cr-table\s+(tr|th|td)[^{]*\{[^}]*\bheight\s*:/.test(crPrint)
+    !/(^|[^-])height\s*:\s*\d/.test(crRowRules.replace(/line-height/g, "")),
+    crRowRules.slice(0, 160)
   );
   check("print borders retained on every cell", /border:\s*1px solid #00/.test(crPrint));
   check("print uses Arial", crPrint.includes("font-family: Arial, Helvetica, sans-serif"));

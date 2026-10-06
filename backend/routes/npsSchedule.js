@@ -173,10 +173,12 @@ function buildScheduleGroups(rows) {
   const groups = new Map();
 
   rows.forEach((row) => {
-    /* Keyed by the SOURCE BILL as well as the institute, so a REGULAR and an
-       OLD bill for the same institute stay two schedule lines, exactly as the
-       legacy schedule listed them (BD-11 twice, with two schedule numbers). */
-    const key = `${row.instituteCode}|${row.billCodeId}`;
+    /* Keyed by institute + source bill + INSTANCE Bill Month: two Bill
+       Month instances of the same bill (e.g. AUG-2026 REGULAR and JUL-2026
+       OLD under one salary bill) are two schedule lines with their own
+       month, type, schedule number, headcount and amount. Keying by bill
+       alone merged the JUL-2026 instance into the AUG-2026 line. */
+    const key = `${row.instituteCode}|${row.billCodeId}|${row.paidMonth || ""}`;
     if (!groups.has(key)) {
       groups.set(key, {
         instituteCode: row.instituteCode,

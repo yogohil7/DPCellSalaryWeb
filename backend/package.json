@@ -117,7 +117,10 @@
     "test:institute-order": "node scripts/testInstituteDropdownOrder.js",
     "test:report-styling": "node scripts/testReportStyling.js",
     "test:scale-of-pay": "node scripts/testScaleOfPayOptions.js",
-    "test:employee-save-update": "node scripts/testEmployeeMasterSaveUpdate.js"
+    "test:employee-save-update": "node scripts/testEmployeeMasterSaveUpdate.js",
+    "test:cheque-money": "node scripts/testChequeRegisterMoneyFormat.js",
+    "test:approval-pending-parity": "node scripts/testApprovalPendingParity.js",
+    "test:nps-schedule-instances": "node scripts/testNpsScheduleBillMonthInstances.js"
   },
   "keywords": [],
   "author": "",

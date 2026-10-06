@@ -8,9 +8,17 @@ import {
 import "./chequeRegister.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
 
+/* Plain-figure amounts with no thousands separators and no trailing ".00"
+   (147800 not 1,47,800.00; 0 not 0.00); paise keep up to two digits
+   (1200.50 stays 1200.50). Signs and rounding are unchanged. This one
+   function feeds the screen table, the TOTAL row and the shared
+   exportRows used by CSV / PDF / Copy / Print, so all stay consistent. */
 function money(value) {
-  return Number(value || 0).toLocaleString("en-IN", {
-    minimumFractionDigits: 2,
+  const n = Number(value || 0);
+  const fractionDigits = Number.isInteger(n) ? 0 : 2;
+  return n.toLocaleString("en-US", {
+    useGrouping: false,
+    minimumFractionDigits: fractionDigits,
     maximumFractionDigits: 2,
   });
 }

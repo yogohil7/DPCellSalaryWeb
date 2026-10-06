@@ -1081,7 +1081,17 @@ router.get("/", accountOfficerOnly, async (req, res) => {
         OR (
           UPPER(ISNULL(b.BillCategory, N'Salary')) <> N'DIFFERENCE'
           AND UPPER(ISNULL(b.BillType, N'')) <> N'DA DIFFERENCE'
-          AND ISNULL(sed.EmployeeCount, 0) > 0
+          /* Canonical instances snapshot into SalaryEmployeeDetails; a
+             submitted non-canonical Bill Month instance snapshots into
+             SalaryEntryBillEmployeeDetails scoped to the workflow row's own
+             BillMonth (sebd above) — either one makes the bill actionable.
+             Without the sebd arm, e.g. AUG-2026 / MR-29 / JUL-2026
+             (submitted, 8 instance rows, 0 canonical rows) was counted by
+             the Dashboard yet invisible on the approval list. */
+          AND (
+            ISNULL(sed.EmployeeCount, 0) > 0
+            OR ISNULL(sebd.EmployeeCount, 0) > 0
+          )
         )
       )
       ORDER BY
