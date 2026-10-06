@@ -117,7 +117,7 @@ function build(query) {
   return { rows, totals };
 }
 
-function main() {
+async function main() {
   console.log("=".repeat(76));
   console.log("NPS SCHEDULE SUMMARY");
   console.log("=".repeat(76));
@@ -241,8 +241,8 @@ function main() {
     cpd06.map(r => r.amount), [1700, 3500]);
   check("both rows share the same salary month",
     [...new Set(cpd06.map(r => r.salaryMonth))], ["JUL-2026"]);
-  check("the grouping key is institute + source bill, not institute alone",
-    /\$\{row\.instituteCode\}\|\$\{row\.billCodeId\}/.test(routeSrc), true);
+  check("the grouping key is institute + source bill + Bill Month",
+    /\$\{row\.instituteCode\}\|\$\{row\.billCodeId\}\|\$\{row\.paidMonth\}/.test(routeSrc), true);
   check("separating rows does not change the total",
     Number(cpd06.reduce((a,r)=>a+r.amount,0).toFixed(2)), 5200);
   check("the saved snapshot stores Bill Month per detail row",
@@ -580,10 +580,145 @@ function main() {
   check("the report still has no save endpoint",
     /router\.(post|put|patch|delete)\(/.test(routeCode), false);
 
+  await sectionMr29();
+
   console.log("\n" + "=".repeat(76));
   console.log(`Passed: ${passed}    Failed: ${failed}`);
   console.log("=".repeat(76));
   if (failures.length) { console.log("\nFailures:"); failures.forEach(f => console.log("  - " + f)); }
   process.exit(failed ? 1 : 0);
 }
-main();
+
+/*
+  MR-29 keeps two workflow instances of the SAME salary bill (one BillCodeId):
+  JUL-2026 (earlier Bill Month, details in SalaryEntryBillEmployeeDetails,
+  schedule number on that instance's SalaryEntryBillHeader) and AUG-2026
+  (canonical instance, details in SalaryEmployeeDetails, schedule number on
+  its own workflow row). Grouping by institute + bill code alone merged them
+  into one AUG line.
+*/
+const MR29_BILL = {
+  BillCodeId: 1029, BillCode: "AUG-2026", MasterBillMonth: "AUG-2026",
+  SalaryMonth: "August", SalaryMonthNumber: "08", SalaryYear: "2026",
+  BillCategory: "Salary", BillType: "Salary",
+  InstituteCode: "MR-29", InstituteName: "MR-29",
+  SectionId: 3, SectionSrNo: 3, SectionName: "MR Section",
+};
+const MR29_JUL_WF = 2907;
+const MR29_AUG_WF = 2908;
+const MR29_HEADER = [{
+  SalaryBillCodeId: 1029, InstituteCode: "MR-29", BillMonth: "JUL-2026",
+  BillNo: "701", BillDate: "2026-08-11", NPSScheduleNo: "SCH/JUL/MR29",
+}];
+
+function mr29Employee({ workflowId, billMonth, employeeId, nps, workflowSchedule, status }) {
+  return {
+    ...MR29_BILL,
+    ReportWorkflowId: workflowId,
+    WorkflowBillMonth: billMonth,
+    BillMonth: billMonth,
+    WorkflowStatus: status,
+    BillNo: billMonth === "AUG-2026" ? "849" : null,
+    BillDate: billMonth === "AUG-2026" ? "2026-09-03" : null,
+    NPSScheduleNo: workflowSchedule,
+    DetailId: workflowId * 10 + employeeId,
+    EmployeeId: employeeId,
+    EmployeeName: `E${employeeId}`,
+    EmployeeCode: `E${employeeId}`,
+    GPFNPSNumber: "",
+    NPS: nps,
+    BasicPay: 1000, GrossSalary: 1000, NetSalary: 1000,
+  };
+}
+
+function mr29Rows(julNps) {
+  const jul = (employeeId, nps) => mr29Employee({
+    workflowId: MR29_JUL_WF, billMonth: "JUL-2026", employeeId, nps,
+    workflowSchedule: null, status: "LOCKED",
+  });
+  const aug = mr29Employee({
+    workflowId: MR29_AUG_WF, billMonth: "AUG-2026", employeeId: 3, nps: 4500,
+    workflowSchedule: "SCH/AUG/MR29", status: "APPROVED",
+  });
+  return [jul(1, julNps[0]), jul(2, julNps[1]), aug];
+}
+
+function scheduleLines(report) {
+  return report.rows
+    .filter((r) => r.instituteCode === "MR-29")
+    .map((r) => ({
+      billMonth: r.billMonth,
+      billType: r.billType,
+      scheduleNo: r.scheduleNo,
+      employeeCount: r.employeeCount,
+      amount: r.amount,
+    }));
+}
+
+function installMr29Sql(rows) {
+  const sqlApi = require.cache[dbPath].exports.sql;
+  const respond = (text) => {
+    if (/SalaryEntryBillHeader/i.test(text)) return { recordset: MR29_HEADER };
+    if (/COL_LENGTH/i.test(text)) return { recordset: [{ Present: 1 }] };
+    if (/SalaryBillInstituteWorkflow/i.test(text) && /NPSScheduleNo/i.test(text) &&
+        !/SalaryEmployeeDetails/i.test(text)) {
+      /* A bill+institute schedule map cannot tell JUL from AUG. The report
+         must ignore it and keep each instance's own header/workflow value. */
+      return { recordset: [{ SalaryBillCodeId: 1029, InstituteCode: "MR-29", NPSScheduleNo: "WRONG-SHARED" }] };
+    }
+    if (/SalaryEmployeeDetails/i.test(text)) return { recordset: rows };
+    return { recordset: [] };
+  };
+  sqlApi.query = (strings) => {
+    const text = strings && strings.raw ? strings.raw.join("?") : String(strings);
+    return Promise.resolve(respond(text));
+  };
+  sqlApi.Request = function R() {
+    return { input() { return this; }, query: (text) => Promise.resolve(respond(String(text))) };
+  };
+}
+
+async function sectionMr29() {
+  section("MR-29 JUL-2026 and AUG-2026 stay separate instances");
+  const derived = require("../utils/reportBillInstance").instanceEmployeeRowsSql().replace(/\s+/g, " ");
+  check("canonical instance (AUG, Bill Month = salary month) reads SalaryEmployeeDetails",
+    /JOIN dbo\.SalaryEmployeeDetails ed0/.test(derived) &&
+    /WHERE iw0\.BillMonth = UPPER\(LEFT/.test(derived), true);
+  check("earlier Bill Month (JUL) reads SalaryEntryBillEmployeeDetails for that Bill Month",
+    /JOIN dbo\.SalaryEntryBillEmployeeDetails ed1/.test(derived) &&
+    /ed1\.BillMonth = iw1\.BillMonth/.test(derived) &&
+    /iw1\.BillMonth <> UPPER\(LEFT/.test(derived), true);
+  check("NPS Schedule uses that loader, not a bill+institute employee join",
+    /loadEmployeeSalaryRows/.test(routeSrc) &&
+    !/INNER JOIN dbo\.SalaryEmployeeDetails d\s+ON d\.SalaryBillCodeId/.test(routeSrc), true);
+
+  installMr29Sql(mr29Rows([1200, 800]));
+  const both = await sch.buildNpsScheduleReport({ month: 8, year: 2026, billType: "REGULAR" });
+  const bothLines = scheduleLines(both);
+  console.log("  MR-29 non-zero JUL (no names, no PRANs):");
+  console.log(`    WorkflowId ${MR29_JUL_WF}  ${JSON.stringify(bothLines.find((r) => r.billMonth === "JUL-2026"))}`);
+  console.log(`    WorkflowId ${MR29_AUG_WF}  ${JSON.stringify(bothLines.find((r) => r.billMonth === "AUG-2026"))}`);
+  check("non-zero JUL and AUG are two MR-29 rows, not one merged AUG row",
+    bothLines, [
+      { billMonth: "JUL-2026", billType: "OLD", scheduleNo: "SCH/JUL/MR29", employeeCount: 2, amount: 2000 },
+      { billMonth: "AUG-2026", billType: "REGULAR", scheduleNo: "SCH/AUG/MR29", employeeCount: 1, amount: 4500 },
+    ]);
+  check("each schedule number is that instance's own, not the shared bill+institute value",
+    bothLines.map((r) => r.scheduleNo).includes("WRONG-SHARED"), false);
+  check("the two rows share one bill code, so Bill Month is what separates them",
+    both.rows.filter((r) => r.instituteCode === "MR-29").map((r) => r.billCodeId),
+    [1029, 1029]);
+
+  installMr29Sql(mr29Rows([0, 0]));
+  const julZero = await sch.buildNpsScheduleReport({ month: 8, year: 2026, billType: "REGULAR" });
+  const zeroLines = scheduleLines(julZero);
+  console.log("  MR-29 zero JUL (excluded, not fabricated):");
+  console.log(`    WorkflowId ${MR29_JUL_WF}  saved NPS total 0 -> no schedule row`);
+  console.log(`    WorkflowId ${MR29_AUG_WF}  ${JSON.stringify(zeroLines[0])}`);
+  check("a JUL instance whose saved NPS total is zero is not given a row",
+    zeroLines, [
+      { billMonth: "AUG-2026", billType: "REGULAR", scheduleNo: "SCH/AUG/MR29", employeeCount: 1, amount: 4500 },
+    ]);
+}
+
+main().catch((error) => { console.error(error); process.exit(1); });

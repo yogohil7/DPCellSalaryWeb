@@ -166,17 +166,21 @@ function daRowToScheduleRow(row) {
 }
 
 /**
- * One schedule row per (institute, source bill): the printed line. Employee
- * rows are kept alongside for the snapshot and the reconciliation check.
+ * One schedule row per (institute, source bill, Bill Month): the printed
+ * line. Employee rows are kept alongside for the snapshot and the
+ * reconciliation check.
+ *
+ * Bill Month is part of the key because one SalaryBillCodes row can carry
+ * several workflow instances (MR-29 JUL-2026 and MR-29 AUG-2026 share a
+ * bill code). Institute + bill code alone would merge them into whichever
+ * month was seen first.
  */
 function buildScheduleGroups(rows) {
   const groups = new Map();
 
   rows.forEach((row) => {
-    /* Keyed by the SOURCE BILL as well as the institute, so a REGULAR and an
-       OLD bill for the same institute stay two schedule lines, exactly as the
-       legacy schedule listed them (BD-11 twice, with two schedule numbers). */
-    const key = `${row.instituteCode}|${row.billCodeId}`;
+    /* institute + source bill + this row's own Bill Month (paidMonth). */
+    const key = `${row.instituteCode}|${row.billCodeId}|${row.paidMonth}`;
     if (!groups.has(key)) {
       groups.set(key, {
         instituteCode: row.instituteCode,

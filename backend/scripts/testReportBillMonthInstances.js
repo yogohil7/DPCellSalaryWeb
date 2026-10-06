@@ -66,9 +66,19 @@ const agg = (inst) => ({
 });
 
 const queries = [];
+/* Set only for the MR-29 NPS Schedule section. null keeps every other report
+   on the DDRS-16 AUG/JUL fixture above. */
+let mr29Mode = null;
 function run(strings, values) {
   const text = (typeof strings === "string" ? strings : strings.join("?")).replace(/\s+/g, " ");
   queries.push(text);
+  if (mr29Mode && /SalaryEntryBillHeader/i.test(text)) return { recordset: mr29Mode.headers };
+  if (mr29Mode && /COL_LENGTH/i.test(text)) return { recordset: [{ Present: 1 }] };
+  if (mr29Mode && /SalaryBillInstituteWorkflow/i.test(text) && /NPSScheduleNo/i.test(text) &&
+      !/SalaryEmployeeDetails/i.test(text)) {
+    return { recordset: [{ SalaryBillCodeId: 1029, InstituteCode: "MR-29", NPSScheduleNo: "WRONG-SHARED" }] };
+  }
+  if (mr29Mode && /MasterDesignationName/.test(text)) return { recordset: mr29Mode.rows };
   if (/FROM dbo\.SalaryEntryBillHeader/i.test(text)) return { recordset: HEADERS };
   if (/OBJECT_ID\(N'dbo\.DADifference/i.test(text)) return { recordset: [{ Bill: 0, Detail: 0 }] };
   if (/DADifference/i.test(text)) return { recordset: [] };
@@ -90,6 +100,7 @@ const salaryRegister = require("../routes/salaryRegister");
 const chequeRegister = require("../routes/chequeRegister");
 const bankCopy = require("../routes/bankCopy");
 const employeeWise = require("../routes/employeeWiseSalary");
+const npsSchedule = require("../routes/npsSchedule");
 const shared = require("../utils/reportBillInstance");
 
 let passed = 0; let failed = 0;
@@ -184,6 +195,88 @@ function check(name, actual, expected) {
     ["billMonth", "salaryMonth", "billNo", "billDate"].every((k) => srPage.includes(`key: "${k}"`)), true);
   const bcPage = fs.readFileSync(path.join(ROOT, "..", "frontend", "src", "pages", "BankCopy.jsx"), "utf8");
   check("14-16. Bank Copy screen/CSV/PDF have no BILL MONTH column", /BILL MONTH/.test(bcPage) || />\{row\.billMonth/.test(bcPage), false);
+
+  section("NPS SCHEDULE — one row per Bill Month instance");
+  const npsSrc = fs.readFileSync(path.join(ROOT, "routes", "npsSchedule.js"), "utf8");
+  check("schedule groups are institute + bill code + Bill Month",
+    /\$\{row\.instituteCode\}\|\$\{row\.billCodeId\}\|\$\{row\.paidMonth\}/.test(npsSrc), true);
+
+  /* DDRS-16 fixture stores NPS 0 on both instances. A zero total is excluded;
+     JUL is not invented to sit beside AUG. */
+  const npsZeroFixture = await npsSchedule.buildNpsScheduleReport({ month: 8, year: 2026, billType: "REGULAR" });
+  check("DDRS-16 JUL WorkflowId 62 and AUG WorkflowId 52 store NPS 0, so neither is a schedule row",
+    npsZeroFixture.rows.length, 0);
+
+  const MR29_JUL = 2907;
+  const MR29_AUG = 2908;
+  const mr29Base = {
+    BillCodeId: 1029, BillCode: "AUG-2026", MasterBillMonth: "AUG-2026",
+    SalaryMonth: "August", SalaryMonthNumber: "08", SalaryYear: "2026",
+    BillCategory: "Salary", BillType: "Salary",
+    InstituteCode: "MR-29", InstituteId: 29, InstituteName: "MR-29",
+    SectionId: 3, SectionSrNo: 3, SectionName: "MR Section",
+    BasicPay: 1000, GradePay: 0, TotalBasic: 1000, DA: 0, HRA: 0, MA: 0, TA: 0, CLA: 0,
+    SpecialAllowance: 0, WashingAllowance: 0, GrossSalary: 1000, GPFSubscription: 0, GPFAdvance: 0,
+    IncomeTax: 0, ProfessionalTax: 0, OtherDeduction: 0, TotalDeduction: 0, NetSalary: 1000, ChequeAmount: 1000,
+    PensionType: "NPS", GPFNPSNumber: "",
+  };
+  const mr29Emp = (workflowId, billMonth, employeeId, nps, status, workflowSchedule) => ({
+    ...mr29Base,
+    WorkflowId: workflowId, ReportWorkflowId: workflowId, WorkflowBillMonth: billMonth, BillMonth: billMonth,
+    WorkflowStatus: status, BillNo: billMonth === "AUG-2026" ? "849" : null,
+    BillDate: billMonth === "AUG-2026" ? "2026-09-03" : null,
+    NPSScheduleNo: workflowSchedule, NPS: nps,
+    DetailId: workflowId * 10 + employeeId, EmployeeId: employeeId,
+    EmployeeName: `E${employeeId}`, EmployeeCode: `E${employeeId}`, DisplayOrder: employeeId,
+  });
+  const mr29Headers = [{
+    SalaryBillCodeId: 1029, InstituteCode: "MR-29", BillMonth: "JUL-2026",
+    BillNo: "701", BillDate: "2026-08-11", NPSScheduleNo: "SCH/JUL/MR29",
+  }];
+  const linesOf = (report) => report.rows.filter((r) => r.instituteCode === "MR-29").map((r) => ({
+    billMonth: r.billMonth, billType: r.billType, scheduleNo: r.scheduleNo,
+    employeeCount: r.employeeCount, amount: r.amount,
+  }));
+
+  mr29Mode = {
+    headers: mr29Headers,
+    rows: [
+      mr29Emp(MR29_JUL, "JUL-2026", 1, 1200, "LOCKED", null),
+      mr29Emp(MR29_JUL, "JUL-2026", 2, 800, "LOCKED", null),
+      mr29Emp(MR29_AUG, "AUG-2026", 3, 4500, "APPROVED", "SCH/AUG/MR29"),
+    ],
+  };
+  const mr29Both = await npsSchedule.buildNpsScheduleReport({ month: 8, year: 2026, billType: "REGULAR" });
+  const mr29BothLines = linesOf(mr29Both);
+  console.log("  MR-29 non-zero JUL (no names, no PRANs):");
+  console.log(`    WorkflowId ${MR29_JUL}  ${JSON.stringify(mr29BothLines.find((r) => r.billMonth === "JUL-2026"))}`);
+  console.log(`    WorkflowId ${MR29_AUG}  ${JSON.stringify(mr29BothLines.find((r) => r.billMonth === "AUG-2026"))}`);
+  check("MR-29 non-zero JUL stays its own row beside AUG (same BillCodeId 1029)",
+    mr29BothLines, [
+      { billMonth: "JUL-2026", billType: "OLD", scheduleNo: "SCH/JUL/MR29", employeeCount: 2, amount: 2000 },
+      { billMonth: "AUG-2026", billType: "REGULAR", scheduleNo: "SCH/AUG/MR29", employeeCount: 1, amount: 4500 },
+    ]);
+  check("schedule numbers come from each instance, not WRONG-SHARED",
+    mr29BothLines.some((r) => r.scheduleNo === "WRONG-SHARED"), false);
+
+  mr29Mode = {
+    headers: mr29Headers,
+    rows: [
+      mr29Emp(MR29_JUL, "JUL-2026", 1, 0, "LOCKED", null),
+      mr29Emp(MR29_JUL, "JUL-2026", 2, 0, "LOCKED", null),
+      mr29Emp(MR29_AUG, "AUG-2026", 3, 4500, "APPROVED", "SCH/AUG/MR29"),
+    ],
+  };
+  const mr29JulZero = await npsSchedule.buildNpsScheduleReport({ month: 8, year: 2026, billType: "REGULAR" });
+  const mr29ZeroLines = linesOf(mr29JulZero);
+  console.log("  MR-29 zero JUL (excluded, not fabricated):");
+  console.log(`    WorkflowId ${MR29_JUL}  saved NPS total 0 -> no schedule row`);
+  console.log(`    WorkflowId ${MR29_AUG}  ${JSON.stringify(mr29ZeroLines[0])}`);
+  check("MR-29 JUL saved NPS total 0 is omitted; AUG remains",
+    mr29ZeroLines, [
+      { billMonth: "AUG-2026", billType: "REGULAR", scheduleNo: "SCH/AUG/MR29", employeeCount: 1, amount: 4500 },
+    ]);
+  mr29Mode = null;
 
   console.log(`\n${"=".repeat(78)}\nPassed: ${passed}    Failed: ${failed}\n${"=".repeat(78)}`);
   process.exit(failed ? 1 : 0);
