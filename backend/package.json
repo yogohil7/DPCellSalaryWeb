@@ -59,6 +59,7 @@
     "test:approval-variation": "node scripts/testApprovalVariationReport.js",
     "test:return-auditor": "node scripts/testReturnToAuditorFilter.js",
     "test:cheque-register": "node scripts/testChequeRegister.js",
+    "test:cheque-register-gpf": "node scripts/testChequeRegisterGpfAmount.js",
     "test:payroll-hra": "node scripts/testPayrollConfigHraOverride.js",
     "migrate:payroll-config-asof": "node scripts/applyPayrollConfigAsOfLookup.js",
     "test:access-control": "node scripts/testFrontendAccessControl.js",
