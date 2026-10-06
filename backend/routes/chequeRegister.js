@@ -417,9 +417,10 @@ function mapAggregateRow(row, srNo) {
   const specialAllowance = moneyRound(row.SpecialAllowance);
   const grossAmount = moneyRound(row.GrossSalary);
   const nps = moneyRound(row.NPS);
-  /* GPF AMT is the saved subscription plus the saved advance for the
-     employees already summed into this institute/bill row. */
-  const gpfAmount = moneyRound(toNum(row.GPFSubscription) + toNum(row.GPFAdvance));
+  /* GPF AMT = rounded saved subscription + rounded saved advance.
+     Each component is rounded on its own so a fractional advance is not
+     absorbed into the subscription before rounding. */
+  const gpfAmount = moneyRound(row.GPFSubscription) + moneyRound(row.GPFAdvance);
   const incomeTax = moneyRound(row.IncomeTax);
   const professionalTax = moneyRound(row.ProfessionalTax);
   const otherDeductions = moneyRound(row.OtherDeduction);
