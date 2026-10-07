@@ -34,6 +34,8 @@ const COLUMNS = [
   { key: "billMonth", label: "Bill Month" },
   { key: "billType", label: "Bill Type" },
   { key: "salaryCategoryShort", label: "Salary Type" },
+  { key: "gpfNumber", label: "GPF Number" },
+  { key: "npsNumber", label: "NPS Number" },
   { key: "gpfDeduction", label: "GPF Deduction" },
   { key: "npsDeduction", label: "NPS Deduction" },
   { key: "totalDeduction", label: "Total Deduction" },
@@ -208,6 +210,7 @@ export default function NpsGpfDeduction({ onBack }) {
       [
         row.employeeCode, row.employeeName, row.instituteCode,
         row.instituteName, row.salaryMonth, row.billMonth,
+        row.gpfNumber, row.npsNumber,
       ]
         .map((v) => String(v || "").toLowerCase())
         .some((v) => v.includes(term))
@@ -445,7 +448,7 @@ export default function NpsGpfDeduction({ onBack }) {
           <div className="ngd-search no-print">
             <input
               type="search"
-              placeholder="Search employee, institute or month..."
+              placeholder="Search employee, institute, month or GPF/NPS number..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -486,7 +489,7 @@ export default function NpsGpfDeduction({ onBack }) {
               </tbody>
               <tfoot>
                 <tr>
-                  <td className="ngd-c ngd-bold" colSpan={11}>
+                  <td className="ngd-c ngd-bold" colSpan={COLUMNS.findIndex((c) => c.key === "gpfDeduction")}>
                     TOTAL
                   </td>
                   <td className="ngd-n ngd-bold">{money(totals.gpfDeduction)}</td>

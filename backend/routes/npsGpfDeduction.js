@@ -65,6 +65,26 @@ function round2(value) {
   return Number(toNum(value).toFixed(2));
 }
 
+function masterText(value) {
+  return value == null ? "" : String(value).trim();
+}
+
+/**
+ * Employee Master stores one pension account number, dbo.EmployeeMaster.GPFNPSNumber,
+ * and one type, dbo.EmployeeMaster.GPFNPS ("GPF" or "NPS"). Employee Wise Salary,
+ * Employee Master and the NPS Schedule already read those two columns (the
+ * schedule shows GPFNPSNumber as PRAN). This report places that same number in
+ * the column that matches the stored type. The other column stays blank.
+ * The number is never taken from a deduction amount.
+ */
+function gpfNpsNumbersFromMaster(type, number) {
+  const kind = masterText(type).toUpperCase();
+  const account = masterText(number);
+  if (kind === "GPF") return { gpfNumber: account, npsNumber: "" };
+  if (kind === "NPS") return { gpfNumber: "", npsNumber: account };
+  return { gpfNumber: "", npsNumber: "" };
+}
+
 /**
  * One deduction row per stored (bill, employee) row.
  *
@@ -94,6 +114,8 @@ function toDeductionRow(raw) {
         : Number(raw.SectionSrNo),
     billMonth: base.paidMonth,
     billType: base.type,
+    /* Same EmployeeId join the loader already uses (em.EmployeeId = d.EmployeeId). */
+    ...gpfNpsNumbersFromMaster(raw.GPFNPS, raw.GPFNPSNumber),
     gpfSubscription: gpf,
     gpfAdvance,
     gpfDeduction,
@@ -253,6 +275,8 @@ function daRowToDeductionRow(row) {
     billMonth: row.paidMonth,
     billType: row.type,
     designation: row.designation || "",
+    /* DA rows carry the same master fields (gpfNps / pran) from that loader. */
+    ...gpfNpsNumbersFromMaster(row.gpfNps, row.pran),
     gpfSubscription: 0,
     gpfAdvance: 0,
     gpfDeduction: 0,
@@ -309,6 +333,8 @@ const XLSX_COLUMNS = [
   { key: "billMonth", label: "Bill Month" },
   { key: "billType", label: "Bill Type" },
   { key: "salaryCategoryShort", label: "Salary Type" },
+  { key: "gpfNumber", label: "GPF Number" },
+  { key: "npsNumber", label: "NPS Number" },
   { key: "gpfDeduction", label: "GPF Deduction", type: "number" },
   { key: "npsDeduction", label: "NPS Deduction", type: "number" },
   { key: "totalDeduction", label: "Total Deduction", type: "number" },
@@ -327,25 +353,31 @@ async function sendReport(req, res) {
   }
 }
 
+function deductionSheetAoA(report) {
+  const aoa = [XLSX_COLUMNS.map((c) => c.label)];
+  (report.rows || []).forEach((row) => {
+    aoa.push(
+      XLSX_COLUMNS.map((c) =>
+        c.type === "number" ? Number(row[c.key] || 0) : row[c.key] ?? ""
+      )
+    );
+  });
+  const moneyAt = XLSX_COLUMNS.findIndex((c) => c.key === "gpfDeduction");
+  const totalRow = Array(XLSX_COLUMNS.length).fill("");
+  totalRow[0] = "TOTAL";
+  totalRow[moneyAt] = Number(report.totals?.gpfDeduction || 0);
+  totalRow[moneyAt + 1] = Number(report.totals?.npsDeduction || 0);
+  totalRow[moneyAt + 2] = Number(report.totals?.totalDeduction || 0);
+  aoa.push(totalRow);
+  return aoa;
+}
+
 router.get("/", sendReport);
 
 router.get("/export.xlsx", async (req, res) => {
   try {
     const report = await buildNpsGpfDeductionReport(req.query || {});
-    const aoa = [XLSX_COLUMNS.map((c) => c.label)];
-    report.rows.forEach((row) => {
-      aoa.push(
-        XLSX_COLUMNS.map((c) =>
-          c.type === "number" ? Number(row[c.key] || 0) : row[c.key] ?? ""
-        )
-      );
-    });
-    aoa.push([
-      "TOTAL", "", "", "", "", "", "", "", "", "",
-      Number(report.totals.gpfDeduction || 0),
-      Number(report.totals.npsDeduction || 0),
-      Number(report.totals.totalDeduction || 0),
-    ]);
+    const aoa = deductionSheetAoA(report);
 
     const sheet = XLSX.utils.aoa_to_sheet(aoa);
     const book = XLSX.utils.book_new();
@@ -373,6 +405,8 @@ router.get("/export.xlsx", async (req, res) => {
 module.exports = router;
 
 /* Exported for offline tests (scripts/testNpsGpfDeduction.js). */
+module.exports.gpfNpsNumbersFromMaster = gpfNpsNumbersFromMaster;
+module.exports.deductionSheetAoA = deductionSheetAoA;
 module.exports.toDeductionRow = toDeductionRow;
 module.exports.hasDeduction = hasDeduction;
 module.exports.compareDeductionRows = compareDeductionRows;
