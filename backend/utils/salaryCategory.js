@@ -202,6 +202,7 @@ async function loadDaDifferenceRows() {
       i.SectionId,
       sec.SrNo               AS SectionSrNo,
       sec.SectionName,
+      em.GPFNPS,
       em.GPFNPSNumber
     FROM dbo.DADifferenceBill b
     INNER JOIN dbo.DADifferenceEmployeeDetails d
@@ -260,6 +261,7 @@ async function loadDaDifferenceRows() {
           ? String(row.EmployeeCode)
           : String(row.EmployeeId),
       designation: row.Designation || "",
+      gpfNps: row.GPFNPS == null ? "" : String(row.GPFNPS).trim(),
       pran: row.GPFNPSNumber == null ? "" : String(row.GPFNPSNumber).trim(),
 
       instituteCode: row.InstituteCode || "",

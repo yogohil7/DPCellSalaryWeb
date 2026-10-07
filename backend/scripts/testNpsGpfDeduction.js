@@ -55,6 +55,8 @@ const row = (o) => ({
   EmployeeId: o.emp, EmployeeName: o.name, EmployeeCode: String(o.emp),
   Designation: o.desig || "Clerk", MasterDesignationName: o.desig || "Clerk",
   GPFSubscription: o.gpf || 0, GPFAdvance: o.adv || 0, NPS: o.nps || 0,
+  GPFNPS: o.pension || "",
+  GPFNPSNumber: o.account == null ? "" : o.account,
   BasicPay: 34400, GrossSalary: 50000, NetSalary: 40000,
   ...(o.bill || JUN),
 });
@@ -62,23 +64,30 @@ const row = (o) => ({
 const ROWS = [
   /* CPD-06, section sr 1 — employee 2002 with REGULAR and OLD for June */
   row({ code:"CPD-06", instName:"Gujarat State Probation", secId:11, secSr:1, secName:"CPD Section",
-        emp:2002, name:"Ramanbhai D. Damor", gpf:2000, adv:500, nps:0, bill:JUN }),
+        emp:2002, name:"Ramanbhai D. Damor", gpf:2000, adv:500, nps:0, bill:JUN,
+        pension:"GPF", account:"GJ/GPF/2002" }),
   row({ code:"CPD-06", instName:"Gujarat State Probation", secId:11, secSr:1, secName:"CPD Section",
-        emp:2002, name:"Ramanbhai D. Damor", gpf:2000, adv:0, nps:0, bill:JUN_BM_MAY }),
+        emp:2002, name:"Ramanbhai D. Damor", gpf:2000, adv:0, nps:0, bill:JUN_BM_MAY,
+        pension:"GPF", account:"GJ/GPF/2002" }),
   /* same employee, earlier months */
   row({ code:"CPD-06", instName:"Gujarat State Probation", secId:11, secSr:1, secName:"CPD Section",
-        emp:2002, name:"Ramanbhai D. Damor", gpf:2000, nps:0, bill:JAN }),
+        emp:2002, name:"Ramanbhai D. Damor", gpf:2000, nps:0, bill:JAN,
+        pension:"GPF", account:"GJ/GPF/2002" }),
   row({ code:"CPD-06", instName:"Gujarat State Probation", secId:11, secSr:1, secName:"CPD Section",
-        emp:2002, name:"Ramanbhai D. Damor", gpf:2000, nps:0, bill:FEB }),
+        emp:2002, name:"Ramanbhai D. Damor", gpf:2000, nps:0, bill:FEB,
+        pension:"GPF", account:"GJ/GPF/2002" }),
   /* NPS employee, no GPF */
   row({ code:"CPD-17", instName:"Samarpan Kendra", secId:11, secSr:1, secName:"CPD Section",
-        emp:2007, name:"Varshaba A. Chavda", gpf:0, adv:0, nps:1850, bill:JUN }),
+        emp:2007, name:"Varshaba A. Chavda", gpf:0, adv:0, nps:1850, bill:JUN,
+        pension:"NPS", account:"110020070007" }),
   /* natural sort probes inside the same section */
   row({ code:"CPD-100", instName:"Late Code", secId:11, secSr:1, secName:"CPD Section",
-        emp:2008, name:"Rinaben R. Mhatre", gpf:1000, nps:0, bill:JUN }),
+        emp:2008, name:"Rinaben R. Mhatre", gpf:1000, nps:0, bill:JUN,
+        pension:"GPF", account:"   " }),
   /* second section, must sort AFTER section sr 1 */
   row({ code:"OGE-05", instName:"Samanya Vruddhashram", secId:4, secSr:2, secName:"OGE Section",
-        emp:2011, name:"Pradyuman N. Yadav", gpf:0, nps:1900, bill:JUN }),
+        emp:2011, name:"Pradyuman N. Yadav", gpf:0, nps:1900, bill:JUN,
+        pension:"nps", account:null }),
   /* both zero -> must be dropped */
   row({ code:"CPD-06", instName:"Gujarat State Probation", secId:11, secSr:1, secName:"CPD Section",
         emp:2009, name:"Zero Deduction Emp", gpf:0, adv:0, nps:0, bill:JUN }),
@@ -242,7 +251,95 @@ function main() {
   check("the specified columns, in order", XLSX_COLUMNS.map(c => c.label),
     ["Sr. No.","Employee ID","Employee Name","Designation","Section","Institute Code",
      "Institute Name","Salary Month","Bill Month","Bill Type","Salary Type",
+     "GPF Number","NPS Number",
      "GPF Deduction","NPS Deduction","Total Deduction"]);
+
+  section("GPF Number and NPS Number come from Employee Master");
+  const catSrc = fs.readFileSync(path.join(__dirname, "..", "utils", "salaryCategory.js"), "utf8");
+  const pageLabels = [...pageSrc.matchAll(/label: "([^"]+)"/g)]
+    .map((m) => m[1])
+    .filter((label, index, all) => all.indexOf(label) === index);
+  check("GPF employee shows EmployeeMaster.GPFNPSNumber in GPF Number",
+    june.filter(r => r.employeeId === 2002).map(r => [r.gpfNumber, r.npsNumber]),
+    [["GJ/GPF/2002", ""], ["GJ/GPF/2002", ""]]);
+  check("NPS employee shows the same field in NPS Number",
+    june.filter(r => r.employeeId === 2007).map(r => [r.gpfNumber, r.npsNumber, r.npsDeduction]),
+    [["", "110020070007", 1850]]);
+  check("a blank GPF number stays blank and does not drop the row",
+    june.filter(r => r.employeeId === 2008).map(r => [r.gpfNumber, r.npsNumber, r.gpfDeduction]),
+    [["", "", 1000]]);
+  check("a missing NPS number stays blank",
+    june.filter(r => r.employeeId === 2011).map(r => [r.gpfNumber, r.npsNumber, r.npsDeduction]),
+    [["", "", 1900]]);
+  check("whitespace and an unrecognised type stay blank",
+    [rep.gpfNpsNumbersFromMaster("GPF", "   "),
+     rep.gpfNpsNumbersFromMaster("BOTH", "999"),
+     rep.gpfNpsNumbersFromMaster(null, null)],
+    [{ gpfNumber: "", npsNumber: "" },
+     { gpfNumber: "", npsNumber: "" },
+     { gpfNumber: "", npsNumber: "" }]);
+  check("the number is not the deduction amount",
+    june.filter(r => r.employeeId === 2002 && r.billType === "REGULAR")
+      .every(r => r.gpfNumber !== String(r.gpfDeduction) && r.gpfDeduction === 2500), true);
+  check("deduction amounts are unchanged by the new columns",
+    [t.gpfDeduction, t.npsDeduction, t.totalDeduction], [5500, 3750, 9250]);
+  check("the master number does not create a duplicate employee row",
+    june.filter(r => r.employeeId === 2002).length, 2);
+  check("institute and employee filters still return that employee's number",
+    build({ month: 6, year: 2026, instituteCode: "CPD-17", employeeId: 2007 })
+      .map(r => r.npsNumber), ["110020070007"]);
+  check("the loader already selects both master columns for this EmployeeId",
+    /em\.GPFNPS,/.test(ewsSrc) && /em\.GPFNPSNumber/.test(ewsSrc) &&
+    /em\.EmployeeId = d\.EmployeeId/.test(ewsSrc), true);
+  check("DA Difference rows use the same EmployeeMaster columns",
+    /em\.GPFNPS,\s*em\.GPFNPSNumber/.test(catSrc), true);
+  check("a DA NPS employee shows the master number and still has zero GPF",
+    (() => { const d = rep.daRowToDeductionRow({
+      salaryCategory: "DA_DIFFERENCE", nps: 1234, paidMonth: "JUN-2026",
+      type: "REGULAR", gpfNps: "NPS", pran: "110099988877" });
+      return [d.gpfNumber, d.npsNumber, d.gpfDeduction, d.npsDeduction]; })(),
+    ["", "110099988877", 0, 1234]);
+  check("screen, Copy, CSV and PDF read the same column labels as Excel",
+    pageLabels, XLSX_COLUMNS.map(c => c.label));
+  const sheet = rep.deductionSheetAoA({ rows: june, totals: t });
+  const gpfCol = sheet[0].indexOf("GPF Number");
+  const npsCol = sheet[0].indexOf("NPS Number");
+  const idCol = sheet[0].indexOf("Employee ID");
+  const typeCol = sheet[0].indexOf("Bill Type");
+  const gpfRow = sheet.find((r) => r[idCol] === "2002" && r[typeCol] === "REGULAR");
+  const npsRow = sheet.find((r) => r[idCol] === "2007");
+  const blankRow = sheet.find((r) => r[idCol] === "2008");
+  check("Excel contains the GPF Number and NPS Number headers",
+    [sheet[0][gpfCol], sheet[0][npsCol]], ["GPF Number", "NPS Number"]);
+  check("Excel GPF and NPS numbers match the screen rows",
+    [gpfRow[gpfCol], gpfRow[npsCol], npsRow[gpfCol], npsRow[npsCol], blankRow[gpfCol]],
+    ["GJ/GPF/2002", "", "", "110020070007", ""]);
+  check("Excel money columns stay on the deduction amounts",
+    [gpfRow[sheet[0].indexOf("GPF Deduction")], npsRow[sheet[0].indexOf("NPS Deduction")]],
+    [2500, 1850]);
+  check("Excel total stays aligned after the two new columns",
+    sheet[sheet.length - 1].slice(-3), [5500, 3750, 9250]);
+  const XLSX = require("xlsx");
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet(sheet), "NPS GPF Deduction");
+  const written = XLSX.write(book, { type: "buffer", bookType: "xlsx" });
+  const readBack = XLSX.utils.sheet_to_json(
+    XLSX.read(written, { type: "buffer" }).Sheets["NPS GPF Deduction"],
+    { header: 1, raw: false }
+  );
+  check("the xlsx file round-trips both account numbers",
+    readBack.some((r) => r.includes("GJ/GPF/2002")) &&
+    readBack.some((r) => r.includes("110020070007")), true);
+  check("PDF and print render the same COLUMNS, including both numbers",
+    /\{COLUMNS\.map\(\(column\) =>/.test(pageSrc) &&
+    pageSrc.includes('label: "GPF Number"') &&
+    pageSrc.includes('label: "NPS Number"') &&
+    pageSrc.includes('printReport("npsGpfDeduction")') &&
+    /colSpan=\{COLUMNS\.findIndex\(\(c\) => c\.key === "gpfDeduction"\)\}/.test(pageSrc), true);
+  check("search includes the new number fields",
+    /row\.gpfNumber, row\.npsNumber/.test(pageSrc), true);
+  check("this route still does not write salary rows or change schema",
+    /\b(UPDATE|INSERT|DELETE|ALTER TABLE)\b/i.test(routeSrc), false);
 
   section("Salary Category — REGULAR vs DA DIFFERENCE");
   const cat = require("../utils/salaryCategory");
