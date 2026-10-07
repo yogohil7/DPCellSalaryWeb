@@ -8,6 +8,7 @@ const {
   isHraApplicable,
 } = require("../utils/payrollConfig");
 const { calculateSalaryAmounts, toNum, calculateNps, calculateChequeAmount } = require("../utils/salaryBasicCalc");
+const { isFixEmployeeType, zeroFixEarningComponentLines } = require("../utils/fixEmployeeSalary");
 const {
   getClaPayLevelGroup,
   resolveTransportAllowancePayLevelGroup,
@@ -668,23 +669,36 @@ async function calculateForEmployee(employeeId, asOfDate, basicPayOverride = nul
     };
   });
 
+  /* FIX pay is Fix Basic only. Regular earning components (including DA/HRA
+     calculated above from a zero basic) must not be stored or returned. */
+  zeroFixEarningComponentLines(lines, employeeType);
+  const fixPayOnly = employeeType === "FIX";
+
   const amountBy = (code) =>
     toNum(lines.find((l) => l.componentCode === code)?.amount);
 
   const gradePay = fixBasic;
   const totalBasic = totalBasicPay;
-  const specialAllowance = amountBy("SPECIAL") + amountBy("OTHER_EARNING");
-  const washingAllowance =
-    amountBy("WASHING") || amountBy("WASHING_ALLOWANCE");
-  const nppaAmount = amountBy("NPPA");
-  /* Prefer central Total-Basic-derived DA/HRA; fall back to component lines. */
-  const da = daAmount || amountBy("DA");
-  const hra = hraForcedZero ? 0 : hraAmount || amountBy("HRA");
+  const specialAllowance = fixPayOnly
+    ? 0
+    : amountBy("SPECIAL") + amountBy("OTHER_EARNING");
+  const washingAllowance = fixPayOnly
+    ? 0
+    : (amountBy("WASHING") || amountBy("WASHING_ALLOWANCE"));
+  const nppaAmount = fixPayOnly ? 0 : amountBy("NPPA");
+  /* Prefer central Total-Basic-derived DA/HRA; fall back to component lines.
+     Parentheses keep a FIX zero from falling through `||` to a component amount. */
+  const da = fixPayOnly ? 0 : (daAmount || amountBy("DA"));
+  const hra = fixPayOnly
+    ? 0
+    : hraForcedZero
+      ? 0
+      : hraAmount || amountBy("HRA");
   /* Prefer Medical / Transport master amounts loaded above. */
-  const ma = medical || amountBy("MEDICAL");
-  const ta = transport || amountBy("TRANSPORT");
+  const ma = fixPayOnly ? 0 : (medical || amountBy("MEDICAL"));
+  const ta = fixPayOnly ? 0 : (transport || amountBy("TRANSPORT"));
   /* Prefer master CLA; component code CLA if present */
-  const cla = claAmount || amountBy("CLA");
+  const cla = fixPayOnly ? 0 : (claAmount || amountBy("CLA"));
   const grossSalary =
     totalBasic +
     da +
@@ -759,8 +773,8 @@ async function calculateForEmployee(employeeId, asOfDate, basicPayOverride = nul
     cellNo: employeeType === "FIX" ? null : pay.cellNo,
     payMatrixId: employeeType === "FIX" ? null : pay.payMatrixId,
     basicPay,
-    daRate: daPct,
-    hraRate: hraPct,
+    daRate: fixPayOnly ? 0 : daPct,
+    hraRate: fixPayOnly ? 0 : hraPct,
     daMasterId,
     hraMasterId,
     claMasterId,
@@ -803,7 +817,7 @@ async function calculateForEmployee(employeeId, asOfDate, basicPayOverride = nul
       specialAllowance,
       washingAllowance,
       nppa: nppaAmount,
-      otherEarnings: amountBy("OTHER_EARNING"),
+      otherEarnings: fixPayOnly ? 0 : amountBy("OTHER_EARNING"),
       grossSalary,
     },
     deductions: {
@@ -829,10 +843,10 @@ function mapCalcToGridRow(calc, extras = {}) {
   const hraForcedZero = Boolean(
     manual.hraForcedZero ?? calc.payrollConfig?.hraForcedZero
   );
-  const washingAllowance = toNum(
+  let washingAllowance = toNum(
     manual.washingAllowance ?? calc.earnings.washingAllowance
   );
-  const specialAllowance = toNum(
+  let specialAllowance = toNum(
     manual.specialAllowance ?? calc.earnings.specialAllowance
   );
   const gpfNpsFlag = String(calc.employee.gpfNps || "")
@@ -857,8 +871,9 @@ function mapCalcToGridRow(calc, extras = {}) {
     manual.otherDeduction ?? calc.deductions.otherDeduction
   );
 
+  const fixPayOnly = isFixEmployeeType(calc.employee.employeeType);
   let basicPay = toNum(manual.basicPay ?? calc.basicPay);
-  if (String(calc.employee.employeeType || "").toUpperCase() === "FIX") {
+  if (fixPayOnly) {
     basicPay = 0;
   }
   const fixBasic = toNum(
@@ -868,8 +883,9 @@ function mapCalcToGridRow(calc, extras = {}) {
       calc.earnings.fixBasic ??
       0
   );
-  const daRate = toNum(manual.daRate ?? calc.daRate);
-  const hraRate = toNum(manual.hraRate ?? calc.hraRate);
+  /* A posted DA/HRA rate must not rebuild regular allowances for FIX pay. */
+  const daRate = fixPayOnly ? 0 : toNum(manual.daRate ?? calc.daRate);
+  const hraRate = fixPayOnly ? 0 : toNum(manual.hraRate ?? calc.hraRate);
 
   const derived = calculateSalaryAmounts({
     basic: basicPay,
@@ -879,23 +895,31 @@ function mapCalcToGridRow(calc, extras = {}) {
     payrollHra: hraForcedZero,
   });
 
-  /* Manual DA/HRA only when explicitly provided; otherwise derive from Total Basic. */
-  const da =
-    manual.da != null && manual.da !== ""
+  /* Manual DA/HRA only when explicitly provided; otherwise derive from Total Basic.
+     FIX employees never receive those allowances, even if a draft still has them. */
+  const da = fixPayOnly
+    ? 0
+    : manual.da != null && manual.da !== ""
       ? toNum(manual.da)
       : derived.da;
-  const hra = hraForcedZero
+  const hra = fixPayOnly
     ? 0
-    : manual.hra != null && manual.hra !== ""
-      ? toNum(manual.hra)
-      : derived.hra;
-  const ma = toNum(manual.ma ?? calc.earnings.ma);
-  const ta = toNum(manual.ta ?? calc.earnings.ta);
-  const cla = toNum(manual.cla ?? calc.earnings.cla);
-  const nppa = toNum(manual.nppa ?? calc.earnings.nppa);
-  const otherEarnings = toNum(
-    manual.otherEarnings ?? calc.earnings.otherEarnings
-  );
+    : hraForcedZero
+      ? 0
+      : manual.hra != null && manual.hra !== ""
+        ? toNum(manual.hra)
+        : derived.hra;
+  const ma = fixPayOnly ? 0 : toNum(manual.ma ?? calc.earnings.ma);
+  const ta = fixPayOnly ? 0 : toNum(manual.ta ?? calc.earnings.ta);
+  const cla = fixPayOnly ? 0 : toNum(manual.cla ?? calc.earnings.cla);
+  const nppa = fixPayOnly ? 0 : toNum(manual.nppa ?? calc.earnings.nppa);
+  const otherEarnings = fixPayOnly
+    ? 0
+    : toNum(manual.otherEarnings ?? calc.earnings.otherEarnings);
+  if (fixPayOnly) {
+    washingAllowance = 0;
+    specialAllowance = 0;
+  }
   const npsAdvance = 0;
   const gradePay = fixBasic;
   const totalBasic = derived.totalBasicPay;
