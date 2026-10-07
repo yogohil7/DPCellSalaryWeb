@@ -8,6 +8,7 @@ const {
 } = require("./salaryCalculate");
 const { loadActivePayrollConfig, isHraForcedZero } = require("../utils/payrollConfig");
 const { calculateSalaryAmounts, calculateNps, calculateChequeAmount } = require("../utils/salaryBasicCalc");
+const { isFixEmployeeType } = require("../utils/fixEmployeeSalary");
 const {
   isGpfNpsStoppedForRetirement,
   salaryYearMonthFromAsOfDate,
@@ -17,6 +18,7 @@ const {
   upsertInstituteWorkflow,
   assertInstituteEditable,
   canonicalBillMonthFromBill,
+  EDITABLE_INSTITUTE_STATUSES,
 } = require("../utils/salaryBillInstituteWorkflow");
 const { APPROVED_WORKFLOW_STATUSES } = require("./chequeRegister");
 const {
@@ -402,6 +404,18 @@ function nonNeg(value, fieldName, errors, employeeId) {
 }
 
 /**
+ * Draft / Returned / Rejected salary entry may correct a FIX employee's
+ * regular allowances. Approved and Locked snapshots must be left as stored.
+ * A missing status is treated as an unsaved draft (the rule applies).
+ */
+function shouldApplyFixPayRule(workflowStatus) {
+  if (workflowStatus == null || String(workflowStatus).trim() === "") return true;
+  return EDITABLE_INSTITUTE_STATUSES.has(
+    String(workflowStatus).trim().toUpperCase()
+  );
+}
+
+/**
  * Recalculate totals from component amounts (bill snapshot).
  *
  * `retirementStop` (default false) is the retirement-based GPF/NPS stop
@@ -421,7 +435,7 @@ function nonNeg(value, fieldName, errors, employeeId) {
  *     is the only caller that passes this flag, freshly computed from
  *     EmployeeMaster.DateOfRetirement + the bill's Salary Month.
  */
-function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop = false }) {
+function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop = false, applyFixPayRule = true }) {
   const employeeId = Number(input.employeeId);
   const errors = [];
 
@@ -435,28 +449,28 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop
   const gradePay = fixBasic;
   let da = nonNeg(input.da, "DA", errors, employeeId);
   let hra = nonNeg(input.hra, "HRA", errors, employeeId);
-  const ma = nonNeg(input.ma, "MA", errors, employeeId);
-  const ta = nonNeg(input.ta, "TA", errors, employeeId);
-  const cla = nonNeg(input.cla, "CLA", errors, employeeId);
-  const specialAllowance = nonNeg(
+  let ma = nonNeg(input.ma, "MA", errors, employeeId);
+  let ta = nonNeg(input.ta, "TA", errors, employeeId);
+  let cla = nonNeg(input.cla, "CLA", errors, employeeId);
+  let specialAllowance = nonNeg(
     input.specialAllowance,
     "Special Allowance",
     errors,
     employeeId
   );
-  const washingAllowance = nonNeg(
+  let washingAllowance = nonNeg(
     input.washingAllowance,
     "Washing Allowance",
     errors,
     employeeId
   );
-  const otherEarnings = nonNeg(
+  let otherEarnings = nonNeg(
     input.otherEarnings,
     "Other Earnings",
     errors,
     employeeId
   );
-  const nppa = nonNeg(input.nppa, "NPPA", errors, employeeId);
+  let nppa = nonNeg(input.nppa, "NPPA", errors, employeeId);
 
   let gpfSubscription = nonNeg(
     input.gpfSubscription,
@@ -533,6 +547,26 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop
     hra = 0;
   }
 
+  /*
+     FIX employees are paid only Fix Basic. This runs after the regular
+     rate recalc so a saved DA percentage cannot put DA/HRA back.
+     applyFixPayRule is false only when the caller is showing an
+     Approved/Locked snapshot that must stay as stored.
+  */
+  const fixPayRule =
+    isFixEmployeeType(input.employeeType) && applyFixPayRule !== false;
+  if (fixPayRule) {
+    da = 0;
+    hra = 0;
+    ma = 0;
+    ta = 0;
+    cla = 0;
+    specialAllowance = 0;
+    washingAllowance = 0;
+    otherEarnings = 0;
+    nppa = 0;
+  }
+
   const pensionType = pension === "GPF" || pension === "NPS" ? pension : "";
   const npsManual = Boolean(
     input.npsManual === true ||
@@ -552,7 +586,9 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop
   } else if (pensionType === "NPS") {
     gpfSubscription = 0;
     gpfAdvance = 0;
-    if (!forceAutoNps && preserveSavedNps) {
+    /* A corrected FIX row drops DA, so automatic NPS follows Total Basic + 0.
+       A manually entered NPS is kept. Retirement stop below still wins. */
+    if (!forceAutoNps && preserveSavedNps && !(fixPayRule && !npsManual)) {
       nps = nonNeg(input.nps, "NPS", errors, employeeId);
     } else {
       nps = calculateNps(totalBasic, da);
@@ -613,12 +649,12 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop
       totalBasic,
       totalBasicPay: totalBasic,
       da,
-      daRate: hasDaRate ? daRate : input.daRate ?? null,
+      daRate: fixPayRule ? 0 : hasDaRate ? daRate : input.daRate ?? null,
       hra,
-      hraRate: hasHraRate ? hraRate : input.hraRate ?? null,
+      hraRate: fixPayRule ? 0 : hasHraRate ? hraRate : input.hraRate ?? null,
       ma,
       ta,
-      taManual: isManualTa(input),
+      taManual: fixPayRule ? false : isManualTa(input),
       cla,
       specialAllowance,
       washingAllowance,
@@ -659,7 +695,7 @@ function finalizeSnapshotAmounts(input, { pension, hraForcedZero, retirementStop
  * reopen a saved row for display) omits it and keeps the old, unaffected
  * behavior.
  */
-function mapSavedDetailToGridRow(dbRow, { retirementStop = false } = {}) {
+function mapSavedDetailToGridRow(dbRow, { retirementStop = false, applyFixPayRule = false } = {}) {
   const pension = String(dbRow.PensionType || "")
     .trim()
     .toUpperCase();
@@ -699,6 +735,7 @@ function mapSavedDetailToGridRow(dbRow, { retirementStop = false } = {}) {
     {
       pension: pension === "GPF" || pension === "NPS" ? pension : "",
       hraForcedZero: Boolean(dbRow.HraForcedZero),
+      applyFixPayRule,
       retirementStop,
     }
   ).row;
@@ -933,6 +970,7 @@ async function buildEmployeeRows({ bill, institute, asOfDate, billMonth, isCanon
      the caller uses for its own status display — never a different instance.
   */
   let instanceEditableForRetirementStop = true;
+  let workflowStatus = null;
   if (billMonth) {
     try {
       const workflow = await getInstituteWorkflow(
@@ -942,14 +980,17 @@ async function buildEmployeeRows({ bill, institute, asOfDate, billMonth, isCanon
       );
       if (workflow) {
         const status = String(workflow.Status || "DRAFT").trim().toUpperCase();
+        workflowStatus = status;
         instanceEditableForRetirementStop = !APPROVED_WORKFLOW_STATUSES.has(status);
       }
     } catch (_) {
       /* No workflow row / lookup failure -> treat as an editable draft
          rather than silently skipping the rule. */
       instanceEditableForRetirementStop = true;
+      workflowStatus = null;
     }
   }
+  const applyFixPayRule = shouldApplyFixPayRule(workflowStatus);
   const retirementSalaryYm = salaryYearMonthFromAsOfDate(asOfDate);
 
   const rows = [];
@@ -983,7 +1024,7 @@ async function buildEmployeeRows({ bill, institute, asOfDate, billMonth, isCanon
           HraForcedZero: hraForcedZero ? 1 : 0,
           HRA: hraForcedZero ? 0 : existing.HRA,
         },
-        { retirementStop: retirementStopForRow }
+        { retirementStop: retirementStopForRow, applyFixPayRule }
       );
       row.displayOrder = existing.DisplayOrder || order;
       row.dateOfRetirement = retirementDateByEmployeeId.get(employeeId) || null;
@@ -2658,6 +2699,7 @@ router.get("/variation-report", async (req, res) => {
 module.exports = router;
 /* Exported for offline tests (scripts/testBillMonthAcceptance.js). */
 module.exports.finalizeSnapshotAmounts = finalizeSnapshotAmounts;
+module.exports.shouldApplyFixPayRule = shouldApplyFixPayRule;
 module.exports.mapSavedDetailToGridRow = mapSavedDetailToGridRow;
 module.exports.statusGateBill = statusGateBill;
 module.exports.assertInstituteInSection = assertInstituteInSection;

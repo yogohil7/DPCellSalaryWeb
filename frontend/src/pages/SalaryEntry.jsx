@@ -17,6 +17,10 @@ import { listInstitutes } from "../utils/instituteApi";
 import { sortInstitutesByCode } from "../utils/instituteCodeSort";
 import { listActiveSections } from "../utils/sectionApi";
 import { calculateSalaryAmounts, calculateNps, calculateChequeAmount } from "../utils/salaryBasicCalc";
+import {
+  isFixEmployeeType,
+  FIX_INAPPLICABLE_EARNING_FIELDS,
+} from "../utils/fixEmployeeSalary";
 import { isGpfNpsStoppedForRetirement } from "../utils/retirementRules";
 import "./salaryEntry.css";
 import useReportPrintPage, { printReport } from "../utils/useReportPrintPage";
@@ -186,11 +190,12 @@ const resolvePercentRate = (storedRate, amount, base) => {
   return null;
 };
 
-const calculateEmployee = (employee, salaryMonth) => {
-  const basicPay =
-    String(employee.employeeType || "").toUpperCase() === "FIX"
-      ? 0
-      : toNumber(employee.basicPay);
+const calculateEmployee = (employee, salaryMonth, options = {}) => {
+  const fixPayOnly = isFixEmployeeType(employee.employeeType);
+  /* Approved/Locked (read-only) rows keep the stored allowances. */
+  const preserveStoredAllowances =
+    fixPayOnly && Boolean(options.preserveStoredAllowances);
+  const basicPay = fixPayOnly ? 0 : toNumber(employee.basicPay);
   const fixBasic = resolveFixBasic(employee);
   const totalBasic = basicPay + fixBasic;
   const pension = normalizePension(employee);
@@ -231,16 +236,38 @@ const calculateEmployee = (employee, salaryMonth) => {
   });
 
   let da = toNumber(employee.da);
-  if (forceEarningsFromBasic || !daManual) {
+  if (!preserveStoredAllowances && fixPayOnly) {
+    da = 0;
+  } else if (forceEarningsFromBasic || !daManual) {
     da = daRate != null ? derived.da : da;
   }
 
   let hra = toNumber(employee.hra);
-  if (employee.hraForcedZero) {
+  if (!preserveStoredAllowances && fixPayOnly) {
+    hra = 0;
+  } else if (employee.hraForcedZero) {
     hra = 0;
   } else if (forceEarningsFromBasic || !hraManual) {
     hra = hraRate != null ? derived.hra : hra;
   }
+
+  const ma = preserveStoredAllowances || !fixPayOnly ? toNumber(employee.ma) : 0;
+  const ta = preserveStoredAllowances || !fixPayOnly ? toNumber(employee.ta) : 0;
+  const cla = preserveStoredAllowances || !fixPayOnly ? toNumber(employee.cla) : 0;
+  const specialAllowance =
+    preserveStoredAllowances || !fixPayOnly
+      ? toNumber(employee.specialAllowance)
+      : 0;
+  const washingAllowance =
+    preserveStoredAllowances || !fixPayOnly
+      ? toNumber(employee.washingAllowance)
+      : 0;
+  const otherEarnings =
+    preserveStoredAllowances || !fixPayOnly
+      ? toNumber(employee.otherEarnings)
+      : 0;
+  const nppa =
+    preserveStoredAllowances || !fixPayOnly ? toNumber(employee.nppa) : 0;
 
   let nps = toNumber(employee.nps);
   if (pension === "NPS") {
@@ -261,13 +288,13 @@ const calculateEmployee = (employee, salaryMonth) => {
     totalBasic +
     da +
     hra +
-    toNumber(employee.ma) +
-    toNumber(employee.ta) +
-    toNumber(employee.cla) +
-    toNumber(employee.specialAllowance) +
-    toNumber(employee.washingAllowance) +
-    toNumber(employee.otherEarnings) +
-    toNumber(employee.nppa);
+    ma +
+    ta +
+    cla +
+    specialAllowance +
+    washingAllowance +
+    otherEarnings +
+    nppa;
 
   const next = {
     ...employee,
@@ -278,13 +305,30 @@ const calculateEmployee = (employee, salaryMonth) => {
     totalBasicPay: totalBasic,
     da,
     hra,
-    daRate: daRate != null ? daRate : employee.daRate ?? null,
-    hraRate: hraRate != null ? hraRate : employee.hraRate ?? null,
+    ma,
+    ta,
+    cla,
+    specialAllowance,
+    washingAllowance,
+    otherEarnings,
+    nppa,
+    daRate:
+      fixPayOnly && !preserveStoredAllowances
+        ? 0
+        : daRate != null
+          ? daRate
+          : employee.daRate ?? null,
+    hraRate:
+      fixPayOnly && !preserveStoredAllowances
+        ? 0
+        : hraRate != null
+          ? hraRate
+          : employee.hraRate ?? null,
     nps,
     npsManual: pension === "NPS" ? npsManual : false,
-    daManual: forceEarningsFromBasic ? false : daManual,
-    hraManual: forceEarningsFromBasic ? false : hraManual,
-    taManual: forceEarningsFromBasic ? false : Boolean(employee.taManual),
+    daManual: fixPayOnly && !preserveStoredAllowances ? false : forceEarningsFromBasic ? false : daManual,
+    hraManual: fixPayOnly && !preserveStoredAllowances ? false : forceEarningsFromBasic ? false : hraManual,
+    taManual: fixPayOnly && !preserveStoredAllowances ? false : forceEarningsFromBasic ? false : Boolean(employee.taManual),
     professionTax,
     professionalTax: professionTax,
     incomeTax,
@@ -1084,8 +1128,12 @@ export default function SalaryEntry({
      ========================================================= */
 
   const calculatedEmployees = useMemo(() => {
-    return employees.map((employee) => calculateEmployee(employee, salaryMonth));
-  }, [employees, salaryMonth]);
+    return employees.map((employee) =>
+      calculateEmployee(employee, salaryMonth, {
+        preserveStoredAllowances: salaryReadOnly,
+      })
+    );
+  }, [employees, salaryMonth, salaryReadOnly]);
 
   /*
      Does this bill deduct NPS from anyone?
@@ -1274,6 +1322,12 @@ export default function SalaryEntry({
 
         const pension = normalizePension(employee);
         if (
+          isFixEmployeeType(employee.employeeType) &&
+          FIX_INAPPLICABLE_EARNING_FIELDS.includes(field)
+        ) {
+          return employee;
+        }
+        if (
           field === "nps" &&
           pension === "GPF"
         ) {
@@ -1428,11 +1482,12 @@ export default function SalaryEntry({
             employee.hra,
             prevTotal
           );
+          const fixPayOnly = isFixEmployeeType(next.employeeType);
           const derived = calculateSalaryAmounts({
             basic: basicPay,
             fixBasic,
-            daPercentage: daRate != null ? daRate : 0,
-            hraPercentage: hraRate != null ? hraRate : 0,
+            daPercentage: fixPayOnly || daRate == null ? 0 : daRate,
+            hraPercentage: fixPayOnly || hraRate == null ? 0 : hraRate,
             payrollHra: Boolean(next.hraForcedZero),
           });
           const keepManualNps = Boolean(next.npsManual) && pension === "NPS";
@@ -1443,14 +1498,23 @@ export default function SalaryEntry({
             gradePay: fixBasic,
             totalBasic: derived.totalBasicPay,
             totalBasicPay: derived.totalBasicPay,
-            da: daRate != null ? derived.da : toNumber(next.da),
-            hra: next.hraForcedZero
+            da: fixPayOnly ? 0 : daRate != null ? derived.da : toNumber(next.da),
+            hra: fixPayOnly
               ? 0
-              : hraRate != null
-                ? derived.hra
-                : toNumber(next.hra),
-            daRate: daRate != null ? daRate : next.daRate ?? null,
-            hraRate: hraRate != null ? hraRate : next.hraRate ?? null,
+              : next.hraForcedZero
+                ? 0
+                : hraRate != null
+                  ? derived.hra
+                  : toNumber(next.hra),
+            ma: fixPayOnly ? 0 : next.ma,
+            ta: fixPayOnly ? 0 : next.ta,
+            cla: fixPayOnly ? 0 : next.cla,
+            specialAllowance: fixPayOnly ? 0 : next.specialAllowance,
+            washingAllowance: fixPayOnly ? 0 : next.washingAllowance,
+            otherEarnings: fixPayOnly ? 0 : next.otherEarnings,
+            nppa: fixPayOnly ? 0 : next.nppa,
+            daRate: fixPayOnly ? 0 : daRate != null ? daRate : next.daRate ?? null,
+            hraRate: fixPayOnly ? 0 : hraRate != null ? hraRate : next.hraRate ?? null,
             daManual: false,
             hraManual: false,
             taManual: false,
@@ -1473,12 +1537,14 @@ export default function SalaryEntry({
       })
     );
     if (field === "basicPay" || field === "fixBasic" || field === "gradePay") {
+      const edited = employees.find((employee) =>
+        sameEmployeeId(employee.employeeId, employeeId)
+      );
+      if (isFixEmployeeType(edited?.employeeType)) {
+        return;
+      }
       const currentBasic =
-        field === "basicPay"
-          ? value
-          : employees.find((employee) =>
-              sameEmployeeId(employee.employeeId, employeeId)
-            )?.basicPay;
+        field === "basicPay" ? value : edited?.basicPay;
       recalculateTransportAllowance(
         {
           billCode,
@@ -2845,7 +2911,10 @@ export default function SalaryEntry({
                         <input
                           type="number"
                           min="0"
-                          readOnly={salaryReadOnly}
+                          readOnly={
+                            salaryReadOnly ||
+                            isFixEmployeeType(employee.employeeType)
+                          }
                           value={
                             employee.da
                           }
@@ -2867,7 +2936,9 @@ export default function SalaryEntry({
                           type="number"
                           min="0"
                           readOnly={
-                            salaryReadOnly || Boolean(employee.hraForcedZero)
+                            salaryReadOnly ||
+                            Boolean(employee.hraForcedZero) ||
+                            isFixEmployeeType(employee.employeeType)
                           }
                           value={
                             employee.hraForcedZero ? 0 : employee.hra
@@ -2889,7 +2960,10 @@ export default function SalaryEntry({
                         <input
                           type="number"
                           min="0"
-                          readOnly={salaryReadOnly}
+                          readOnly={
+                            salaryReadOnly ||
+                            isFixEmployeeType(employee.employeeType)
+                          }
                           value={
                             employee.ma
                           }
@@ -2910,7 +2984,10 @@ export default function SalaryEntry({
                         <input
                           type="number"
                           min="0"
-                          readOnly={salaryReadOnly}
+                          readOnly={
+                            salaryReadOnly ||
+                            isFixEmployeeType(employee.employeeType)
+                          }
                           value={
                             employee.ta
                           }
@@ -2931,7 +3008,10 @@ export default function SalaryEntry({
                         <input
                           type="number"
                           min="0"
-                          readOnly={salaryReadOnly}
+                          readOnly={
+                            salaryReadOnly ||
+                            isFixEmployeeType(employee.employeeType)
+                          }
                           value={
                             employee.cla ?? 0
                           }
@@ -2952,7 +3032,10 @@ export default function SalaryEntry({
                         <input
                           type="number"
                           min="0"
-                          readOnly={salaryReadOnly}
+                          readOnly={
+                            salaryReadOnly ||
+                            isFixEmployeeType(employee.employeeType)
+                          }
                           value={
                             employee.specialAllowance
                           }
@@ -2973,7 +3056,10 @@ export default function SalaryEntry({
                         <input
                           type="number"
                           min="0"
-                          readOnly={salaryReadOnly}
+                          readOnly={
+                            salaryReadOnly ||
+                            isFixEmployeeType(employee.employeeType)
+                          }
                           value={
                             employee.washingAllowance
                           }

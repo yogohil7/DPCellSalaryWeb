@@ -115,6 +115,7 @@
     "test:account-officer-dashboard-api": "node scripts/testAccountOfficerDashboardApi.js",
     "test:report-pdf-layout": "node scripts/testReportPdfLayout.js",
     "test:salary-entry-cheque-amount": "node scripts/testSalaryEntryChequeAmount.js",
+    "test:fix-employee-salary": "node scripts/testFixEmployeeSalary.js",
     "test:institute-order": "node scripts/testInstituteDropdownOrder.js",
     "test:report-styling": "node scripts/testReportStyling.js",
     "test:scale-of-pay": "node scripts/testScaleOfPayOptions.js",

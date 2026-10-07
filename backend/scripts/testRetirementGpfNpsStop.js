@@ -271,7 +271,7 @@ check("mapSavedDetailToGridRow takes an explicit, opt-in retirementStop paramete
       salaryEntrySrc.indexOf("function mapSavedDetailToGridRow"),
       salaryEntrySrc.indexOf("function loadSavedRows")
     );
-    return /function mapSavedDetailToGridRow\(dbRow, \{ retirementStop = false \} = \{\}\)/.test(fn)
+    return /function mapSavedDetailToGridRow\(dbRow, \{ retirementStop = false/.test(fn)
       && /retirementStop,\s*\n\s*\}\s*\n\s*\)\.row;/.test(fn);
   })(),
   true
@@ -285,7 +285,7 @@ check("buildEmployeeRows re-derives retirementStop from the CURRENT EmployeeMast
   true
 );
 check("the saved-row branch actually forwards the recomputed flag into mapSavedDetailToGridRow",
-  /mapSavedDetailToGridRow\(\s*\n\s*\{\s*\n\s*\.\.\.existing,\s*\n\s*HraForcedZero: hraForcedZero \? 1 : 0,\s*\n\s*HRA: hraForcedZero \? 0 : existing\.HRA,\s*\n\s*\},\s*\n\s*\{ retirementStop: retirementStopForRow \}\s*\n\s*\);/.test(salaryEntrySrc),
+  /mapSavedDetailToGridRow\(\s*\n\s*\{\s*\n\s*\.\.\.existing,\s*\n\s*HraForcedZero: hraForcedZero \? 1 : 0,\s*\n\s*HRA: hraForcedZero \? 0 : existing\.HRA,\s*\n\s*\},\s*\n\s*\{ retirementStop: retirementStopForRow, applyFixPayRule \}\s*\n\s*\);/.test(salaryEntrySrc),
   true
 );
 
@@ -296,7 +296,7 @@ check("calculateEmployee computes gpfNpsRetirementStop from employee.dateOfRetir
   /isGpfNpsStoppedForRetirement\(\{\s*\n\s*dateOfRetirement: employee\.dateOfRetirement,\s*\n\s*salaryMonth,/.test(pageSrc),
   true);
 check("calculatedEmployees recomputes when salaryMonth changes (not just employees)",
-  /\[employees, salaryMonth\]/.test(pageSrc), true);
+  /\[employees, salaryMonth, salaryReadOnly\]/.test(pageSrc), true);
 check("GPF Subscription input is disabled when the rule applies",
   /employee\.gpfNpsRetirementStop\s*\n\s*\}\s*\n\s*value=\{\s*\n\s*employee\.gpfSubscription/.test(pageSrc),
   true);
